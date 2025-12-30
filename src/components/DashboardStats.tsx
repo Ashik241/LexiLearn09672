@@ -35,7 +35,7 @@ export function DashboardStats() {
       className: 'text-red-500'
     },
     {
-      title: 'मध्यম',
+      title: 'Medium',
       value: stats.mediumWords,
       icon: HelpCircle,
       description: "'Medium' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",

@@ -100,7 +100,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-4xl font-bold font-code text-primary flex items-center gap-4">
+                <CardTitle className="text-4xl font-bold font-code text-primary flex items-center gap-4 break-words">
                   {word.word}
                 </CardTitle>
                 <CardDescription className="text-lg mt-2">{word.parts_of_speech}</CardDescription>
@@ -148,20 +148,20 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
           <CardContent className="space-y-6">
             <div>
               <h3 className="text-xl font-semibold mb-2">অর্থ (বাংলা)</h3>
-              <p className="text-muted-foreground">{word.meaning}</p>
+              <p className="text-muted-foreground break-words">{word.meaning}</p>
             </div>
             
             {word.meaning_explanation && (
               <div className="bg-card-foreground/5 p-4 rounded-lg">
                 <h3 className="text-xl font-semibold mb-2">অর্থের ব্যাখ্যা</h3>
-                <p className="text-muted-foreground italic">"{word.meaning_explanation}"</p>
+                <p className="text-muted-foreground italic break-words">"{word.meaning_explanation}"</p>
               </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h3 className="text-xl font-semibold mb-2">সিলেবল</h3>
-                    <p className="text-muted-foreground font-code">{word.syllables?.join(' · ')}</p>
+                    <p className="text-muted-foreground font-code break-words">{word.syllables?.join(' · ')}</p>
                 </div>
             </div>
 
@@ -201,7 +201,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                 <h3 className="text-xl font-semibold mb-2">সাধারণ উদাহরণ</h3>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                   {word.example_sentences.map((sentence, i) => (
-                    <li key={i}>"{sentence}"</li>
+                    <li key={i} className="break-words">"{sentence}"</li>
                   ))}
                 </ul>
               </div>
@@ -214,27 +214,27 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                     <div className="space-y-6">
                         {/* Present Form */}
                         <div>
-                            <h4 className="text-lg font-semibold text-primary">Present: {word.verb_forms.present}</h4>
+                            <h4 className="text-lg font-semibold text-primary break-words">Present: {word.verb_forms.present}</h4>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.present)}><Volume2 className="h-4 w-4"/></Button>
                             </div>
-                            <p className="mt-1 italic">"{word.verb_forms.form_examples.present}"</p>
+                            <p className="mt-1 italic break-words">"{word.verb_forms.form_examples.present}"</p>
                         </div>
                         {/* Past Form */}
                         <div>
-                            <h4 className="text-lg font-semibold text-primary">Past: {word.verb_forms.past}</h4>
+                            <h4 className="text-lg font-semibold text-primary break-words">Past: {word.verb_forms.past}</h4>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past)}><Volume2 className="h-4 w-4"/></Button>
                             </div>
-                            <p className="mt-1 italic">"{word.verb_forms.form_examples.past}"</p>
+                            <p className="mt-1 italic break-words">"{word.verb_forms.form_examples.past}"</p>
                         </div>
                         {/* Past Participle Form */}
                         <div>
-                            <h4 className="text-lg font-semibold text-primary">Past Participle: {word.verb_forms.past_participle}</h4>
+                            <h4 className="text-lg font-semibold text-primary break-words">Past Participle: {word.verb_forms.past_participle}</h4>
                              <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past_participle)}><Volume2 className="h-4 w-4"/></Button>
                             </div>
-                            <p className="mt-1 italic">"{word.verb_forms.form_examples.past_participle}"</p>
+                            <p className="mt-1 italic break-words">"{word.verb_forms.form_examples.past_participle}"</p>
                         </div>
                     </div>
                 </div>

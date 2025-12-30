@@ -164,7 +164,7 @@ export default function McqTest({ word, onComplete, testType }: McqTestProps) {
             variant="outline"
             size="lg"
             className={cn(
-              'w-full justify-start h-auto py-3 text-left',
+              'w-full justify-start h-auto py-3 text-left whitespace-normal',
               selectedOption === option && 'ring-2 ring-primary border-primary'
             )}
             onClick={() => setSelectedOption(option)}

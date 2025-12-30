@@ -221,58 +221,60 @@ export function VocabularyList() {
                             )}
                         </div>
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>শব্দ</TableHead>
-                                    <TableHead>অর্থ</TableHead>
-                                    <TableHead>পদ</TableHead>
-                                    <TableHead className="text-center">স্তর</TableHead>
-                                    <TableHead className="text-right w-[80px]">সম্পাদনা</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {words.map((word) => (
-                                    <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
-                                        <TableCell className="font-medium font-code">{word.word}</TableCell>
-                                        <TableCell>{word.meaning}</TableCell>
-                                        <TableCell>{word.parts_of_speech}</TableCell>
-                                        <TableCell className="text-center">
-                                            <Badge 
-                                                variant={difficultyVariant[word.difficulty_level]}
-                                                className={cn('font-bold', difficultyClass[word.difficulty_level])}
-                                            >
-                                                {word.difficulty_level}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Open menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                                    <DropdownMenuItem onClick={(e) => handleEditClick(e, word.id)}>
-                                                        <Pencil className="mr-2 h-4 w-4" />
-                                                        <span>Edit</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => setWordToDelete(word)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                                        <Trash2 className="mr-2 h-4 w-4" />
-                                                        <span>Delete</span>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>শব্দ</TableHead>
+                                        <TableHead>অর্থ</TableHead>
+                                        <TableHead>পদ</TableHead>
+                                        <TableHead className="text-center">স্তর</TableHead>
+                                        <TableHead className="text-right w-[80px]">সম্পাদনা</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {words.map((word) => (
+                                        <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
+                                            <TableCell className="font-medium font-code break-words">{word.word}</TableCell>
+                                            <TableCell className="break-words">{word.meaning}</TableCell>
+                                            <TableCell className="break-words">{word.parts_of_speech}</TableCell>
+                                            <TableCell className="text-center">
+                                                <Badge 
+                                                    variant={difficultyVariant[word.difficulty_level]}
+                                                    className={cn('font-bold', difficultyClass[word.difficulty_level])}
+                                                >
+                                                    {word.difficulty_level}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Open menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                                        <DropdownMenuItem onClick={(e) => handleEditClick(e, word.id)}>
+                                                            <Pencil className="mr-2 h-4 w-4" />
+                                                            <span>Edit</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => setWordToDelete(word)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            <span>Delete</span>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     )}
                 </CardContent>
             </Card>

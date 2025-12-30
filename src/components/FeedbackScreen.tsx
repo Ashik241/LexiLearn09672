@@ -35,13 +35,13 @@ export default function FeedbackScreen({ isCorrect, word, userAnswer, onNext, is
       <CardContent className="text-center space-y-4">
         <div className="bg-card-foreground/5 p-4 rounded-lg">
           <p className="text-sm text-muted-foreground">শব্দটি ছিল:</p>
-          <p className="text-2xl font-bold font-code text-primary">{word.word}</p>
-          <p className="text-lg text-foreground mt-1">"{word.meaning}"</p>
+          <p className="text-2xl font-bold font-code text-primary break-words">{word.word}</p>
+          <p className="text-lg text-foreground mt-1 break-words">"{word.meaning}"</p>
         </div>
         {!isCorrect && (
           <div className="bg-destructive/10 p-4 rounded-lg">
             <p className="text-sm text-muted-foreground">আপনার উত্তর:</p>
-            <p className="text-xl font-code text-destructive-foreground line-through">{userAnswer}</p>
+            <p className="text-xl font-code text-destructive-foreground line-through break-words">{userAnswer}</p>
           </div>
         )}
          {word.example_sentences && word.example_sentences.length > 0 && (
@@ -49,7 +49,7 @@ export default function FeedbackScreen({ isCorrect, word, userAnswer, onNext, is
             <p className="text-sm text-muted-foreground mb-2">উদাহরণ:</p>
             <ul className="list-disc list-inside space-y-1 text-foreground">
               {word.example_sentences.map((sentence, i) => (
-                <li key={i}>"{sentence}"</li>
+                <li key={i} className="break-words">"{sentence}"</li>
               ))}
             </ul>
           </div>

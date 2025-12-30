@@ -24,18 +24,16 @@ import {
 } from '@/components/ui/form';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { useToast } from '@/hooks/use-toast';
-import { generateWordDetails } from '@/ai/flows/generate-word-details';
 import { Textarea } from './ui/textarea';
-import { Switch } from './ui/switch';
-import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Word, SynonymAntonym } from '@/types';
 
 const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
-  meaning: z.string().optional(),
-  parts_of_speech: z.string().optional(),
+  meaning: z.string().min(1, 'Meaning is required.'),
+  parts_of_speech: z.string().min(1, 'Parts of speech is required.'),
   example_sentences: z.string().optional(),
+  syllables: z.string().optional(),
   synonyms: z.string().optional(),
   antonyms: z.string().optional(),
 });
@@ -56,7 +54,6 @@ interface AddWordDialogProps {
 const parseSynAnt = (value?: string): SynonymAntonym[] => {
     if (!value) return [];
     try {
-        // Attempt to parse as JSON for the new format
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) {
             return parsed.map(item => ({
@@ -65,7 +62,6 @@ const parseSynAnt = (value?: string): SynonymAntonym[] => {
             }));
         }
     } catch (e) {
-        // Fallback to comma-separated for simple manual entry
         return value.split(',').map(s => ({ word: s.trim(), meaning: '' }));
     }
     return [];
@@ -74,8 +70,7 @@ const parseSynAnt = (value?: string): SynonymAntonym[] => {
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   const { addWord, addMultipleWords } = useVocabulary();
   const { toast } = useToast();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isManualEntry, setIsManualEntry] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("single");
 
   const singleWordForm = useForm<AddWordFormValues>({
@@ -85,6 +80,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       meaning: '',
       parts_of_speech: '',
       example_sentences: '',
+      syllables: '',
       synonyms: '',
       antonyms: '',
     },
@@ -98,49 +94,17 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   });
 
   const onSingleSubmit = async (values: AddWordFormValues) => {
-    setIsGenerating(true);
+    setIsLoading(true);
     try {
-      let details;
-      if (!isManualEntry) {
-        try {
-          details = await generateWordDetails({ word: values.word });
-        } catch (e) {
-          console.error("Full AI generation failed, falling back to basic", e);
-          toast({
-            variant: "destructive",
-            title: 'AI জেনারেশন অসম্পূর্ণ',
-            description: 'শুধুমাত্র অর্থ এবং পদ তৈরি করা হয়েছে। পরে সম্পাদনা করতে পারেন।',
-          });
-          // Fallback to a more basic generation
-          details = {
-            meaning: `Meaning of ${values.word}`, // Placeholder
-            parts_of_speech: 'Noun', // Placeholder
-            syllables: values.word.split('-'),
-            example_sentences: [],
-            synonyms: [],
-            antonyms: [],
-          }
-        }
-      } else {
-        if (!values.meaning || !values.parts_of_speech) {
-            toast({
-                variant: 'destructive',
-                title: 'প্রয়োজনীয় তথ্য দিন',
-                description: 'অনুগ্রহ করে অর্থ এবং পার্টস অফ স্পিচ পূরণ করুন।',
-            });
-            setIsGenerating(false);
-            return;
-        }
-        details = {
+        const details = {
           meaning: values.meaning,
           parts_of_speech: values.parts_of_speech,
-          syllables: values.word.split('-'), // Auto-generate simple syllables
+          syllables: values.syllables ? values.syllables.split(',') : values.word.split('-'),
           example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
           synonyms: parseSynAnt(values.synonyms),
           antonyms: parseSynAnt(values.antonyms),
-          verb_forms: undefined,
-        }
-      }
+          verb_forms: undefined, // Verb forms are not manually added for now
+        };
       
       const success = addWord({
         word: values.word,
@@ -160,7 +124,6 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         });
         singleWordForm.reset();
         onOpenChange(false);
-        setIsManualEntry(false);
       } else {
         toast({
             variant: 'destructive',
@@ -172,21 +135,19 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'AI ত্রুটি',
-        description: 'শব্দের বিবরণ তৈরি করা যায়নি। অনুগ্রহ করে ম্যানুয়ালি চেষ্টা করুন অথবা পরে আবার চেষ্টা করুন।',
+        title: 'ত্রুটি',
+        description: 'শব্দটি যোগ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
       });
-      setIsManualEntry(true);
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
 
   const onBulkSubmit = async (values: BulkImportFormValues) => {
-    setIsGenerating(true);
+    setIsLoading(true);
     try {
       const wordsToImport: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>[] = JSON.parse(values.json);
       
-      // Basic validation
       if (!Array.isArray(wordsToImport)) {
         throw new Error("JSON must be an array.");
       }
@@ -209,7 +170,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         description: error.message || "অনুগ্রহ করে সঠিক JSON ফরম্যাট চেক করুন।",
       });
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
 
@@ -218,7 +179,6 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     if (!open) {
       singleWordForm.reset();
       bulkImportForm.reset();
-      setIsManualEntry(false);
       setActiveTab("single");
     }
     onOpenChange(open);
@@ -240,13 +200,8 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                 <TabsTrigger value="bulk">JSON থেকে ইম্পোর্ট</TabsTrigger>
             </TabsList>
             <TabsContent value="single">
-                <div className="flex items-center space-x-2 my-4">
-                    <Switch id="manual-entry-switch" checked={isManualEntry} onCheckedChange={setIsManualEntry} />
-                    <Label htmlFor="manual-entry-switch">ম্যানুয়াল এন্ট্রি</Label>
-                </div>
-                
                 <Form {...singleWordForm}>
-                <form onSubmit={singleWordForm.handleSubmit(onSingleSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <form onSubmit={singleWordForm.handleSubmit(onSingleSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pt-4">
                     <FormField
                     control={singleWordForm.control}
                     name="word"
@@ -260,79 +215,88 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                         </FormItem>
                     )}
                     />
-                    {isManualEntry && (
-                    <>
-                        <FormField
-                        control={singleWordForm.control}
-                        name="meaning"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>অর্থ (বাংলা)</FormLabel>
-                            <FormControl>
-                                <Input placeholder="বাংলায় অর্থ" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={singleWordForm.control}
-                        name="parts_of_speech"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Parts of Speech</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., Noun, Verb" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                            control={singleWordForm.control}
-                            name="example_sentences"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>উদাহরণ বাক্য (প্রতিটি নতুন লাইনে)</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="The cat sat on the mat.&#10;He is a good boy." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={singleWordForm.control}
-                            name="synonyms"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Synonyms (ঐচ্ছিক)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder='[{"word":"good","meaning":"ভাল"}]' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={singleWordForm.control}
-                            name="antonyms"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Antonyms (ঐচ্ছিক)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder='[{"word":"bad","meaning":"খারাপ"}]' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </>
+                    <FormField
+                    control={singleWordForm.control}
+                    name="meaning"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>অর্থ (বাংলা)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="বাংলায় অর্থ" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
                     )}
+                    />
+                    <FormField
+                    control={singleWordForm.control}
+                    name="parts_of_speech"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Parts of Speech</FormLabel>
+                        <FormControl>
+                            <Input placeholder="e.g., Noun, Verb" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                        control={singleWordForm.control}
+                        name="syllables"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Syllables (ঐচ্ছিক, কমা দিয়ে আলাদা করুন)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="ser,en,dip,i,ty" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={singleWordForm.control}
+                        name="example_sentences"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>উদাহরণ বাক্য (ঐচ্ছিক, প্রতিটি নতুন লাইনে)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="The cat sat on the mat.&#10;He is a good boy." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={singleWordForm.control}
+                        name="synonyms"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Synonyms (ঐচ্ছিক)</FormLabel>
+                            <FormControl>
+                                <Input placeholder='[{"word":"good","meaning":"ভাল"}] বা chance,fluke' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={singleWordForm.control}
+                        name="antonyms"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Antonyms (ঐচ্ছিক)</FormLabel>
+                            <FormControl>
+                                <Input placeholder='[{"word":"bad","meaning":"খারাপ"}] বা misfortune' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
                     <DialogFooter>
-                    <Button type="submit" disabled={isGenerating}>
-                        {isGenerating ? (isManualEntry ? 'যোগ করা হচ্ছে...' : 'জেনারেট করা হচ্ছে...') : 'শব্দ যোগ করুন'}
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? 'যোগ করা হচ্ছে...' : 'শব্দ যোগ করুন'}
                     </Button>
                     </DialogFooter>
                 </form>
@@ -359,8 +323,8 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                         )}
                         />
                          <DialogFooter>
-                            <Button type="submit" disabled={isGenerating}>
-                                {isGenerating ? 'ইম্পোর্ট করা হচ্ছে...' : 'শব্দগুলো যোগ করুন'}
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? 'ইম্পোর্ট করা হচ্ছে...' : 'শব্দগুলো যোগ করুন'}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -371,3 +335,5 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     </Dialog>
   );
 }
+
+    

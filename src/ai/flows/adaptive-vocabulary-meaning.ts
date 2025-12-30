@@ -40,7 +40,7 @@ const meaningQuizPrompt = ai.definePrompt({
 
   Generate a multiple-choice question to test the user's understanding of the word '{{word}}' in {{targetLanguage}}.
 
-  Provide {{optionsCount}} options, including one correct translation of the word and {{optionsCount - 1}} incorrect but plausible translations.
+  Provide {{optionsCount}} options, including one correct translation of the word and several incorrect but plausible translations.
   Do not use any of these meanings as options: {{knownMeanings}}.
   Ensure that only one answer is correct. Output the question, the options as a JSON array, and the index of correct option.
 

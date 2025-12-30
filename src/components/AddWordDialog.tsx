@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,13 +24,10 @@ import {
 } from '@/components/ui/form';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { useToast } from '@/hooks/use-toast';
+import { generateWordDetails } from '@/ai/flows/generate-word-details';
 
 const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
-  meaning: z.string().min(1, 'Meaning is required.'),
-  syllables: z.string().optional(),
-  accent_uk: z.string().optional(),
-  accent_us: z.string().optional(),
 });
 
 type AddWordFormValues = z.infer<typeof formSchema>;
@@ -42,37 +40,51 @@ interface AddWordDialogProps {
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   const { addWord } = useVocabulary();
   const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<AddWordFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       word: '',
-      meaning: '',
-      syllables: '',
-      accent_uk: '',
-      accent_us: '',
     },
   });
 
-  const onSubmit = (values: AddWordFormValues) => {
-    const success = addWord({
-        ...values,
-        syllables: values.syllables ? values.syllables.split(/[-,\s]+/) : [],
-    });
-
-    if (success) {
-      toast({
-        title: 'Word Added',
-        description: `"${values.word}" has been added to your vocabulary.`,
+  const onSubmit = async (values: AddWordFormValues) => {
+    setIsGenerating(true);
+    try {
+      const details = await generateWordDetails({ word: values.word });
+      
+      const success = addWord({
+        word: values.word,
+        meaning: details.meaning,
+        syllables: details.syllables,
+        accent_uk: details.accent_uk,
+        accent_us: details.accent_us,
       });
-      form.reset();
-      onOpenChange(false);
-    } else {
+
+      if (success) {
+        toast({
+          title: 'শব্দ যোগ করা হয়েছে',
+          description: `"${values.word}" আপনার শব্দভান্ডারে যোগ করা হয়েছে।`,
+        });
+        form.reset();
+        onOpenChange(false);
+      } else {
         toast({
             variant: 'destructive',
-            title: 'Error',
-            description: `The word "${values.word}" already exists.`,
+            title: 'ত্রুটি',
+            description: `"${values.word}" শব্দটি ইতিমধ্যে বিদ্যমান।`,
         });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'AI ত্রুটি',
+        description: 'শব্দের বিবরণ তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -80,9 +92,9 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Word</DialogTitle>
+          <DialogTitle>নতুন শব্দ যোগ করুন</DialogTitle>
           <DialogDescription>
-            Manually add a new word to your learning list.
+            একটি নতুন শব্দ লিখুন। AI স্বয়ংক্রিয়ভাবে এর অর্থ এবং সিলেবল খুঁজে বের করবে।
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -92,7 +104,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
               name="word"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Word</FormLabel>
+                  <FormLabel>শব্দ</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., serendipity" {...field} />
                   </FormControl>
@@ -100,61 +112,9 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="meaning"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Meaning</FormLabel>
-                  <FormControl>
-                    <Input placeholder="The occurrence of happy accidents" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="syllables"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Syllables (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ser-en-dip-i-ty" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="accent_uk"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>UK Accent (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="/ˌser.ənˈdɪp.ə.ti/" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="accent_us"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>US Accent (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="/ˌser.ənˈdɪp.ə.t̬i/" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <DialogFooter>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Word'}
+              <Button type="submit" disabled={isGenerating}>
+                {isGenerating ? 'জেনারেট করা হচ্ছে...' : 'শব্দ যোগ করুন'}
               </Button>
             </DialogFooter>
           </form>

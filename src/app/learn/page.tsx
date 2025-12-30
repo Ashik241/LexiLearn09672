@@ -19,13 +19,15 @@ function LoadingFallback() {
   );
 }
 
-export default function LearnPage() {
+export default function LearnPage({ searchParams }: { searchParams: { type?: 'mcq' | 'spelling' } }) {
+  const testType = searchParams.type;
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-8 flex flex-col items-center">
         <Suspense fallback={<LoadingFallback />}>
-          <LearningClient />
+          <LearningClient forcedTestType={testType} />
         </Suspense>
       </main>
     </div>

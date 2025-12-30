@@ -14,7 +14,11 @@ import Link from 'next/link';
 type TestType = 'mcq' | 'spelling';
 type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
 
-export function LearningClient() {
+interface LearningClientProps {
+  forcedTestType?: TestType;
+}
+
+export function LearningClient({ forcedTestType }: LearningClientProps) {
   const { getWordForSession, updateWord, isInitialized } = useVocabulary();
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [testType, setTestType] = useState<TestType>('mcq');
@@ -28,13 +32,13 @@ export function LearningClient() {
     const word = getWordForSession();
     setCurrentWord(word);
     if (word) {
-      setTestType(Math.random() > 0.5 ? 'mcq' : 'spelling');
+      setTestType(forcedTestType || (Math.random() > 0.5 ? 'mcq' : 'spelling'));
       setSessionState('testing');
     } else {
       setSessionState('finished');
     }
     setIsLoadingNext(false);
-  }, [getWordForSession]);
+  }, [getWordForSession, forcedTestType]);
 
   useEffect(() => {
     if (isInitialized) {
@@ -60,10 +64,17 @@ export function LearningClient() {
       
       const newTimesCorrect = currentWord.times_correct + (correct ? 1 : 0);
       const newTimesIncorrect = currentWord.times_incorrect + (correct ? 0 : 1);
+      
+      let isLearned = currentWord.is_learned;
+      if (correct && difficultyResult.newDifficulty === 'Easy' && currentWord.difficulty_level !== 'Easy') {
+        isLearned = true;
+      } else if (!correct) {
+        isLearned = false;
+      }
 
       updateWord(currentWord.id, {
         difficulty_level: difficultyResult.newDifficulty,
-        is_learned: correct && difficultyResult.newDifficulty === 'Easy',
+        is_learned: isLearned,
         times_correct: newTimesCorrect,
         times_incorrect: newTimesIncorrect,
       });
@@ -91,10 +102,10 @@ export function LearningClient() {
     return (
       <Card className="w-full max-w-2xl text-center">
         <CardHeader>
-          <CardTitle>Loading Vocabulary...</CardTitle>
+          <CardTitle>শব্দভান্ডার লোড হচ্ছে...</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Please wait while we prepare your learning session.</p>
+          <p>আপনার শেখার সেশন প্রস্তুত করার সময় দয়া করে অপেক্ষা করুন।</p>
         </CardContent>
       </Card>
     );
@@ -104,12 +115,12 @@ export function LearningClient() {
     return (
       <Card className="w-full max-w-2xl text-center">
         <CardHeader>
-          <CardTitle>Session Complete!</CardTitle>
+          <CardTitle>সেশন সম্পন্ন!</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">You've reviewed all available words for now. Great job!</p>
+          <p className="mb-4">আপনি এখনকার জন্য উপলব্ধ সমস্ত শব্দ পর্যালোচনা করেছেন। সাবাশ!</p>
           <Link href="/" passHref>
-            <Button>Back to Dashboard</Button>
+            <Button>ড্যাশবোর্ডে ফিরে যান</Button>
           </Link>
         </CardContent>
       </Card>
@@ -122,10 +133,10 @@ export function LearningClient() {
       {sessionState === 'loading' && (
         <Card className="w-full max-w-2xl text-center">
             <CardHeader>
-                <CardTitle>Analyzing your answer...</CardTitle>
+                <CardTitle>আপনার উত্তর বিশ্লেষণ করা হচ্ছে...</CardTitle>
             </CardHeader>
             <CardContent>
-                <p>Please wait, the AI is adjusting the word's difficulty.</p>
+                <p>অনুগ্রহ করে অপেক্ষা করুন, AI শব্দের অসুবিধা স্তর সামঞ্জস্য করছে।</p>
                 <div className="flex justify-center items-center p-8">
                     <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>

@@ -12,11 +12,11 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
-type TestType = 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym' | 'dynamic';
+type TestType = 'mcq' | 'spelling_listen' | 'spelling_meaning' | 'bengali-to-english' | 'synonym-antonym' | 'dynamic';
 type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
 
 const getRandomTestTypeForWord = (word: Word): Exclude<TestType, 'dynamic'> => {
-    const types: Exclude<TestType, 'dynamic' | 'synonym-antonym'>[] = ['mcq', 'spelling', 'bengali-to-english'];
+    const types: Exclude<TestType, 'dynamic' | 'synonym-antonym'>[] = ['mcq', 'spelling_meaning', 'spelling_listen', 'bengali-to-english'];
     const hasSynAnt = (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
     if (hasSynAnt) {
         types.push('synonym-antonym' as any);
@@ -169,8 +169,9 @@ function LearningClientInternal() {
             return <McqTest word={currentWord} onComplete={onComplete} testType="bengali-to-english" />;
         case 'synonym-antonym':
             return <McqTest word={currentWord} onComplete={onComplete} testType="synonym-antonym" />;
-        case 'spelling':
-            return <SpellingTest word={currentWord} onComplete={onComplete} />;
+        case 'spelling_listen':
+        case 'spelling_meaning':
+             return <SpellingTest word={currentWord} onComplete={onComplete} mode={testType === 'spelling_listen' ? 'listen' : 'meaning'} />;
         default:
             return <McqTest word={currentWord} onComplete={onComplete} testType="english-to-bengali" />;
     }

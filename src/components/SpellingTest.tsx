@@ -10,21 +10,24 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
+type SpellingMode = 'listen' | 'meaning';
+
 interface SpellingTestProps {
   word: Word;
   onComplete: (isCorrect: boolean, answer: string, isMCQ: boolean, correctAnswer: string) => void;
+  mode: SpellingMode;
 }
 
-type Accent = 'UK' | 'US';
-type SpellingMode = 'listen' | 'meaning';
 
-export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
+type Accent = 'UK' | 'US';
+
+export default function SpellingTest({ word, onComplete, mode: initialMode }: SpellingTestProps) {
   const [answer, setAnswer] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [accent, setAccent] = useState<Accent>('US');
   const [rate] = useState([0.9]);
   const [volume] = useState([1]);
-  const [mode, setMode] = useState<SpellingMode>('listen');
+  const [mode, setMode] = useState<SpellingMode>(initialMode);
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const hasSpokenRef = useRef(false);
@@ -62,9 +65,11 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
     setAnswer('');
     setIsSubmitted(false);
     hasSpokenRef.current = false;
+    setMode(initialMode);
 
-    if (mode === 'listen') {
+    if (initialMode === 'listen') {
       const speakOnLoad = () => {
+        // Only speak if it hasn't been spoken for this word load
         if (!hasSpokenRef.current) {
           speak(accent);
           hasSpokenRef.current = true;
@@ -75,16 +80,27 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
       if (voices.length > 0) {
         speakOnLoad();
       } else {
+        // Voices may load asynchronously
         window.speechSynthesis.onvoiceschanged = speakOnLoad;
       }
       
+      // Cleanup function to prevent memory leaks
       return () => {
         window.speechSynthesis.onvoiceschanged = null;
         window.speechSynthesis.cancel();
       };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [word, mode]);
+  }, [word, initialMode]);
+
+  useEffect(() => {
+    // When mode is changed to 'listen' manually, speak the word
+    if (mode === 'listen' && !hasSpokenRef.current) {
+        speak(accent);
+        hasSpokenRef.current = true;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,14 +123,17 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
-          <RadioGroup value={mode} onValueChange={(v: SpellingMode) => setMode(v)} className="flex justify-center gap-4 p-4 rounded-lg bg-card-foreground/5">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="listen" id="mode-listen" />
-                <Label htmlFor="mode-listen">শুনে লিখুন</Label>
-              </div>
+          <RadioGroup value={mode} onValueChange={(v: SpellingMode) => {
+              hasSpokenRef.current = false;
+              setMode(v);
+            }} className="flex justify-center gap-4 p-4 rounded-lg bg-card-foreground/5">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="meaning" id="mode-meaning" />
                 <Label htmlFor="mode-meaning">অর্থ দেখে লিখুন</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="listen" id="mode-listen" />
+                <Label htmlFor="mode-listen">শুনে লিখুন</Label>
               </div>
             </RadioGroup>
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock, Zap } from 'lucide-react';
+import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock, Zap, Mic, Text } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,17 +66,6 @@ export default function Home() {
                 </CardContent>
               </Card>
             </Link>
-             <Link href="/learn?type=spelling" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <SpellCheck className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">বানান পরীক্ষা</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>সম্পূর্ণ শব্দভান্ডার থেকে বানান অনুশীলনের মাধ্যমে আপনার দক্ষতা বাড়ান।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
             <Link href="/learn?type=bengali-to-english" passHref>
               <Card className="hover:bg-card-foreground/5 transition-colors h-full">
                 <CardHeader className="flex-row items-center gap-4 space-y-0">
@@ -85,6 +74,28 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                     <CardDescription>সম্পূর্ণ শব্দভান্ডার থেকে বাংলা অর্থের সঠিক ইংরেজি শব্দ বাছাই করুন।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/learn?type=spelling_meaning" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <Text className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">বানান পরীক্ষা (অর্থ দেখে)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>বাংলা অর্থ দেখে সঠিক ইংরেজি বানান লিখুন।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+             <Link href="/learn?type=spelling_listen" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <Mic className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">বানান পরীক্ষা (শুনে)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>ইংরেজি উচ্চারণ শুনে সঠিক বানানটি লিখুন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>

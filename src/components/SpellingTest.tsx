@@ -9,6 +9,7 @@ import { Input } from './ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Slider } from './ui/slider';
 
 interface SpellingTestProps {
   word: Word;
@@ -21,6 +22,8 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
   const [answer, setAnswer] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [accent, setAccent] = useState<Accent>('US');
+  const [rate, setRate] = useState([0.9]);
+  const [volume, setVolume] = useState([1]);
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -46,7 +49,8 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
     
     utterance.voice = selectedVoice || voices.find(voice => voice.lang.includes('en')) || voices[0];
     utterance.pitch = 1;
-    utterance.rate = 0.9;
+    utterance.rate = rate[0];
+    utterance.volume = volume[0];
     window.speechSynthesis.speak(utterance);
     inputRef.current?.focus();
   };
@@ -109,6 +113,18 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
                 <Volume2 className="h-6 w-6" />
             </Button>
           </div>
+
+          <div className="space-y-4 pt-4">
+              <div>
+                  <Label htmlFor="rate-slider">গতি</Label>
+                  <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />
+              </div>
+              <div>
+                  <Label htmlFor="volume-slider">ভলিউম</Label>
+                  <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
+              </div>
+          </div>
+
           <div>
             <Input
               ref={inputRef}

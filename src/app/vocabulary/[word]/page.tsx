@@ -9,12 +9,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { useState } from 'react';
 
 export default function WordDetailsPage() {
   const params = useParams();
   const { getWordById, isInitialized } = useVocabulary();
   const wordId = Array.isArray(params.word) ? params.word[0] : params.word;
   const word = getWordById(wordId);
+  const [rate, setRate] = useState([0.9]);
+  const [volume, setVolume] = useState([1]);
 
   const speak = (text: string, lang: string = 'en-US') => {
     if (typeof window.speechSynthesis === 'undefined') return;
@@ -25,7 +30,8 @@ export default function WordDetailsPage() {
       utterance.voice = voice;
     }
     utterance.pitch = 1;
-    utterance.rate = 0.9;
+    utterance.rate = rate[0];
+    utterance.volume = volume[0];
     window.speechSynthesis.speak(utterance);
   };
 
@@ -163,6 +169,20 @@ export default function WordDetailsPage() {
                 </div>
             )}
           </CardContent>
+          <CardFooter className="flex-col items-start gap-4">
+            <Separator />
+            <h3 className="text-xl font-semibold">উচ্চারণ নিয়ন্ত্রণ</h3>
+            <div className="w-full space-y-4">
+                <div>
+                    <Label htmlFor="rate-slider">গতি</Label>
+                    <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />
+                </div>
+                <div>
+                    <Label htmlFor="volume-slider">ভলিউম</Label>
+                    <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
+                </div>
+            </div>
+          </CardFooter>
         </Card>
       </main>
     </div>

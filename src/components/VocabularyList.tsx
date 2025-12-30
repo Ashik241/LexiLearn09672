@@ -35,7 +35,7 @@ export function VocabularyList() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
-    const [posFilter, setPosFilter] = useState('');
+    const [posFilter, setPosFilter] = useState('all');
 
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
     const dateFilter = searchParams.get('date');
@@ -59,7 +59,7 @@ export function VocabularyList() {
         if (learnedFilter === 'true') {
             allWords = allWords.filter(word => word.is_learned);
         }
-        if (posFilter) {
+        if (posFilter && posFilter !== 'all') {
             allWords = allWords.filter(word => word.parts_of_speech === posFilter);
         }
         if (searchQuery) {
@@ -67,8 +67,8 @@ export function VocabularyList() {
             allWords = allWords.filter(word => 
                 word.word.toLowerCase().includes(lowercasedQuery) ||
                 word.meaning.toLowerCase().includes(lowercasedQuery) ||
-                word.synonyms.some(s => s.word.toLowerCase().includes(lowercasedQuery)) ||
-                word.antonyms.some(a => a.word.toLowerCase().includes(lowercasedQuery))
+                (word.synonyms && word.synonyms.some(s => s.word.toLowerCase().includes(lowercasedQuery))) ||
+                (word.antonyms && word.antonyms.some(a => a.word.toLowerCase().includes(lowercasedQuery)))
             );
         }
         return allWords;
@@ -107,7 +107,7 @@ export function VocabularyList() {
         );
     }
     
-    if (words.length === 0 && !searchQuery && !posFilter) {
+    if (words.length === 0 && !searchQuery && posFilter === 'all') {
         return (
             <Card>
                 <CardHeader>
@@ -164,7 +164,7 @@ export function VocabularyList() {
                             <SelectValue placeholder="All Parts of Speech" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Parts of Speech</SelectItem>
+                            <SelectItem value="all">All Parts of Speech</SelectItem>
                             {allPos.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
                         </SelectContent>
                     </Select>

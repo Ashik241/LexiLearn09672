@@ -40,27 +40,27 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
     setIsLoadingNext(true);
 
     const difficulties = difficultyFilter ? [difficultyFilter] : undefined;
-    const filter = dateFilter 
-        ? (word: Word) => !!word.last_reviewed && word.last_reviewed.startsWith(dateFilter) 
-        : undefined;
-
-    let word = getWordForSession(difficulties, filter);
     let effectiveTestType = forcedTestType || getRandomTestType();
 
-    // Ensure the word is suitable for the test type
-    if (word && effectiveTestType === 'synonym-antonym') {
-        const hasSynonyms = word.synonyms && word.synonyms.length > 0;
-        const hasAntonyms = word.antonyms && word.antonyms.length > 0;
-        if (!hasSynonyms && !hasAntonyms) {
-            // If word not suitable, try to find one that is, or switch test type
-            const suitableWord = getWordForSession(difficulties, w => (w.synonyms.length > 0 || w.antonyms.length > 0));
-            if (suitableWord) {
-                word = suitableWord;
-            } else {
-                // if no suitable word, switch test type
-                effectiveTestType = 'mcq';
-            }
-        }
+    const baseFilter = dateFilter 
+        ? (word: Word) => !!word.last_reviewed && word.last_reviewed.startsWith(dateFilter) 
+        : undefined;
+    
+    let filter = baseFilter;
+
+    if (effectiveTestType === 'synonym-antonym') {
+        const synonymAntonymFilter = (w: Word) => (w.synonyms && w.synonyms.length > 0) || (w.antonyms && w.antonyms.length > 0);
+        filter = baseFilter 
+            ? (w: Word) => baseFilter(w) && synonymAntonymFilter(w) 
+            : synonymAntonymFilter;
+    }
+    
+    let word = getWordForSession(difficulties, filter);
+
+    // If a random test was chosen and no suitable word was found, try another test type.
+    if (!word && !forcedTestType && effectiveTestType === 'synonym-antonym') {
+        effectiveTestType = 'mcq'; // Fallback
+        word = getWordForSession(difficulties, baseFilter);
     }
     
     setCurrentWord(word);

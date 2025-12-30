@@ -87,7 +87,12 @@ export function VocabularyList() {
                 word.word.toLowerCase().includes(lowercasedQuery) ||
                 word.meaning.toLowerCase().includes(lowercasedQuery) ||
                 (word.synonyms && word.synonyms.some(s => s && s.word && s.word.toLowerCase().includes(lowercasedQuery))) ||
-                (word.antonyms && word.antonyms.some(a => a && a.word && a.word.toLowerCase().includes(lowercasedQuery)))
+                (word.antonyms && word.antonyms.some(a => a && a.word && a.word.toLowerCase().includes(lowercasedQuery))) ||
+                (word.verb_forms && (
+                    word.verb_forms.present.toLowerCase().includes(lowercasedQuery) ||
+                    word.verb_forms.past.toLowerCase().includes(lowercasedQuery) ||
+                    word.verb_forms.past_participle.toLowerCase().includes(lowercasedQuery)
+                ))
             );
         }
         return allWords;

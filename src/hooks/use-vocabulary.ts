@@ -17,16 +17,21 @@ interface VocabularyState {
     hardWords: number;
     newWords: number;
   };
+  session: {
+    reviewedIds: Set<string>;
+  };
   isInitialized: boolean;
   init: () => void;
-  addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>) => boolean;
-  addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>[]) => { addedCount: number; skippedCount: number };
+  addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>) => boolean;
+  addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>[]) => { addedCount: number; skippedCount: number };
   updateWord: (wordId: string, updates: Partial<Word>) => void;
   deleteWord: (wordId: string) => void;
-  getWordForSession: (difficulties?: WordDifficulty[], filter?: (word: Word) => boolean) => Word | null;
+  getWordForSession: (difficulties: WordDifficulty[], filter?: ((word: Word) => boolean) | undefined) => Word | null;
   calculateStats: () => void;
   getAllWords: () => Word[];
   getWordById: (id: string) => Word | undefined;
+  resetSession: () => void;
+  getSessionProgress: (difficulties: WordDifficulty[], filter?: (word: Word) => boolean) => { reviewed: number, total: number };
 }
 
 const useVocabularyStore = create<VocabularyState>()(
@@ -42,12 +47,16 @@ const useVocabularyStore = create<VocabularyState>()(
         hardWords: 0,
         newWords: 0,
       },
+      session: {
+        reviewedIds: new Set(),
+      },
       isInitialized: false,
 
       init: () => {
         if (get().isInitialized) return;
 
         const wordsMap = new Map<string, Word>();
+        const now = new Date().toISOString();
         const allWordsToProcess = [...initialWordsData, ...bulkWordsData];
 
         allWordsToProcess.forEach((word) => {
@@ -61,6 +70,7 @@ const useVocabularyStore = create<VocabularyState>()(
               times_correct: 0,
               times_incorrect: 0,
               last_reviewed: null,
+              createdAt: now,
             });
           }
         });
@@ -70,7 +80,12 @@ const useVocabularyStore = create<VocabularyState>()(
         if (currentState.words.length === 0) {
             set({ words: initialData, isInitialized: true });
         } else {
-            set({ isInitialized: true });
+            // Migration for existing users: add createdAt if it's missing
+            const updatedWords = currentState.words.map(w => ({
+              ...w,
+              createdAt: w.createdAt || new Date(0).toISOString(), // Default to epoch for old words
+            }));
+            set({ isInitialized: true, words: updatedWords });
         }
         
         get().calculateStats();
@@ -81,6 +96,7 @@ const useVocabularyStore = create<VocabularyState>()(
         if (get().words.some(w => w.id === wordId)) {
           return false;
         }
+        const now = new Date().toISOString();
         const newWord: Word = {
           ...wordData,
           id: wordId,
@@ -88,7 +104,8 @@ const useVocabularyStore = create<VocabularyState>()(
           is_learned: false,
           times_correct: 0,
           times_incorrect: 0,
-          last_reviewed: new Date().toISOString(),
+          last_reviewed: now,
+          createdAt: now,
           syllables: wordData.syllables || [],
           synonyms: wordData.synonyms || [],
           antonyms: wordData.antonyms || [],
@@ -104,6 +121,7 @@ const useVocabularyStore = create<VocabularyState>()(
         const existingWordIds = new Set(currentWords.map(w => w.id));
         let addedCount = 0;
         let skippedCount = 0;
+        const now = new Date().toISOString();
 
         const newWords = wordsData.reduce((acc: Word[], wordData) => {
           const wordId = wordData.word.toLowerCase();
@@ -115,7 +133,8 @@ const useVocabularyStore = create<VocabularyState>()(
               is_learned: false,
               times_correct: 0,
               times_incorrect: 0,
-              last_reviewed: new Date().toISOString(),
+              last_reviewed: now,
+              createdAt: now,
               syllables: wordData.syllables || [],
               synonyms: wordData.synonyms || [],
               antonyms: wordData.antonyms || [],
@@ -154,46 +173,49 @@ const useVocabularyStore = create<VocabularyState>()(
       },
 
       getWordForSession: (difficulties, filter) => {
-        let potentialWords = get().words;
+        const { session } = get();
+        let potentialWords = get().words.filter(w => !session.reviewedIds.has(w.id));
 
-        // Apply custom filter first (e.g., for date, learned status, etc.)
         if (filter) {
             potentialWords = potentialWords.filter(filter);
         }
 
-        // Then, if specific difficulties are provided, filter by them.
         if (difficulties && difficulties.length > 0) {
             potentialWords = potentialWords.filter(w => difficulties.includes(w.difficulty_level));
         }
 
         if (potentialWords.length === 0) return null;
 
-        // Priority order for picking a word
         const priorityOrder: WordDifficulty[] = ['Hard', 'Medium', 'New', 'Easy'];
         
         for (const difficulty of priorityOrder) {
-            // Find words of the current priority that haven't been reviewed or were reviewed the longest ago
             const priorityWords = potentialWords.filter(w => w.difficulty_level === difficulty);
             if (priorityWords.length > 0) {
-                // Sort by last_reviewed date, nulls first (never reviewed)
                 priorityWords.sort((a, b) => {
-                    if (!a.last_reviewed) return -1; // a comes first
-                    if (!b.last_reviewed) return 1;  // b comes first
+                    if (!a.last_reviewed) return -1;
+                    if (!b.last_reviewed) return 1;
                     return new Date(a.last_reviewed).getTime() - new Date(b.last_reviewed).getTime();
                 });
-                // Return the word that was reviewed the longest ago (or never)
-                return priorityWords[0];
+                const selectedWord = priorityWords[0];
+                session.reviewedIds.add(selectedWord.id);
+                set({ session: { reviewedIds: new Set(session.reviewedIds) } });
+                return selectedWord;
             }
         }
         
-        // Fallback in case something goes wrong with the priority logic
-        return potentialWords[Math.floor(Math.random() * potentialWords.length)];
+        const fallbackWord = potentialWords[Math.floor(Math.random() * potentialWords.length)];
+        if (fallbackWord) {
+             session.reviewedIds.add(fallbackWord.id);
+             set({ session: { reviewedIds: new Set(session.reviewedIds) } });
+             return fallbackWord;
+        }
+       return null;
       },
       
       calculateStats: () => {
         const words = get().words;
         const totalWords = words.length;
-        const wordsMastered = words.filter(w => w.difficulty_level === 'Easy' && w.times_correct > 0).length; // Adjusted this logic
+        const wordsMastered = words.filter(w => w.difficulty_level === 'Easy' && w.times_correct > 0).length;
         
         const totalAttempts = words.reduce((sum, w) => sum + w.times_correct + w.times_incorrect, 0);
         const totalCorrect = words.reduce((sum, w) => sum + w.times_correct, 0);
@@ -213,6 +235,26 @@ const useVocabularyStore = create<VocabularyState>()(
 
       getWordById: (id: string) => {
         return get().words.find(w => w.id === id);
+      },
+
+      resetSession: () => {
+        set({ session: { reviewedIds: new Set() } });
+      },
+
+      getSessionProgress: (difficulties, filter) => {
+        const { session, words } = get();
+        let potentialWords = words;
+        if (filter) {
+            potentialWords = potentialWords.filter(filter);
+        }
+        if (difficulties && difficulties.length > 0) {
+            potentialWords = potentialWords.filter(w => difficulties.includes(w.difficulty_level));
+        }
+
+        return {
+            reviewed: session.reviewedIds.size,
+            total: potentialWords.length,
+        }
       }
     }),
     {
@@ -221,6 +263,8 @@ const useVocabularyStore = create<VocabularyState>()(
        onRehydrateStorage: () => {
         return (state) => {
             if (state) {
+                // Ensure session is fresh on rehydration
+                state.session = { reviewedIds: new Set() };
                 state.init();
             }
         }

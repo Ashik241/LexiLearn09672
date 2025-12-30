@@ -2,7 +2,7 @@
 
 import { Header } from '@/components/layout/Header';
 import { LearningClient } from '@/components/LearningClient';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -33,13 +33,27 @@ function FilterControls() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentDifficulty = searchParams.get('difficulty') || 'all';
+  
+  // Combine multiple params into a single key for the Select's value
+  const getCurrentFilter = () => {
+    const difficulty = searchParams.get('difficulty');
+    const date = searchParams.get('date');
+    if (difficulty) return difficulty;
+    if (date === new Date().toISOString().split('T')[0]) return 'today';
+    return 'all';
+  };
+  const currentFilter = getCurrentFilter();
 
   const handleFilterChange = (value: string) => {
     const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete('difficulty');
+    newParams.delete('date');
+
     if (value === 'all') {
-      newParams.delete('difficulty');
-    } else {
+      // no params needed
+    } else if (value === 'today') {
+      newParams.set('date', new Date().toISOString().split('T')[0]);
+    } else if (['Hard', 'Medium', 'Easy'].includes(value)) {
       newParams.set('difficulty', value);
     }
     router.replace(`${pathname}?${newParams.toString()}`);
@@ -47,12 +61,13 @@ function FilterControls() {
 
   return (
     <div className="w-full max-w-2xl mx-auto mb-4">
-      <Select onValueChange={handleFilterChange} defaultValue={currentDifficulty}>
+      <Select onValueChange={handleFilterChange} value={currentFilter}>
         <SelectTrigger className="w-full md:w-[280px]">
           <SelectValue placeholder="Filter words by difficulty..." />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Words (Default)</SelectItem>
+          <SelectItem value="today">Today's Words</SelectItem>
           <SelectItem value="Hard">Hard Words</SelectItem>
           <SelectItem value="Medium">Medium Words</SelectItem>
           <SelectItem value="Easy">Easy Words</SelectItem>

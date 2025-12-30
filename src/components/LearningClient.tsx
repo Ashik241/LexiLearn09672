@@ -14,7 +14,7 @@ import { adjustDifficulty } from '@/ai/flows/automated-difficulty-adjustment';
 import { useToast } from '@/hooks/use-toast';
 
 type TestType = 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym' | 'dynamic';
-type SessionState = 'loading' | 'testing' | 'feedback';
+type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
 
 const getRandomTestTypeForWord = (word: Word): Exclude<TestType, 'dynamic'> => {
     const types: Exclude<TestType, 'dynamic' | 'synonym-antonym'>[] = ['mcq', 'spelling', 'bengali-to-english'];
@@ -26,11 +26,10 @@ const getRandomTestTypeForWord = (word: Word): Exclude<TestType, 'dynamic'> => {
 }
 
 function LearningClientInternal() {
-  const { getWordForSession, updateWord, isInitialized } = useVocabulary();
+  const { getWordForSession, updateWord, isInitialized, resetSession, getSessionProgress } = useVocabulary();
   const { toast } = useToast();
   const searchParams = useSearchParams();
 
-  // URL-based filters
   const forcedTestType = searchParams.get('type') as TestType | null;
   const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | 'all' | null;
   const dateFilter = searchParams.get('date');
@@ -44,41 +43,41 @@ function LearningClientInternal() {
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   
 
+  const getSessionFilter = useCallback(() => {
+    let filter: ((word: Word) => boolean) | undefined = undefined;
+    
+    if (dateFilter) {
+      const today = new Date().toISOString().split('T')[0];
+      if (dateFilter === today) {
+        filter = (word: Word) => word.createdAt.split('T')[0] === today;
+      } else {
+        filter = (word: Word) => word.createdAt.split('T')[0] === dateFilter;
+      }
+    } else if (learnedFilter) {
+      filter = (word: Word) => word.is_learned;
+    } else if (forcedTestType === 'synonym-antonym') {
+      filter = (word: Word) => (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
+    }
+    return filter;
+  }, [dateFilter, learnedFilter, forcedTestType]);
+
+
   const loadNextWord = useCallback(() => {
     setIsLoadingNext(true);
     setSessionState('loading');
 
-    let difficulties: WordDifficulty[];
-    let filter: ((word: Word) => boolean) | undefined = undefined;
-
-    // --- Determine difficulties and filters based on URL params ---
+    let difficulties: WordDifficulty[] = ['New', 'Hard', 'Medium', 'Easy'];
+    
     if (difficultyFilter && difficultyFilter !== 'all') {
         difficulties = [difficultyFilter];
-    } else if (dateFilter) {
-        difficulties = ['New', 'Hard', 'Medium', 'Easy'];
-        filter = (word: Word) => !word.last_reviewed || word.last_reviewed.split('T')[0] === dateFilter;
-    } else if (learnedFilter) {
-        difficulties = ['Easy'];
-    } else if (forcedTestType && forcedTestType !== 'dynamic') {
-        difficulties = ['New', 'Hard', 'Medium', 'Easy'];
-        filter = (word: Word) => !word.is_learned;
-    } else {
-        difficulties = ['Hard', 'Medium']; // Default for daily revision & dynamic
+    } else if (!forcedTestType) { // Default daily revision
+        difficulties = ['Hard', 'Medium'];
     }
-     // For synonym-antonym test, ensure the word has them
-    if (forcedTestType === 'synonym-antonym') {
-        const originalFilter = filter;
-        filter = (word: Word) => {
-            const hasSynAnt = (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
-            return hasSynAnt && (!originalFilter || originalFilter(word));
-        }
-    }
-    
-    // --- Get Word ---
-    let word = getWordForSession(difficulties, filter);
+
+    const sessionFilter = getSessionFilter();
+    let word = getWordForSession(difficulties, sessionFilter);
 
     if (word) {
-      // --- Determine Test Type ---
       let effectiveTestType: Exclude<TestType, 'dynamic'>;
       if (forcedTestType === 'dynamic' || dateFilter || !forcedTestType) {
           effectiveTestType = getRandomTestTypeForWord(word);
@@ -86,7 +85,6 @@ function LearningClientInternal() {
           effectiveTestType = forcedTestType;
       }
 
-      // If synonym-antonym test is selected but word doesn't have any, fallback
       if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
            effectiveTestType = 'mcq';
       }
@@ -95,20 +93,21 @@ function LearningClientInternal() {
       setTestType(effectiveTestType);
       setSessionState('testing');
     } else {
-       // No word found with current filters
        setCurrentWord(null);
        setTestType(null);
-       setSessionState('loading'); 
+       setSessionState('finished'); 
        toast({ title: "সেশন সম্পন্ন!", description: "এই তালিকার সব শব্দ পর্যালোচনা করা হয়েছে।" });
     }
     setIsLoadingNext(false);
-  }, [getWordForSession, forcedTestType, difficultyFilter, dateFilter, learnedFilter, toast]);
+  }, [getWordForSession, difficultyFilter, forcedTestType, dateFilter, toast, getSessionFilter]);
 
   useEffect(() => {
     if (isInitialized) {
+      resetSession();
       loadNextWord();
     }
-  }, [isInitialized, loadNextWord, searchParams]); // Re-run when searchParams change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialized, searchParams]); // Re-run when searchParams change
 
   const handleTestComplete = async (correct: boolean, answer: string, testMeta: { isMCQ: boolean, correctAnswer: string }) => {
     if (!currentWord) return;
@@ -149,6 +148,11 @@ function LearningClientInternal() {
     });
   };
 
+  const handleRestart = () => {
+    resetSession();
+    loadNextWord();
+  }
+
   const TestComponent = useMemo(() => {
     if (!currentWord || !testType) return null;
 
@@ -182,6 +186,25 @@ function LearningClientInternal() {
       </Card>
     );
   }
+  
+  if (sessionState === 'finished') {
+    return (
+       <Card className="w-full max-w-2xl text-center">
+        <CardHeader>
+          <CardTitle>সেশন সম্পন্ন!</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">আপনি এই তালিকার সমস্ত শব্দ পর্যালোচনা করেছেন। চালিয়ে যেতে চান?</p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={handleRestart}>আবার শুরু করুন</Button>
+            <Link href="/" passHref>
+              <Button variant="outline">ড্যাশবোর্ডে ফিরে যান</Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (sessionState === 'loading' && !currentWord) {
     return (
@@ -192,7 +215,7 @@ function LearningClientInternal() {
         <CardContent>
           <p className="mb-4">আপনি এই তালিকার সমস্ত শব্দ পর্যালোচনা করেছেন। চালিয়ে যেতে চান?</p>
           <div className="flex gap-4 justify-center">
-            <Button onClick={loadNextWord}>আবার শুরু করুন</Button>
+            <Button onClick={handleRestart}>আবার শুরু করুন</Button>
             <Link href="/" passHref>
               <Button variant="outline">ড্যাশবোর্ডে ফিরে যান</Button>
             </Link>

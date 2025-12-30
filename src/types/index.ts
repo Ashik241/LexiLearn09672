@@ -34,4 +34,5 @@ export interface Word {
   times_correct: number;
   times_incorrect: number;
   last_reviewed: string | null;
+  createdAt: string;
 }

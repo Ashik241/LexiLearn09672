@@ -158,7 +158,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                 </div>
             </div>
 
-            {word.parts_of_speech !== 'Verb' && (
+            
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {word.synonyms && word.synonyms.length > 0 &&
                       <div>
@@ -187,7 +187,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                       </div>
                   }
               </div>
-            )}
+            
 
             {word.example_sentences && word.example_sentences.length > 0 && (
               <div>

@@ -22,12 +22,12 @@ export interface VerbForms {
 export interface Word {
   id: string;
   word: string;
-  syllables: string[];
+  syllables?: string[];
   meaning: string;
   parts_of_speech: string;
-  synonyms: SynonymAntonym[];
-  antonyms: SynonymAntonym[];
-  example_sentences: string[];
+  synonyms?: SynonymAntonym[];
+  antonyms?: SynonymAntonym[];
+  example_sentences?: string[];
   verb_forms?: VerbForms;
   difficulty_level: WordDifficulty;
   is_learned: boolean;

@@ -26,7 +26,8 @@ import { useVocabulary } from '@/hooks/use-vocabulary';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from './ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Word, SynonymAntonym } from '@/types';
+import type { Word, SynonymAntonym, VerbForms } from '@/types';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
@@ -36,6 +37,18 @@ const formSchema = z.object({
   syllables: z.string().optional(),
   synonyms: z.string().optional(),
   antonyms: z.string().optional(),
+  
+  // Verb forms
+  is_verb: z.boolean().default(false),
+  present: z.string().optional(),
+  past: z.string().optional(),
+  past_participle: z.string().optional(),
+  present_pronunciation: z.string().optional(),
+  past_pronunciation: z.string().optional(),
+  past_participle_pronunciation: z.string().optional(),
+  present_example: z.string().optional(),
+  past_example: z.string().optional(),
+  past_participle_example: z.string().optional(),
 });
 
 type AddWordFormValues = z.infer<typeof formSchema>;
@@ -53,26 +66,20 @@ interface AddWordDialogProps {
 
 const parseSynAnt = (value?: string): SynonymAntonym[] => {
     if (!value?.trim()) return [];
-    
-    // Try parsing as JSON first
     try {
-        // Attempt to fix common JSON mistakes, like trailing commas
-        const cleanedJson = value.replace(/,(\s*})|,(?=\s*\])/g, '$1');
-        const parsed = JSON.parse(cleanedJson);
-        if (Array.isArray(parsed) && parsed.every(item => typeof item === 'object' && 'word' in item)) {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed) && parsed.every(item => typeof item === 'object' && item !== null && 'word' in item)) {
             return parsed.map(item => ({
                 word: item.word || '',
                 meaning: item.meaning || ''
             }));
         }
     } catch (e) {
-        // If JSON parsing fails, treat it as a comma-separated list
-        return value.split(',').map(s => s.trim()).filter(s => s).map(s => ({ word: s, meaning: '' }));
+        // Not a valid JSON array of objects, treat as comma-separated
     }
     
-    // If it's not valid JSON and not a simple comma-separated list, return as is (but this path is less likely)
     return value.split(',').map(s => s.trim()).filter(s => s).map(s => ({ word: s, meaning: '' }));
-}
+};
 
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   const { addWord, addMultipleWords } = useVocabulary();
@@ -90,6 +97,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       syllables: '',
       synonyms: '',
       antonyms: '',
+      is_verb: false,
     },
   });
 
@@ -100,9 +108,29 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     },
   });
 
+  const isVerb = singleWordForm.watch('is_verb');
+  const pos = singleWordForm.watch('parts_of_speech');
+
   const onSingleSubmit = async (values: AddWordFormValues) => {
     setIsLoading(true);
     try {
+      let verb_forms: VerbForms | undefined = undefined;
+      if (values.is_verb && values.present && values.past && values.past_participle) {
+        verb_forms = {
+          present: values.present,
+          past: values.past,
+          past_participle: values.past_participle,
+          present_pronunciation: values.present_pronunciation || '',
+          past_pronunciation: values.past_pronunciation || '',
+          past_participle_pronunciation: values.past_participle_pronunciation || '',
+          form_examples: {
+            present: values.present_example || '',
+            past: values.past_example || '',
+            past_participle: values.past_participle_example || '',
+          },
+        };
+      }
+
       const success = addWord({
         word: values.word,
         meaning: values.meaning,
@@ -111,7 +139,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
         synonyms: parseSynAnt(values.synonyms),
         antonyms: parseSynAnt(values.antonyms),
-        verb_forms: undefined, // Verb forms are not manually added for now
+        verb_forms: verb_forms,
       });
 
       if (success) {
@@ -290,6 +318,50 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                             </FormItem>
                         )}
                     />
+                    
+                    <FormField
+                        control={singleWordForm.control}
+                        name="is_verb"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>এটি কি একটি Verb?</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <input type="checkbox" checked={field.value} onChange={field.onChange} className="form-checkbox h-5 w-5 text-primary" />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+
+                    {(isVerb || pos.toLowerCase().includes('verb')) && (
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="verb-forms">
+                                <AccordionTrigger>Verb Forms (ঐচ্ছিক)</AccordionTrigger>
+                                <AccordionContent className="space-y-4 pt-4">
+                                     <FormField control={singleWordForm.control} name="present" render={({ field }) => (
+                                        <FormItem><FormLabel>Present</FormLabel><FormControl><Input placeholder="e.g., go" {...field} /></FormControl></FormItem>
+                                     )} />
+                                     <FormField control={singleWordForm.control} name="past" render={({ field }) => (
+                                        <FormItem><FormLabel>Past</FormLabel><FormControl><Input placeholder="e.g., went" {...field} /></FormControl></FormItem>
+                                     )} />
+                                     <FormField control={singleWordForm.control} name="past_participle" render={({ field }) => (
+                                        <FormItem><FormLabel>Past Participle</FormLabel><FormControl><Input placeholder="e.g., gone" {...field} /></FormControl></FormItem>
+                                     )} />
+                                     <FormField control={singleWordForm.control} name="present_example" render={({ field }) => (
+                                        <FormItem><FormLabel>Present Form Example</FormLabel><FormControl><Input placeholder="I go to school." {...field} /></FormControl></FormItem>
+                                     )} />
+                                     <FormField control={singleWordForm.control} name="past_example" render={({ field }) => (
+                                        <FormItem><FormLabel>Past Form Example</FormLabel><FormControl><Input placeholder="I went to school." {...field} /></FormControl></FormItem>
+                                     )} />
+                                      <FormField control={singleWordForm.control} name="past_participle_example" render={({ field }) => (
+                                        <FormItem><FormLabel>Past Participle Example</FormLabel><FormControl><Input placeholder="I have gone to school." {...field} /></FormControl></FormItem>
+                                     )} />
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+                    )}
+
 
                     <DialogFooter>
                     <Button type="submit" disabled={isLoading}>
@@ -332,5 +404,3 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     </Dialog>
   );
 }
-
-    

@@ -94,8 +94,6 @@ const useVocabularyStore = create<VocabularyState>()(
           times_incorrect: 0,
           last_reviewed: null,
           // Ensure defaults for optional fields from bulk import
-          accent_uk: wordData.accent_uk || '',
-          accent_us: wordData.accent_us || '',
           syllables: wordData.syllables || [],
           synonyms: wordData.synonyms || [],
           antonyms: wordData.antonyms || [],
@@ -123,8 +121,6 @@ const useVocabularyStore = create<VocabularyState>()(
               times_correct: 0,
               times_incorrect: 0,
               last_reviewed: null,
-              accent_uk: wordData.accent_uk || '',
-              accent_us: wordData.accent_us || '',
               syllables: wordData.syllables || [],
               synonyms: wordData.synonyms || [],
               antonyms: wordData.antonyms || [],

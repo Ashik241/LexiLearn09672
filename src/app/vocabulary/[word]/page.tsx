@@ -12,10 +12,11 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type Accent = 'UK' | 'US';
+
 
 export default function WordDetailsPage() {
   const params = useParams();
@@ -147,7 +148,12 @@ export default function WordDetailsPage() {
                       <div>
                           <h3 className="text-xl font-semibold mb-2">Synonyms (সমার্থক শব্দ)</h3>
                           <div className="flex flex-wrap gap-2">
-                              {word.synonyms.map(s => <Badge key={s} variant="secondary" className="cursor-pointer" onClick={() => speak(s)}>{s}</Badge>)}
+                              {word.synonyms.map(s => (
+                                <Badge key={s.word} variant="secondary" className="cursor-pointer flex-col items-start h-auto" onClick={() => speak(s.word)}>
+                                    <span className="font-semibold text-sm">{s.word}</span>
+                                    <span className="font-normal text-xs text-muted-foreground">{s.meaning}</span>
+                                </Badge>
+                              ))}
                           </div>
                       </div>
                   }
@@ -155,7 +161,12 @@ export default function WordDetailsPage() {
                       <div>
                           <h3 className="text-xl font-semibold mb-2">Antonyms (বিপরীতার্থক শব্দ)</h3>
                           <div className="flex flex-wrap gap-2">
-                              {word.antonyms.map(a => <Badge key={a} variant="outline" className="cursor-pointer" onClick={() => speak(a)}>{a}</Badge>)}
+                              {word.antonyms.map(a => (
+                                <Badge key={a.word} variant="outline" className="cursor-pointer flex-col items-start h-auto" onClick={() => speak(a.word)}>
+                                    <span className="font-semibold text-sm">{a.word}</span>
+                                    <span className="font-normal text-xs text-muted-foreground">{a.meaning}</span>
+                                </Badge>
+                              ))}
                           </div>
                       </div>
                   }

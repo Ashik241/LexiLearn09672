@@ -1,5 +1,10 @@
 export type WordDifficulty = 'Easy' | 'Medium' | 'Hard' | 'New';
 
+export interface SynonymAntonym {
+  word: string;
+  meaning: string;
+}
+
 export interface VerbForms {
   present: string;
   past: string;
@@ -20,10 +25,8 @@ export interface Word {
   syllables: string[];
   meaning: string;
   parts_of_speech: string;
-  synonyms: string[];
-  antonyms: string[];
-  accent_uk: string;
-  accent_us: string;
+  synonyms: SynonymAntonym[];
+  antonyms: SynonymAntonym[];
   example_sentences: string[];
   verb_forms?: VerbForms;
   difficulty_level: WordDifficulty;

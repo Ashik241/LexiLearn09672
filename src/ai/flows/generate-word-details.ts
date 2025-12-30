@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { SynonymAntonym } from '@/types';
 
 const WordDetailsInputSchema = z.object({
   word: z.string().describe('The word to get details for.'),
@@ -31,14 +32,17 @@ const VerbFormsSchema = z.object({
   }).describe('Example sentences for each verb form.')
 });
 
+const SynonymAntonymSchema = z.object({
+    word: z.string().describe('The synonym or antonym word.'),
+    meaning: z.string().describe('The Bengali meaning of the word.'),
+});
+
 const WordDetailsOutputSchema = z.object({
   meaning: z.string().describe('The primary definition of the word in Bengali (বাংলা).'),
   parts_of_speech: z.string().describe('The part of speech of the word (e.g., Noun, Verb, Adjective).'),
-  synonyms: z.array(z.string()).optional().describe('A list of synonyms for the word. Provide only if it is NOT a verb.'),
-  antonyms: z.array(z.string()).optional().describe('A list of antonyms for the word. Provide only if it is NOT a verb.'),
+  synonyms: z.array(SynonymAntonymSchema).optional().describe("A list of synonym objects, each with a 'word' and its Bengali 'meaning'. Provide only if it is NOT a verb."),
+  antonyms: z.array(SynonymAntonymSchema).optional().describe("A list of antonym objects, each with a 'word' and its Bengali 'meaning'. Provide only if it is NOT a verb."),
   syllables: z.array(z.string()).describe('The word broken down into its syllables.'),
-  accent_uk: z.string().describe('The phonetic spelling for the UK accent (IPA).'),
-  accent_us: z.string().describe('The phonetic spelling for the US accent (IPA).'),
   example_sentences: z
     .array(z.string())
     .describe('Two or three example sentences using the word.'),
@@ -63,9 +67,7 @@ const generateDetailsPrompt = ai.definePrompt({
   1.  'meaning': Its primary meaning, explained in simple Bengali (বাংলা).
   2.  'parts_of_speech': The grammatical part of speech (e.g., Noun, Verb, Adjective, Preposition).
   3.  'syllables': The word broken down into its syllables as an array of strings.
-  4.  'accent_uk': Its IPA phonetic spelling for the UK accent.
-  5.  'accent_us': Its IPA phonetic spelling for the US accent.
-  6.  'example_sentences': Two or three general example sentences.
+  4.  'example_sentences': Two or three general example sentences.
 
   Conditional fields based on part of speech:
   - If the 'parts_of_speech' is 'Verb':
@@ -76,19 +78,24 @@ const generateDetailsPrompt = ai.definePrompt({
     - DO NOT include 'synonyms' or 'antonyms' for verbs.
 
   - If the 'parts_of_speech' is NOT a 'Verb' (e.g., Noun, Adjective):
-    - Include 'synonyms': A list of 2-3 common synonyms.
-    - Include 'antonyms': A list of 2-3 common antonyms.
+    - Include 'synonyms': A list of 2-3 objects, each containing a common synonym 'word' and its Bengali 'meaning'.
+    - Include 'antonyms': A list of 2-3 objects, each containing a common antonym 'word' and its Bengali 'meaning'.
     - DO NOT include the 'verb_forms' object.
 
   Example for a Noun "serendipity":
   {
     "meaning": "কোনো কিছু অপ্রত্যাশিতভাবে খুঁজে পাওয়ার সৌভাগ্য, যা আনন্দদায়ক বা উপকারী।",
     "parts_of_speech": "Noun",
-    "synonyms": ["chance", "fluke", "happy accident"],
-    "antonyms": ["misfortune", "bad luck"],
+    "synonyms": [
+      {"word": "chance", "meaning": "সুযোগ"},
+      {"word": "fluke", "meaning": "আকস্মিক সৌভাগ্য"},
+      {"word": "happy accident", "meaning": "আনন্দের দুর্ঘটনা"}
+    ],
+    "antonyms": [
+      {"word": "misfortune", "meaning": "দুর্ভাগ্য"},
+      {"word": "bad luck", "meaning": "খারাপ ভাগ্য"}
+    ],
     "syllables": ["ser", "en", "dip", "i", "ty"],
-    "accent_uk": "/ˌser.ənˈdɪp.ə.ti/",
-    "accent_us": "/ˌser.ənˈdɪp.ə.t̬i/",
     "example_sentences": [
       "Finding a twenty-dollar bill in my old coat was a moment of serendipity.",
       "Their meeting was pure serendipity, happening by chance at a crowded station."
@@ -100,8 +107,6 @@ const generateDetailsPrompt = ai.definePrompt({
     "meaning": "খাবার গ্রহণ করা বা খাওয়া।",
     "parts_of_speech": "Verb",
     "syllables": ["eat"],
-    "accent_uk": "/iːt/",
-    "accent_us": "/iːt/",
     "example_sentences": [
       "I need to eat something before I leave.",
       "We usually eat dinner at 7 PM."
@@ -122,7 +127,7 @@ const generateDetailsPrompt = ai.definePrompt({
   }`,
 });
 
-const generateWordDetailsFlow = ai.defineFlow(
+const generateDetailsFlow = ai.defineFlow(
   {
     name: 'generateWordDetailsFlow',
     inputSchema: WordDetailsInputSchema,

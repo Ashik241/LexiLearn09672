@@ -29,12 +29,16 @@ import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Word } from '@/types';
+import type { Word, SynonymAntonym } from '@/types';
 
 const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
   meaning: z.string().optional(),
   parts_of_speech: z.string().optional(),
+  syllables: z.string().optional(),
+  example_sentences: z.string().optional(),
+  synonyms: z.string().optional(),
+  antonyms: z.string().optional(),
 });
 
 type AddWordFormValues = z.infer<typeof formSchema>;
@@ -50,6 +54,11 @@ interface AddWordDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const parseSynAnt = (value?: string): SynonymAntonym[] => {
+    if (!value) return [];
+    return value.split(',').map(s => ({ word: s.trim(), meaning: '' }));
+}
+
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   const { addWord, addMultipleWords } = useVocabulary();
   const { toast } = useToast();
@@ -63,6 +72,10 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       word: '',
       meaning: '',
       parts_of_speech: '',
+      syllables: '',
+      example_sentences: '',
+      synonyms: '',
+      antonyms: '',
     },
   });
 
@@ -78,7 +91,25 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     try {
       let details;
       if (!isManualEntry) {
-        details = await generateWordDetails({ word: values.word });
+        try {
+          details = await generateWordDetails({ word: values.word });
+        } catch (e) {
+          console.error("Full AI generation failed, falling back to basic", e);
+          toast({
+            variant: "destructive",
+            title: 'AI জেনারেশন অসম্পূর্ণ',
+            description: 'শুধুমাত্র অর্থ এবং পদ তৈরি করা হয়েছে। পরে সম্পাদনা করতে পারেন।',
+          });
+          // Fallback to a more basic generation
+          details = {
+            meaning: `Meaning of ${values.word}`, // Placeholder
+            parts_of_speech: 'Noun', // Placeholder
+            syllables: values.word.split('-'),
+            example_sentences: [],
+            synonyms: [],
+            antonyms: [],
+          }
+        }
       } else {
         if (!values.meaning || !values.parts_of_speech) {
             toast({
@@ -92,12 +123,10 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         details = {
           meaning: values.meaning,
           parts_of_speech: values.parts_of_speech,
-          syllables: values.word.split('-'),
-          accent_uk: '',
-          accent_us: '',
-          example_sentences: [],
-          synonyms: [],
-          antonyms: [],
+          syllables: values.syllables ? values.syllables.split(',').map(s => s.trim()) : values.word.split('-'),
+          example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
+          synonyms: parseSynAnt(values.synonyms),
+          antonyms: parseSynAnt(values.antonyms),
           verb_forms: undefined,
         }
       }
@@ -106,8 +135,6 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         word: values.word,
         meaning: details.meaning,
         syllables: details.syllables,
-        accent_uk: details.accent_uk,
-        accent_us: details.accent_us,
         example_sentences: details.example_sentences,
         parts_of_speech: details.parts_of_speech,
         synonyms: details.synonyms || [],
@@ -249,6 +276,45 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                             <FormMessage />
                             </FormItem>
                         )}
+                        />
+                        <FormField
+                            control={singleWordForm.control}
+                            name="example_sentences"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>উদাহরণ বাক্য (প্রতিটি নতুন লাইনে)</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="The cat sat on the mat.&#10;He is a good boy." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={singleWordForm.control}
+                            name="synonyms"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Synonyms (কমা দিয়ে আলাদা করুন)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="good, great, excellent" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={singleWordForm.control}
+                            name="antonyms"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Antonyms (কমা দিয়ে আলাদা করুন)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="bad, awful, terrible" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
                         />
                     </>
                     )}

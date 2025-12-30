@@ -11,17 +11,7 @@ export async function generateStaticParams() {
   allWordsToProcess.forEach((word) => {
       const id = word.word.toLowerCase();
       if (!wordsMap.has(id)) {
-          // Add default fields for static generation if missing
-          wordsMap.set(id, {
-            ...word,
-            id: id,
-            difficulty_level: 'New',
-            is_learned: false,
-            times_correct: 0,
-            times_incorrect: 0,
-            last_reviewed: null,
-            createdAt: new Date().toISOString(),
-          });
+          wordsMap.set(id, { ...word, id });
       }
   });
 
@@ -61,23 +51,11 @@ export default function WordDetailsPage({ params }: { params: { word: string } }
   const wordId = decodeURIComponent(params.word);
   const word = getWordById(wordId);
 
-  if (!word) {
-    return (
-      <div className="flex flex-col min-h-screen bg-background">
-        <Header />
-        <main className="flex-grow container mx-auto p-4 md:p-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>শব্দ পাওয়া যায়নি</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>দুঃখিত, এই শব্দটি আপনার শব্দভান্ডারে পাওয়া যায়নি।</p>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    );
-  }
+  // For static export, we might not find dynamically added words here.
+  // The WordDetailsClient will handle fetching it from the client-side store.
+  // We still need to handle the case where the word is not in the build-time data at all.
+  const initialData = word || { id: wordId, word: wordId, meaning: '', parts_of_speech: '' };
 
-  return <WordDetailsClient word={word} />;
+
+  return <WordDetailsClient initialWord={initialData as Word} />;
 }

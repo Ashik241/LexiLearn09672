@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { Word } from '@/types';
@@ -21,9 +21,17 @@ export function WordDetailsClient({ word: initialWord }: { word: Word }) {
   const [rate, setRate] = useState([0.9]);
   const [volume, setVolume] = useState([1]);
   const [accent, setAccent] = useState<Accent>('US');
+  const [word, setWord] = useState<Word | null>(initialWord);
 
-  // Use the word from the client-side store if available and initialized, otherwise use the server-provided one.
-  const word = isInitialized ? getWordById(initialWord.id) : initialWord;
+  useEffect(() => {
+    if (isInitialized) {
+      const clientWord = getWordById(initialWord.id);
+      if (clientWord) {
+        setWord(clientWord);
+      }
+    }
+  }, [isInitialized, initialWord.id, getWordById]);
+
 
   const speak = (text: string, selectedAccent: Accent = accent) => {
     if (typeof window.speechSynthesis === 'undefined') return;
@@ -46,18 +54,35 @@ export function WordDetailsClient({ word: initialWord }: { word: Word }) {
     window.speechSynthesis.speak(utterance);
   };
 
-  if (!word) {
-    // This should ideally not happen if SSR works correctly, but it's a good fallback.
+  if (!isInitialized) {
+    return (
+        <div className="flex flex-col min-h-screen bg-background">
+          <Header />
+          <main className="flex-grow container mx-auto p-4 md:p-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>শব্দ লোড হচ্ছে...</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>অনুগ্রহ করে অপেক্ষা করুন...</p>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      );
+  }
+
+  if (!word || !word.meaning) { // Check for a meaningful property like 'meaning'
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
         <main className="flex-grow container mx-auto p-4 md:p-8">
           <Card>
             <CardHeader>
-              <CardTitle>শব্দ লোড হচ্ছে...</CardTitle>
+              <CardTitle>শব্দ পাওয়া যায়নি</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>অনুগ্রহ করে অপেক্ষা করুন...</p>
+              <p>দুঃখিত, এই শব্দটি আপনার শব্দভান্ডারে পাওয়া যায়নি।</p>
             </CardContent>
           </Card>
         </main>
@@ -127,7 +152,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h3 className="text-xl font-semibold mb-2">সিলেবল</h3>
-                    <p className="text-muted-foreground font-code">{word.syllables.join(' · ')}</p>
+                    <p className="text-muted-foreground font-code">{word.syllables?.join(' · ')}</p>
                 </div>
             </div>
 

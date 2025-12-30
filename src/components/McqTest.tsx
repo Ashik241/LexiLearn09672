@@ -160,7 +160,7 @@ export default function McqTest({ word, onComplete, testType }: McqTestProps) {
       <CardContent className="space-y-3">
         {quiz.options.map((option, index) => (
           <Button
-            key={option}
+            key={`${option}-${index}`}
             variant="outline"
             size="lg"
             className={cn(

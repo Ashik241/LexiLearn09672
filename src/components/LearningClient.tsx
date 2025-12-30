@@ -28,7 +28,7 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
   const searchParams = useSearchParams();
   const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
   const dateFilter = searchParams.get('date');
-  const learnedFilter = searchParams.get('learned');
+  const learnedFilter = searchParams.get('learned') === 'true';
   
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [testType, setTestType] = useState<TestType>(forcedTestType || 'mcq');
@@ -40,14 +40,24 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
   const loadNextWord = useCallback(() => {
     setIsLoadingNext(true);
 
-    const difficulties = difficultyFilter ? [difficultyFilter] : undefined;
     let effectiveTestType = forcedTestType || getRandomTestType();
+    
+    // Determine the difficulties array based on filters or lack thereof.
+    // If a specific difficulty is filtered, use only that.
+    // Otherwise, for a general session, use Hard and Medium words.
+    const hasSpecificFilters = !!difficultyFilter || !!dateFilter || !!learnedFilter;
+    const difficulties = difficultyFilter ? [difficultyFilter] : ['Hard', 'Medium'];
 
-    let filter = (word: Word) => {
+    const filter = (word: Word) => {
         if (dateFilter && (!word.last_reviewed || !word.last_reviewed.startsWith(dateFilter))) {
             return false;
         }
-        if (learnedFilter === 'true' && !word.is_learned) {
+        if (learnedFilter && !word.is_learned) {
+            return false;
+        }
+        // This logic applies only when a "learned=true" filter is active, to show only learned words.
+        // For general sessions, we should not show learned words.
+        if (!hasSpecificFilters && word.is_learned) {
             return false;
         }
         if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
@@ -56,16 +66,15 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
         return true;
     };
     
-    let word = getWordForSession(difficulties, filter);
+    let word = getWordForSession(hasSpecificFilters ? undefined : difficulties, filter);
 
-    // If a random test was chosen and no suitable word was found, try another test type.
     if (!word && !forcedTestType && effectiveTestType === 'synonym-antonym') {
-        effectiveTestType = 'mcq'; // Fallback
-        filter = (w: Word) => !((!w.synonyms || w.synonyms.length === 0) && (!w.antonyms || w.antonyms.length === 0));
-        word = getWordForSession(difficulties, (w: Word) => {
-            if (dateFilter && (!w.last_reviewed || !w.last_reviewed.startsWith(dateFilter))) return false;
-            if (learnedFilter === 'true' && !w.is_learned) return false;
-            return true;
+        effectiveTestType = 'mcq';
+        word = getWordForSession(hasSpecificFilters ? undefined : difficulties, (w: Word) => {
+             if (dateFilter && (!w.last_reviewed || !w.last_reviewed.startsWith(dateFilter))) return false;
+             if (learnedFilter && !w.is_learned) return false;
+             if (!hasSpecificFilters && w.is_learned) return false;
+             return true;
         });
     }
     
@@ -93,7 +102,6 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
     setUserAnswer(answer);
     setSessionState('feedback');
 
-    // --- Difficulty Adjustment Logic (Local) ---
     const currentDifficulty = currentWord.difficulty_level;
     let newDifficulty: WordDifficulty = currentDifficulty;
 
@@ -107,14 +115,14 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
         else if (currentDifficulty === 'New') newDifficulty = 'Hard';
     }
     
-    // --- Update Word Stats ---
     const newTimesCorrect = currentWord.times_correct + (correct ? 1 : 0);
     const newTimesIncorrect = currentWord.times_incorrect + (correct ? 0 : 1);
     
     let isLearned = currentWord.is_learned;
-    if (correct && newDifficulty === 'Easy' && currentWord.difficulty_level !== 'Easy') {
+    // A word is "learned" if it's correct and becomes Easy, or was already Easy.
+    if (correct && newDifficulty === 'Easy') {
       isLearned = true;
-    } else if (!correct) {
+    } else if (!correct) { // If answered incorrectly, it's no longer considered learned.
       isLearned = false;
     }
 

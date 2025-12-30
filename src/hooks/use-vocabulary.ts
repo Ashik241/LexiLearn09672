@@ -154,49 +154,46 @@ const useVocabularyStore = create<VocabularyState>()(
       },
 
       getWordForSession: (difficulties, filter) => {
-        let words = get().words.filter(w => !w.is_learned);
-        
-        if (difficulties) {
-            words = words.filter(w => difficulties.includes(w.difficulty_level));
-        }
+        let potentialWords = get().words;
 
+        // Apply custom filter first (e.g., for date, learned status, etc.)
         if (filter) {
-            words = words.filter(filter);
+            potentialWords = potentialWords.filter(filter);
         }
 
-        if (words.length === 0) return null;
+        // Then, if specific difficulties are provided, filter by them.
+        if (difficulties && difficulties.length > 0) {
+            potentialWords = potentialWords.filter(w => difficulties.includes(w.difficulty_level));
+        }
 
+        if (potentialWords.length === 0) return null;
+
+        // Priority order for picking a word
         const priorityOrder: WordDifficulty[] = ['Hard', 'Medium', 'New', 'Easy'];
         
-        const neverReviewed = words.filter(w => w.last_reviewed === null);
-        if (neverReviewed.length > 0) {
-            for (const difficulty of priorityOrder) {
-                const priorityWords = neverReviewed.filter(w => w.difficulty_level === difficulty);
-                if (priorityWords.length > 0) {
-                    return priorityWords[Math.floor(Math.random() * priorityWords.length)];
-                }
-            }
-        }
-        
         for (const difficulty of priorityOrder) {
-            const priorityWords = words.filter(w => w.difficulty_level === difficulty);
+            // Find words of the current priority that haven't been reviewed or were reviewed the longest ago
+            const priorityWords = potentialWords.filter(w => w.difficulty_level === difficulty);
             if (priorityWords.length > 0) {
+                // Sort by last_reviewed date, nulls first (never reviewed)
                 priorityWords.sort((a, b) => {
-                    if (!a.last_reviewed) return -1;
-                    if (!b.last_reviewed) return 1;
+                    if (!a.last_reviewed) return -1; // a comes first
+                    if (!b.last_reviewed) return 1;  // b comes first
                     return new Date(a.last_reviewed).getTime() - new Date(b.last_reviewed).getTime();
                 });
+                // Return the word that was reviewed the longest ago (or never)
                 return priorityWords[0];
             }
         }
         
-        return words[Math.floor(Math.random() * words.length)];
+        // Fallback in case something goes wrong with the priority logic
+        return potentialWords[Math.floor(Math.random() * potentialWords.length)];
       },
       
       calculateStats: () => {
         const words = get().words;
         const totalWords = words.length;
-        const wordsMastered = words.filter(w => w.is_learned).length;
+        const wordsMastered = words.filter(w => w.difficulty_level === 'Easy' && w.times_correct > 0).length; // Adjusted this logic
         
         const totalAttempts = words.reduce((sum, w) => sum + w.times_correct + w.times_incorrect, 0);
         const totalCorrect = words.reduce((sum, w) => sum + w.times_correct, 0);

@@ -71,6 +71,8 @@ const useVocabularyStore = create<VocabularyState>()(
               times_incorrect: 0,
               last_reviewed: null,
               createdAt: now,
+              synonyms: word.synonyms || [],
+              antonyms: word.antonyms || [],
             });
           }
         });
@@ -285,3 +287,5 @@ export const useVocabulary = () => {
 
   return store;
 };
+
+    

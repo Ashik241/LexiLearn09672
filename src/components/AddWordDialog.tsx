@@ -52,19 +52,26 @@ interface AddWordDialogProps {
 }
 
 const parseSynAnt = (value?: string): SynonymAntonym[] => {
-    if (!value) return [];
+    if (!value?.trim()) return [];
+    
+    // Try parsing as JSON first
     try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) {
+        // Attempt to fix common JSON mistakes, like trailing commas
+        const cleanedJson = value.replace(/,(\s*})|,(?=\s*\])/g, '$1');
+        const parsed = JSON.parse(cleanedJson);
+        if (Array.isArray(parsed) && parsed.every(item => typeof item === 'object' && 'word' in item)) {
             return parsed.map(item => ({
                 word: item.word || '',
                 meaning: item.meaning || ''
             }));
         }
     } catch (e) {
-        return value.split(',').map(s => ({ word: s.trim(), meaning: '' }));
+        // If JSON parsing fails, treat it as a comma-separated list
+        return value.split(',').map(s => s.trim()).filter(s => s).map(s => ({ word: s, meaning: '' }));
     }
-    return [];
+    
+    // If it's not valid JSON and not a simple comma-separated list, return as is (but this path is less likely)
+    return value.split(',').map(s => s.trim()).filter(s => s).map(s => ({ word: s, meaning: '' }));
 }
 
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
@@ -96,25 +103,15 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   const onSingleSubmit = async (values: AddWordFormValues) => {
     setIsLoading(true);
     try {
-        const details = {
-          meaning: values.meaning,
-          parts_of_speech: values.parts_of_speech,
-          syllables: values.syllables ? values.syllables.split(',') : values.word.split('-'),
-          example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
-          synonyms: parseSynAnt(values.synonyms),
-          antonyms: parseSynAnt(values.antonyms),
-          verb_forms: undefined, // Verb forms are not manually added for now
-        };
-      
       const success = addWord({
         word: values.word,
-        meaning: details.meaning,
-        syllables: details.syllables,
-        example_sentences: details.example_sentences,
-        parts_of_speech: details.parts_of_speech,
-        synonyms: details.synonyms || [],
-        antonyms: details.antonyms || [],
-        verb_forms: details.verb_forms,
+        meaning: values.meaning,
+        parts_of_speech: values.parts_of_speech,
+        syllables: values.syllables ? values.syllables.split(',').map(s => s.trim()).filter(Boolean) : values.word.split('-'),
+        example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
+        synonyms: parseSynAnt(values.synonyms),
+        antonyms: parseSynAnt(values.antonyms),
+        verb_forms: undefined, // Verb forms are not manually added for now
       });
 
       if (success) {

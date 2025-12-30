@@ -13,11 +13,15 @@ import { useSearchParams } from 'next/navigation';
 import { adjustDifficulty } from '@/ai/flows/automated-difficulty-adjustment';
 import { useToast } from '@/hooks/use-toast';
 
-type TestType = 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym';
-type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
+type TestType = 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym' | 'dynamic';
+type SessionState = 'loading' | 'testing' | 'feedback';
 
-const getRandomTestType = (): TestType => {
-    const types: TestType[] = ['mcq', 'spelling', 'bengali-to-english', 'synonym-antonym'];
+const getRandomTestTypeForWord = (word: Word): Exclude<TestType, 'dynamic'> => {
+    const types: Exclude<TestType, 'dynamic' | 'synonym-antonym'>[] = ['mcq', 'spelling', 'bengali-to-english'];
+    const hasSynAnt = (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
+    if (hasSynAnt) {
+        types.push('synonym-antonym' as any);
+    }
     return types[Math.floor(Math.random() * types.length)];
 }
 
@@ -33,70 +37,75 @@ function LearningClientInternal() {
   const learnedFilter = searchParams.get('learned') === 'true';
 
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
-  const [testType, setTestType] = useState<TestType | null>(forcedTestType);
+  const [testType, setTestType] = useState<Exclude<TestType, 'dynamic'> | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>('loading');
   const [isCorrect, setIsCorrect] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   
-  const isEndlessSession = !forcedTestType;
 
   const loadNextWord = useCallback(() => {
     setIsLoadingNext(true);
+    setSessionState('loading');
 
-    let effectiveTestType = forcedTestType || getRandomTestType();
+    let difficulties: WordDifficulty[] = ['Hard', 'Medium']; // Default for daily revision & dynamic
+    let filter: ((word: Word) => boolean) | undefined = undefined;
     
-    // Determine the difficulties array based on filters or lack thereof.
-    const hasSpecificFilters = !!difficultyFilter || !!dateFilter || !!learnedFilter;
-    let difficulties: WordDifficulty[] = ['Hard', 'Medium']; // Default for daily revision
+    // --- Determine difficulties and filters based on URL params ---
     if (difficultyFilter) {
         difficulties = [difficultyFilter];
     } else if (dateFilter) {
-        difficulties = ['New', 'Hard', 'Medium', 'Easy']; // For "Today's Words", test all levels
-    } else if (forcedTestType) {
+        difficulties = ['New', 'Hard', 'Medium', 'Easy'];
+        filter = (word: Word) => !word.last_reviewed || word.last_reviewed.split('T')[0] === dateFilter;
+    } else if (learnedFilter) {
+        difficulties = ['Easy'];
+        filter = (word: Word) => word.is_learned === true;
+    } else if (forcedTestType && forcedTestType !== 'dynamic') {
         // For general test types from dashboard, test everything not learned
         difficulties = ['New', 'Hard', 'Medium', 'Easy'];
+        filter = (word: Word) => !word.is_learned;
     }
-
-    const filter = (word: Word) => {
-        if (dateFilter && (!word.last_reviewed || word.last_reviewed.split('T')[0] !== dateFilter)) {
-            return false;
-        }
-        if (learnedFilter && !word.is_learned) {
-            return false;
-        }
-        // For general sessions (not specifically filtered), don't show learned words
-        if (!hasSpecificFilters && !dateFilter && word.is_learned) {
-            return false;
-        }
-        if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
-            return false;
-        }
-        return true;
-    };
     
+    // --- Get Word ---
     let word = getWordForSession(difficulties, filter);
 
-    if (!word && !forcedTestType && effectiveTestType === 'synonym-antonym') {
-        effectiveTestType = 'mcq';
-        word = getWordForSession(difficulties, (w: Word) => {
-             if (dateFilter && (!w.last_reviewed || w.last_reviewed.split('T')[0] !== dateFilter)) return false;
-             if (learnedFilter && !w.is_learned) return false;
-             if (!hasSpecificFilters && !dateFilter && w.is_learned) return false;
-             return true;
-        });
-    }
-    
-    setCurrentWord(word);
-
     if (word) {
+      // --- Determine Test Type ---
+      let effectiveTestType: Exclude<TestType, 'dynamic'>;
+      if (forcedTestType === 'dynamic' || dateFilter) {
+          effectiveTestType = getRandomTestTypeForWord(word);
+      } else if (forcedTestType) {
+          effectiveTestType = forcedTestType;
+      } else {
+          // Default daily revision is mcq
+          effectiveTestType = 'mcq';
+      }
+
+      // If synonym-antonym test is selected but word doesn't have any, fallback
+      if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
+           effectiveTestType = 'mcq';
+      }
+
+      setCurrentWord(word);
       setTestType(effectiveTestType);
       setSessionState('testing');
     } else {
-      setSessionState('finished');
+       // If no word is found, try again without filters to ensure session continues
+       word = getWordForSession(difficulties);
+       if(word) {
+         setCurrentWord(word);
+         setTestType(forcedTestType === 'dynamic' ? getRandomTestTypeForWord(word) : (forcedTestType || 'mcq'));
+         setSessionState('testing');
+       } else {
+         // Truly no words left, even after fallback
+          setCurrentWord(null);
+          setTestType(null);
+          setSessionState('loading'); // Show a finished-like message here.
+          toast({ title: "সেশন সম্পন্ন!", description: "এই তালিকার সব শব্দ পর্যালোচনা করা হয়েছে।" });
+       }
     }
     setIsLoadingNext(false);
-  }, [getWordForSession, forcedTestType, difficultyFilter, dateFilter, learnedFilter]);
+  }, [getWordForSession, forcedTestType, difficultyFilter, dateFilter, learnedFilter, toast]);
 
   useEffect(() => {
     if (isInitialized) {
@@ -177,7 +186,7 @@ function LearningClientInternal() {
     );
   }
 
-  if (sessionState === 'finished') {
+  if (sessionState === 'loading' && !currentWord) {
     return (
       <Card className="w-full max-w-2xl text-center">
         <CardHeader>

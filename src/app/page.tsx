@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock } from 'lucide-react';
+import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock, Zap } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,7 @@ export default function Home() {
 
         <div className="mt-12">
           <h2 className="text-2xl font-bold font-headline mb-4">লার্নিং সেশন শুরু করুন</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/learn" passHref>
               <Card className="hover:bg-card-foreground/5 transition-colors h-full">
                 <CardHeader className="flex-row items-center gap-4 space-y-0">
@@ -40,7 +40,18 @@ export default function Home() {
                   <CardTitle className="font-headline">দৈনিক রিভিশন</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription>আপনার 'Hard' এবং 'Medium' শব্দগুলো রিভাইস করুন।</CardDescription>
+                  <CardDescription>আপনার 'Hard' এবং 'Medium' শব্দগুলো রিভাইস করুন। (MCQ)</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+             <Link href="/learn?type=dynamic" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <Zap className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">ডাইনামিক রিভিশন</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>বিভিন্ন ধরণের প্রশ্ন (বানান, MCQ) দিয়ে 'Hard' ও 'Medium' শব্দ রিভাইস করুন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>
@@ -51,7 +62,7 @@ export default function Home() {
                     <CardTitle className="font-headline">MCQ (Eng to Ban)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CardDescription>ইংরেজি শব্দের সঠিক বাংলা অর্থ বাছাই করুন।</CardDescription>
+                    <CardDescription>সম্পূর্ণ শব্দভান্ডার থেকে ইংরেজি শব্দের সঠিক বাংলা অর্থ বাছাই করুন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>
@@ -62,7 +73,7 @@ export default function Home() {
                     <CardTitle className="font-headline">বানান পরীক্ষা</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CardDescription>বানান অনুশীলনের মাধ্যমে আপনার দক্ষতা বাড়ান।</CardDescription>
+                    <CardDescription>সম্পূর্ণ শব্দভান্ডার থেকে বানান অনুশীলনের মাধ্যমে আপনার দক্ষতা বাড়ান।</CardDescription>
                 </CardContent>
               </Card>
             </Link>
@@ -73,7 +84,7 @@ export default function Home() {
                     <CardTitle className="font-headline">MCQ (Ban to Eng)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CardDescription>বাংলা অর্থের সঠিক ইংরেজি শব্দ বাছাই করুন।</CardDescription>
+                    <CardDescription>সম্পূর্ণ শব্দভান্ডার থেকে বাংলা অর্থের সঠিক ইংরেজি শব্দ বাছাই করুন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>
@@ -95,7 +106,7 @@ export default function Home() {
                     <CardTitle className="font-headline">আজকের শব্দ</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CardDescription>আজ যোগ করা শব্দগুলো দেখুন ও পরীক্ষা দিন।</CardDescription>
+                    <CardDescription>আজ যোগ করা শব্দগুলো দেখুন ও এলোমেলো পরীক্ষা দিন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>

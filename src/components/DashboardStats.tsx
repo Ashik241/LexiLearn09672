@@ -15,6 +15,7 @@ export function DashboardStats() {
       value: stats.totalWords,
       icon: Target,
       description: 'আপনার শব্দভান্ডারে থাকা মোট শব্দ।',
+      link: '/vocabulary',
     },
     {
       title: 'Learned Words',
@@ -28,6 +29,7 @@ export function DashboardStats() {
       value: `${stats.accuracy.toFixed(1)}%`,
       icon: Percent,
       description: 'সব সেশনে আপনার উত্তরের নির্ভুলতার হার।',
+      link: '#',
     },
     {
       title: 'Hard',
@@ -35,6 +37,7 @@ export function DashboardStats() {
       icon: ShieldAlert,
       description: "'Hard' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
       className: 'text-red-500',
+      link: '/vocabulary?difficulty=Hard',
     },
     {
       title: 'Medium',
@@ -42,6 +45,7 @@ export function DashboardStats() {
       icon: HelpCircle,
       description: "'Medium' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
       className: 'text-yellow-500',
+      link: '/vocabulary?difficulty=Medium',
     },
     {
       title: 'Easy',
@@ -49,6 +53,7 @@ export function DashboardStats() {
       icon: Check,
       description: "'Easy' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
       className: 'text-green-500',
+      link: '/vocabulary?difficulty=Easy',
     },
   ];
 
@@ -64,29 +69,20 @@ export function DashboardStats() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-      {statItems.map((item) => {
-        const card = (
-            <Card className="h-full flex flex-col hover:bg-card-foreground/5 transition-colors">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                    <item.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="flex-grow">
-                    <div className={`text-2xl font-bold ${item.className || ''}`}>{item.value}</div>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
-                </CardContent>
-            </Card>
-        );
-
-        if (item.link) {
-            return (
-                <Link href={item.link} key={item.title} className="flex">
-                    {card}
-                </Link>
-            )
-        }
-        return <div key={item.title} className="flex">{card}</div>;
-    })}
+      {statItems.map((item) => (
+        <Link href={item.link || '#'} key={item.title} className="flex">
+          <Card className="h-full w-full flex flex-col hover:bg-card-foreground/5 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+              <item.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <div className={`text-2xl font-bold ${item.className || ''}`}>{item.value}</div>
+              <p className="text-xs text-muted-foreground">{item.description}</p>
+            </CardContent>
+          </Card>
+        </Link>
+      ))}
     </div>
   );
 }

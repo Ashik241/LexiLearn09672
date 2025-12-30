@@ -149,7 +149,7 @@ export default function WordDetailsPage() {
                           <h3 className="text-xl font-semibold mb-2">Synonyms (সমার্থক শব্দ)</h3>
                           <div className="flex flex-wrap gap-2">
                               {word.synonyms.map((s, i) => (
-                                <Badge key={`${s.word}-${i}`} variant="secondary" className="cursor-pointer flex-col items-start h-auto" onClick={() => speak(s.word)}>
+                                <Badge key={`${s.word}-${i}`} variant="secondary" className="cursor-pointer flex-col items-start h-auto p-2" onClick={() => speak(s.word)}>
                                     <span className="font-semibold text-sm">{s.word}</span>
                                     <span className="font-normal text-xs text-muted-foreground">{s.meaning}</span>
                                 </Badge>
@@ -162,7 +162,7 @@ export default function WordDetailsPage() {
                           <h3 className="text-xl font-semibold mb-2">Antonyms (বিপরীতার্থক শব্দ)</h3>
                           <div className="flex flex-wrap gap-2">
                               {word.antonyms.map((a, i) => (
-                                <Badge key={`${a.word}-${i}`} variant="outline" className="cursor-pointer flex-col items-start h-auto" onClick={() => speak(a.word)}>
+                                <Badge key={`${a.word}-${i}`} variant="outline" className="cursor-pointer flex-col items-start h-auto p-2" onClick={() => speak(a.word)}>
                                     <span className="font-semibold text-sm">{a.word}</span>
                                     <span className="font-normal text-xs text-muted-foreground">{a.meaning}</span>
                                 </Badge>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,7 @@ export function VocabularyList() {
             return allWords.filter(word => word.difficulty_level === difficultyFilter);
         }
         return allWords;
-    }, [getAllWords, isInitialized, difficultyFilter]);
+    }, [getAllWords, difficultyFilter]);
 
     const title = difficultyFilter ? `${difficultyFilter} Words` : 'আপনার শব্দভান্ডার';
 

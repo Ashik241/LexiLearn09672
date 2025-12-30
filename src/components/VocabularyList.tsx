@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, MouseEvent } from 'react';
+import { useMemo, MouseEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +10,10 @@ import { cn } from '@/lib/utils';
 import type { WordDifficulty } from '@/types';
 import { Button } from './ui/button';
 import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from './ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const difficultyVariant: Record<WordDifficulty, 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Easy': 'default',
@@ -32,9 +34,19 @@ export function VocabularyList() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [posFilter, setPosFilter] = useState('');
+
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
     const dateFilter = searchParams.get('date');
     const learnedFilter = searchParams.get('learned');
+    
+    const allPos = useMemo(() => {
+        if (!isInitialized) return [];
+        const words = getAllWords();
+        const posSet = new Set(words.map(w => w.parts_of_speech));
+        return Array.from(posSet);
+    }, [isInitialized, getAllWords]);
 
     const words = useMemo(() => {
         let allWords = getAllWords();
@@ -47,8 +59,20 @@ export function VocabularyList() {
         if (learnedFilter === 'true') {
             allWords = allWords.filter(word => word.is_learned);
         }
+        if (posFilter) {
+            allWords = allWords.filter(word => word.parts_of_speech === posFilter);
+        }
+        if (searchQuery) {
+            const lowercasedQuery = searchQuery.toLowerCase();
+            allWords = allWords.filter(word => 
+                word.word.toLowerCase().includes(lowercasedQuery) ||
+                word.meaning.toLowerCase().includes(lowercasedQuery) ||
+                word.synonyms.some(s => s.word.toLowerCase().includes(lowercasedQuery)) ||
+                word.antonyms.some(a => a.word.toLowerCase().includes(lowercasedQuery))
+            );
+        }
         return allWords;
-    }, [getAllWords, difficultyFilter, dateFilter, learnedFilter]);
+    }, [getAllWords, difficultyFilter, dateFilter, learnedFilter, posFilter, searchQuery]);
 
     const title = useMemo(() => {
         if (difficultyFilter) return `${difficultyFilter} Words`;
@@ -83,7 +107,7 @@ export function VocabularyList() {
         );
     }
     
-    if (words.length === 0) {
+    if (words.length === 0 && !searchQuery && !posFilter) {
         return (
             <Card>
                 <CardHeader>
@@ -123,51 +147,77 @@ export function VocabularyList() {
 
     return (
         <Card>
-            <CardHeader className="flex flex-row justify-between items-center">
-                <CardTitle className="font-headline">{title}</CardTitle>
-                {hasFilter && (
-                    <Link href={`/learn?type=mcq${difficultyFilter ? `&difficulty=${difficultyFilter}` : ''}${dateFilter ? `&date=${dateFilter}` : ''}${learnedFilter ? '&learned=true' : ''}`} passHref>
-                        <Button>Start Exam</Button>
-                    </Link>
-                )}
+            <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <CardTitle className="font-headline whitespace-nowrap">{title}</CardTitle>
+                <div className="flex w-full md:w-auto md:justify-end gap-2">
+                    <div className="relative w-full md:w-64">
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                       <Input 
+                            placeholder="Search words..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                       />
+                    </div>
+                    <Select value={posFilter} onValueChange={setPosFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="All Parts of Speech" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="">All Parts of Speech</SelectItem>
+                            {allPos.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                     {hasFilter && (
+                        <Link href={`/learn?type=mcq${difficultyFilter ? `&difficulty=${difficultyFilter}` : ''}${dateFilter ? `&date=${dateFilter}` : ''}${learnedFilter ? '&learned=true' : ''}`} passHref>
+                            <Button>Start Exam</Button>
+                        </Link>
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>শব্দ</TableHead>
-                            <TableHead>অর্থ</TableHead>
-                            <TableHead className="text-center">স্তর</TableHead>
-                            <TableHead className="text-right">সম্পাদনা</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {words.map((word) => (
-                            <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
-                                <TableCell className="font-medium font-code">{word.word}</TableCell>
-                                <TableCell>{word.meaning}</TableCell>
-                                <TableCell className="text-center">
-                                    <Badge 
-                                        variant={difficultyVariant[word.difficulty_level]}
-                                        className={cn('font-bold', difficultyClass[word.difficulty_level])}
-                                    >
-                                        {word.difficulty_level}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={(e) => handleDelete(e, word.id, word.word)}
-                                        aria-label="Delete word"
-                                    >
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </TableCell>
+                {words.length === 0 ? (
+                    <div className="text-center py-12">
+                        <p className="text-muted-foreground">আপনার সার্চের সাথে মেলে এমন কোনো শব্দ পাওয়া যায়নি।</p>
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>শব্দ</TableHead>
+                                <TableHead>অর্থ</TableHead>
+                                <TableHead className="text-center">স্তর</TableHead>
+                                <TableHead className="text-right">সম্পাদনা</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {words.map((word) => (
+                                <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
+                                    <TableCell className="font-medium font-code">{word.word}</TableCell>
+                                    <TableCell>{word.meaning}</TableCell>
+                                    <TableCell className="text-center">
+                                        <Badge 
+                                            variant={difficultyVariant[word.difficulty_level]}
+                                            className={cn('font-bold', difficultyClass[word.difficulty_level])}
+                                        >
+                                            {word.difficulty_level}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={(e) => handleDelete(e, word.id, word.word)}
+                                            aria-label="Delete word"
+                                        >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </CardContent>
         </Card>
     );

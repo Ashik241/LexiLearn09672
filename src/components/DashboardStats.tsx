@@ -15,7 +15,6 @@ export function DashboardStats() {
       value: stats.totalWords,
       icon: Target,
       description: 'আপনার শব্দভান্ডারে থাকা মোট শব্দ।',
-      link: '/vocabulary',
     },
     {
       title: 'Learned Words',
@@ -36,7 +35,6 @@ export function DashboardStats() {
       icon: ShieldAlert,
       description: "'Hard' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
       className: 'text-red-500',
-      link: '/vocabulary?difficulty=Hard',
     },
     {
       title: 'Medium',
@@ -44,7 +42,6 @@ export function DashboardStats() {
       icon: HelpCircle,
       description: "'Medium' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
       className: 'text-yellow-500',
-      link: '/vocabulary?difficulty=Medium',
     },
     {
       title: 'Easy',
@@ -52,7 +49,6 @@ export function DashboardStats() {
       icon: Check,
       description: "'Easy' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
       className: 'text-green-500',
-      link: '/vocabulary?difficulty=Easy',
     },
   ];
 

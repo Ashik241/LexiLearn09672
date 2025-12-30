@@ -110,14 +110,14 @@ export default function Home() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href={`/learn?date=${today}`} passHref>
+            <Link href={`/vocabulary?date=${today}`} passHref>
               <Card className="hover:bg-card-foreground/5 transition-colors h-full">
                 <CardHeader className="flex-row items-center gap-4 space-y-0">
                     <CalendarClock className="w-8 h-8 text-primary" />
                     <CardTitle className="font-headline">আজকের শব্দ</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CardDescription>আজ যোগ করা শব্দগুলো দেখুন ও এলোমেলো পরীক্ষা দিন।</CardDescription>
+                    <CardDescription>আজ যোগ করা শব্দগুলোর তালিকা দেখুন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>

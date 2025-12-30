@@ -27,6 +27,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
   const [mode, setMode] = useState<SpellingMode>('listen');
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasSpokenRef = useRef(false);
 
   const speak = (selectedAccent: Accent) => {
     if (typeof window.speechSynthesis === 'undefined') {
@@ -38,6 +39,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
       return;
     }
 
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(word.word);
     const voices = window.speechSynthesis.getVoices();
     let selectedVoice = null;
@@ -57,28 +59,29 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
   };
 
   useEffect(() => {
-    if (mode !== 'listen') return;
-    // Preload voices
-    const handleVoicesChanged = () => {
-      // Speak after voices are loaded
-      const timeoutId = setTimeout(() => speak('US'), 200);
-      return () => clearTimeout(timeoutId);
-    };
-    window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
-    handleVoicesChanged(); // Also call it in case voices are already loaded
-
-    return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [word, mode]);
-  
-  useEffect(() => {
     setAnswer('');
     setIsSubmitted(false);
-    if(mode === 'listen'){
-      const timeoutId = setTimeout(() => speak(accent), 200);
-      return () => clearTimeout(timeoutId);
+    hasSpokenRef.current = false;
+
+    if (mode === 'listen') {
+      const speakOnLoad = () => {
+        if (!hasSpokenRef.current) {
+          speak(accent);
+          hasSpokenRef.current = true;
+        }
+      };
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        speakOnLoad();
+      } else {
+        window.speechSynthesis.onvoiceschanged = speakOnLoad;
+      }
+      
+      return () => {
+        window.speechSynthesis.onvoiceschanged = null;
+        window.speechSynthesis.cancel();
+      };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [word, mode]);
@@ -117,7 +120,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
 
           {mode === 'listen' ? (
             <div className="flex items-center justify-center gap-4 p-4 rounded-lg bg-card-foreground/10">
-                <RadioGroup defaultValue="US" onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4">
+                <RadioGroup value={accent} onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4">
                 <div className="flex items-center space-x-2">
                     <RadioGroupItem value="US" id="us-accent" />
                     <Label htmlFor="us-accent">US Accent</Label>

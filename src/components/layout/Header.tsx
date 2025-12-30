@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/icons/Logo';
+import { Button } from '../ui/button';
 
 export function Header() {
   return (
@@ -11,6 +12,11 @@ export function Header() {
             LexiLearn
           </span>
         </Link>
+        <nav>
+          <Link href="/vocabulary" passHref>
+            <Button variant="ghost">Vocabulary</Button>
+          </Link>
+        </nav>
       </div>
     </header>
   );

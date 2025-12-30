@@ -32,7 +32,7 @@ function LearningClientInternal() {
 
   // URL-based filters
   const forcedTestType = searchParams.get('type') as TestType | null;
-  const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
+  const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | 'all' | null;
   const dateFilter = searchParams.get('date');
   const learnedFilter = searchParams.get('learned') === 'true';
 
@@ -48,22 +48,30 @@ function LearningClientInternal() {
     setIsLoadingNext(true);
     setSessionState('loading');
 
-    let difficulties: WordDifficulty[] = ['Hard', 'Medium']; // Default for daily revision & dynamic
+    let difficulties: WordDifficulty[];
     let filter: ((word: Word) => boolean) | undefined = undefined;
-    
+
     // --- Determine difficulties and filters based on URL params ---
-    if (difficultyFilter) {
+    if (difficultyFilter && difficultyFilter !== 'all') {
         difficulties = [difficultyFilter];
     } else if (dateFilter) {
         difficulties = ['New', 'Hard', 'Medium', 'Easy'];
         filter = (word: Word) => !word.last_reviewed || word.last_reviewed.split('T')[0] === dateFilter;
     } else if (learnedFilter) {
         difficulties = ['Easy'];
-        filter = (word: Word) => word.is_learned === true;
     } else if (forcedTestType && forcedTestType !== 'dynamic') {
-        // For general test types from dashboard, test everything not learned
         difficulties = ['New', 'Hard', 'Medium', 'Easy'];
         filter = (word: Word) => !word.is_learned;
+    } else {
+        difficulties = ['Hard', 'Medium']; // Default for daily revision & dynamic
+    }
+     // For synonym-antonym test, ensure the word has them
+    if (forcedTestType === 'synonym-antonym') {
+        const originalFilter = filter;
+        filter = (word: Word) => {
+            const hasSynAnt = (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
+            return hasSynAnt && (!originalFilter || originalFilter(word));
+        }
     }
     
     // --- Get Word ---
@@ -72,13 +80,10 @@ function LearningClientInternal() {
     if (word) {
       // --- Determine Test Type ---
       let effectiveTestType: Exclude<TestType, 'dynamic'>;
-      if (forcedTestType === 'dynamic' || dateFilter) {
+      if (forcedTestType === 'dynamic' || dateFilter || !forcedTestType) {
           effectiveTestType = getRandomTestTypeForWord(word);
-      } else if (forcedTestType) {
-          effectiveTestType = forcedTestType;
       } else {
-          // Default daily revision is mcq
-          effectiveTestType = 'mcq';
+          effectiveTestType = forcedTestType;
       }
 
       // If synonym-antonym test is selected but word doesn't have any, fallback
@@ -90,19 +95,11 @@ function LearningClientInternal() {
       setTestType(effectiveTestType);
       setSessionState('testing');
     } else {
-       // If no word is found, try again without filters to ensure session continues
-       word = getWordForSession(difficulties);
-       if(word) {
-         setCurrentWord(word);
-         setTestType(forcedTestType === 'dynamic' ? getRandomTestTypeForWord(word) : (forcedTestType || 'mcq'));
-         setSessionState('testing');
-       } else {
-         // Truly no words left, even after fallback
-          setCurrentWord(null);
-          setTestType(null);
-          setSessionState('loading'); // Show a finished-like message here.
-          toast({ title: "সেশন সম্পন্ন!", description: "এই তালিকার সব শব্দ পর্যালোচনা করা হয়েছে।" });
-       }
+       // No word found with current filters
+       setCurrentWord(null);
+       setTestType(null);
+       setSessionState('loading'); 
+       toast({ title: "সেশন সম্পন্ন!", description: "এই তালিকার সব শব্দ পর্যালোচনা করা হয়েছে।" });
     }
     setIsLoadingNext(false);
   }, [getWordForSession, forcedTestType, difficultyFilter, dateFilter, learnedFilter, toast]);
@@ -111,7 +108,7 @@ function LearningClientInternal() {
     if (isInitialized) {
       loadNextWord();
     }
-  }, [isInitialized, loadNextWord]);
+  }, [isInitialized, loadNextWord, searchParams]); // Re-run when searchParams change
 
   const handleTestComplete = async (correct: boolean, answer: string, testMeta: { isMCQ: boolean, correctAnswer: string }) => {
     if (!currentWord) return;

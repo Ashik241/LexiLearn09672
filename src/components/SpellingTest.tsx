@@ -17,6 +17,7 @@ interface SpellingTestProps {
 }
 
 type Accent = 'UK' | 'US';
+type SpellingMode = 'listen' | 'meaning';
 
 export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
   const [answer, setAnswer] = useState('');
@@ -24,6 +25,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
   const [accent, setAccent] = useState<Accent>('US');
   const [rate, setRate] = useState([0.9]);
   const [volume, setVolume] = useState([1]);
+  const [mode, setMode] = useState<SpellingMode>('listen');
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +58,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
   };
 
   useEffect(() => {
+    if (mode !== 'listen') return;
     // Preload voices
     const handleVoicesChanged = () => {
       // Speak after voices are loaded
@@ -69,7 +72,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
       window.speechSynthesis.onvoiceschanged = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [word]);
+  }, [word, mode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,45 +88,52 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
         <div className="flex justify-between items-center">
             <div>
                 <CardTitle className="font-headline text-2xl">বানান পরীক্ষা</CardTitle>
-                <CardDescription>শব্দটি শুনুন এবং নীচে টাইপ করুন।</CardDescription>
+                <CardDescription>আপনার পছন্দের মোড নির্বাচন করুন এবং উত্তর দিন।</CardDescription>
             </div>
             <BrainCircuit className="w-8 h-8 text-primary" />
         </div>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
-          <div className="flex items-center justify-center gap-4 p-4 rounded-lg bg-card-foreground/5">
-            <RadioGroup defaultValue="US" onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4">
+          <RadioGroup value={mode} onValueChange={(v: SpellingMode) => setMode(v)} className="flex justify-center gap-4 p-4 rounded-lg bg-card-foreground/5">
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="US" id="us-accent" />
-                <Label htmlFor="us-accent">US Accent</Label>
+                <RadioGroupItem value="listen" id="mode-listen" />
+                <Label htmlFor="mode-listen">শুনে লিখুন</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="UK" id="uk-accent" />
-                <Label htmlFor="uk-accent">UK Accent</Label>
+                <RadioGroupItem value="meaning" id="mode-meaning" />
+                <Label htmlFor="mode-meaning">অর্থ দেখে লিখুন</Label>
               </div>
             </RadioGroup>
-            <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => speak(accent)}
-                aria-label="শব্দটি শুনুন"
-                >
-                <Volume2 className="h-6 w-6" />
-            </Button>
-          </div>
 
-          <div className="space-y-4 pt-4">
-              <div>
-                  <Label htmlFor="rate-slider">গতি</Label>
-                  <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />
-              </div>
-              <div>
-                  <Label htmlFor="volume-slider">ভলিউম</Label>
-                  <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
-              </div>
-          </div>
+          {mode === 'listen' ? (
+            <div className="flex items-center justify-center gap-4 p-4 rounded-lg bg-card-foreground/10">
+                <RadioGroup defaultValue="US" onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="US" id="us-accent" />
+                    <Label htmlFor="us-accent">US Accent</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="UK" id="uk-accent" />
+                    <Label htmlFor="uk-accent">UK Accent</Label>
+                </div>
+                </RadioGroup>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => speak(accent)}
+                    aria-label="শব্দটি শুনুন"
+                    >
+                    <Volume2 className="h-6 w-6" />
+                </Button>
+            </div>
+          ) : (
+            <div className="p-4 rounded-lg bg-card-foreground/10 text-center">
+                <p className="text-sm text-muted-foreground">এই বাংলা অর্থের ইংরেজি শব্দটি লিখুন:</p>
+                <p className="text-xl font-semibold text-primary mt-1">"{word.meaning}"</p>
+            </div>
+          )}
 
           <div>
             <Input

@@ -90,17 +90,7 @@ export default function WordDetailsPage() {
                 </CardTitle>
                 <CardDescription className="text-lg mt-2">{word.parts_of_speech}</CardDescription>
               </div>
-              <div className="flex items-center gap-4">
-                  <RadioGroup value={accent} onValueChange={(value: Accent) => setAccent(value)} className="flex gap-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="US" id="us-accent-radio" />
-                      <Label htmlFor="us-accent-radio" className="text-xs">US</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="UK" id="uk-accent-radio" />
-                      <Label htmlFor="uk-accent-radio" className="text-xs">UK</Label>
-                    </div>
-                  </RadioGroup>
+              <div className="flex items-center gap-2">
                   <Button variant="outline" size="icon" onClick={() => speak(word.word)}><Volume2 className="h-5 w-5"/></Button>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -110,9 +100,20 @@ export default function WordDetailsPage() {
                       <div className="grid gap-4">
                         <div className="space-y-2">
                           <h4 className="font-medium leading-none">উচ্চারণ নিয়ন্ত্রণ</h4>
-                          <p className="text-sm text-muted-foreground">গতি এবং ভলিউম সামঞ্জস্য করুন।</p>
+                          <p className="text-sm text-muted-foreground">অ্যাক্সেন্ট, গতি এবং ভলিউম সামঞ্জস্য করুন।</p>
                         </div>
                         <div className="grid gap-2">
+                            <RadioGroup value={accent} onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4 pt-2">
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="US" id="us-accent-radio" />
+                                <Label htmlFor="us-accent-radio">US</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="UK" id="uk-accent-radio" />
+                                <Label htmlFor="uk-accent-radio">UK</Label>
+                              </div>
+                            </RadioGroup>
+                            <Separator className="my-2" />
                             <div>
                                 <Label htmlFor="rate-slider">গতি</Label>
                                 <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />

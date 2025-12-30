@@ -94,6 +94,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
           example_sentences: values.example_sentences?.split('\n').filter(s => s.trim() !== '') || [],
           synonyms: values.synonyms?.split(',').map(s => s.trim()) || [],
           antonyms: values.antonyms?.split(',').map(s => s.trim()) || [],
+          verb_forms: undefined,
         }
       }
       

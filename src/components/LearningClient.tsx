@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import type { Word, WordDifficulty } from '@/types';
 import McqTest from '@/components/McqTest';
@@ -10,32 +10,36 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { adjustDifficulty } from '@/ai/flows/automated-difficulty-adjustment';
+import { useToast } from '@/hooks/use-toast';
 
 type TestType = 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym';
 type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
-
-interface LearningClientProps {
-  forcedTestType?: TestType;
-}
 
 const getRandomTestType = (): TestType => {
     const types: TestType[] = ['mcq', 'spelling', 'bengali-to-english', 'synonym-antonym'];
     return types[Math.floor(Math.random() * types.length)];
 }
 
-export function LearningClient({ forcedTestType }: LearningClientProps) {
+function LearningClientInternal() {
   const { getWordForSession, updateWord, isInitialized } = useVocabulary();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
+
+  // URL-based filters
+  const forcedTestType = searchParams.get('type') as TestType | null;
   const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
   const dateFilter = searchParams.get('date');
   const learnedFilter = searchParams.get('learned') === 'true';
-  
+
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
-  const [testType, setTestType] = useState<TestType>(forcedTestType || 'mcq');
+  const [testType, setTestType] = useState<TestType | null>(forcedTestType);
   const [sessionState, setSessionState] = useState<SessionState>('loading');
   const [isCorrect, setIsCorrect] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
   const [isLoadingNext, setIsLoadingNext] = useState(false);
+  
+  const isEndlessSession = !forcedTestType;
 
   const loadNextWord = useCallback(() => {
     setIsLoadingNext(true);
@@ -43,21 +47,26 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
     let effectiveTestType = forcedTestType || getRandomTestType();
     
     // Determine the difficulties array based on filters or lack thereof.
-    // If a specific difficulty is filtered, use only that.
-    // Otherwise, for a general session, use Hard and Medium words.
     const hasSpecificFilters = !!difficultyFilter || !!dateFilter || !!learnedFilter;
-    const difficulties = difficultyFilter ? [difficultyFilter] : ['Hard', 'Medium'];
+    let difficulties: WordDifficulty[] = ['Hard', 'Medium']; // Default for daily revision
+    if (difficultyFilter) {
+        difficulties = [difficultyFilter];
+    } else if (dateFilter) {
+        difficulties = ['New', 'Hard', 'Medium', 'Easy']; // For "Today's Words", test all levels
+    } else if (forcedTestType) {
+        // For general test types from dashboard, test everything not learned
+        difficulties = ['New', 'Hard', 'Medium', 'Easy'];
+    }
 
     const filter = (word: Word) => {
-        if (dateFilter && (!word.last_reviewed || !word.last_reviewed.startsWith(dateFilter))) {
+        if (dateFilter && (!word.last_reviewed || word.last_reviewed.split('T')[0] !== dateFilter)) {
             return false;
         }
         if (learnedFilter && !word.is_learned) {
             return false;
         }
-        // This logic applies only when a "learned=true" filter is active, to show only learned words.
-        // For general sessions, we should not show learned words.
-        if (!hasSpecificFilters && word.is_learned) {
+        // For general sessions (not specifically filtered), don't show learned words
+        if (!hasSpecificFilters && !dateFilter && word.is_learned) {
             return false;
         }
         if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
@@ -71,9 +80,9 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
     if (!word && !forcedTestType && effectiveTestType === 'synonym-antonym') {
         effectiveTestType = 'mcq';
         word = getWordForSession(difficulties, (w: Word) => {
-             if (dateFilter && (!w.last_reviewed || !w.last_reviewed.startsWith(dateFilter))) return false;
+             if (dateFilter && (!w.last_reviewed || w.last_reviewed.split('T')[0] !== dateFilter)) return false;
              if (learnedFilter && !w.is_learned) return false;
-             if (!hasSpecificFilters && w.is_learned) return false;
+             if (!hasSpecificFilters && !dateFilter && w.is_learned) return false;
              return true;
         });
     }
@@ -95,34 +104,34 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
     }
   }, [isInitialized, loadNextWord]);
 
-  const handleTestComplete = (correct: boolean, answer: string) => {
+  const handleTestComplete = async (correct: boolean, answer: string, testMeta: { isMCQ: boolean, correctAnswer: string }) => {
     if (!currentWord) return;
 
     setIsCorrect(correct);
     setUserAnswer(answer);
     setSessionState('feedback');
 
-    const currentDifficulty = currentWord.difficulty_level;
-    let newDifficulty: WordDifficulty = currentDifficulty;
-
-    if (correct) {
-        if (currentDifficulty === 'Hard') newDifficulty = 'Medium';
-        else if (currentDifficulty === 'Medium') newDifficulty = 'Easy';
-        else if (currentDifficulty === 'New') newDifficulty = 'Medium';
-    } else {
-        if (currentDifficulty === 'Easy') newDifficulty = 'Medium';
-        else if (currentDifficulty === 'Medium') newDifficulty = 'Hard';
-        else if (currentDifficulty === 'New') newDifficulty = 'Hard';
-    }
+    const { newDifficulty, reason } = await adjustDifficulty({
+      word: currentWord.word,
+      userAnswer: answer,
+      correctAnswer: testMeta.correctAnswer,
+      currentDifficulty: currentWord.difficulty_level,
+      isMCQ: testMeta.isMCQ,
+      translationLanguage: 'Bengali'
+    });
     
+    toast({
+        title: `Difficulty changed to ${newDifficulty}`,
+        description: reason,
+    });
+
     const newTimesCorrect = currentWord.times_correct + (correct ? 1 : 0);
     const newTimesIncorrect = currentWord.times_incorrect + (correct ? 0 : 1);
     
     let isLearned = currentWord.is_learned;
-    // A word is "learned" if it's correct and becomes Easy, or was already Easy.
     if (correct && newDifficulty === 'Easy') {
       isLearned = true;
-    } else if (!correct) { // If answered incorrectly, it's no longer considered learned.
+    } else if (!correct) {
       isLearned = false;
     }
 
@@ -135,19 +144,23 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
   };
 
   const TestComponent = useMemo(() => {
-    if (!currentWord) return null;
+    if (!currentWord || !testType) return null;
+
+    const onComplete = (isCorrect: boolean, answer: string, isMCQ: boolean, correctAnswer: string) => {
+      handleTestComplete(isCorrect, answer, { isMCQ, correctAnswer });
+    }
 
     switch (testType) {
         case 'mcq':
-            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="english-to-bengali" />;
+            return <McqTest word={currentWord} onComplete={onComplete} testType="english-to-bengali" />;
         case 'bengali-to-english':
-            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="bengali-to-english" />;
+            return <McqTest word={currentWord} onComplete={onComplete} testType="bengali-to-english" />;
         case 'synonym-antonym':
-            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="synonym-antonym" />;
+            return <McqTest word={currentWord} onComplete={onComplete} testType="synonym-antonym" />;
         case 'spelling':
-            return <SpellingTest word={currentWord} onComplete={handleTestComplete} />;
+            return <SpellingTest word={currentWord} onComplete={onComplete} />;
         default:
-            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="english-to-bengali" />;
+            return <McqTest word={currentWord} onComplete={onComplete} testType="english-to-bengali" />;
     }
   }, [currentWord, testType]);
 
@@ -171,10 +184,13 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
           <CardTitle>সেশন সম্পন্ন!</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">আপনি এখনকার জন্য উপলব্ধ সমস্ত শব্দ পর্যালোচনা করেছেন। সাবাশ!</p>
-          <Link href="/" passHref>
-            <Button>ড্যাশবোর্ডে ফিরে যান</Button>
-          </Link>
+          <p className="mb-4">আপনি এই তালিকার সমস্ত শব্দ পর্যালোচনা করেছেন। চালিয়ে যেতে চান?</p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={loadNextWord}>আবার শুরু করুন</Button>
+            <Link href="/" passHref>
+              <Button variant="outline">ড্যাশবোর্ডে ফিরে যান</Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     );
@@ -186,7 +202,7 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
       {sessionState === 'loading' && ( 
         <Card className="w-full max-w-2xl text-center">
             <CardHeader>
-                <CardTitle>আপনার উত্তর বিশ্লেষণ করা হচ্ছে...</CardTitle>
+                <CardTitle>পরবর্তী শব্দের জন্য প্রস্তুত হচ্ছে...</CardTitle>
             </CardHeader>
             <CardContent>
                 <p>অনুগ্রহ করে অপেক্ষা করুন...</p>
@@ -207,4 +223,12 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
       )}
     </div>
   );
+}
+
+export function LearningClient() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LearningClientInternal />
+    </Suspense>
+  )
 }

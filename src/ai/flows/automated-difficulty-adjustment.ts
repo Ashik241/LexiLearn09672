@@ -53,10 +53,17 @@ const adjustDifficultyPrompt = ai.definePrompt({
     - If the user answered correctly and the current difficulty is Medium, move the word to Easy.
     - If the user answered correctly and the current difficulty is Easy, keep the word at Easy.
     - If the question was a multiple choice question, and the user was incorrect, the word should be moved to "Hard".
+    - A spelling mistake should weigh heavily towards making a word "Hard".
 
   Provide a brief reason for the adjustment. Focus on if the answer was incorrect or correct, and the prior difficulty.
 
-  New Difficulty (Easy, Medium, or Hard):`,
+  Your output MUST be valid JSON with keys 'newDifficulty' and 'reason'.
+  Example Output:
+  {
+    "newDifficulty": "Hard",
+    "reason": "The user's answer was incorrect. Moved from Medium to Hard."
+  }
+  `,
 });
 
 const adjustDifficultyFlow = ai.defineFlow(

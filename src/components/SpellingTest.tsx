@@ -9,11 +9,10 @@ import { Input } from './ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Slider } from './ui/slider';
 
 interface SpellingTestProps {
   word: Word;
-  onComplete: (isCorrect: boolean, answer: string) => void;
+  onComplete: (isCorrect: boolean, answer: string, isMCQ: boolean, correctAnswer: string) => void;
 }
 
 type Accent = 'UK' | 'US';
@@ -23,8 +22,8 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
   const [answer, setAnswer] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [accent, setAccent] = useState<Accent>('US');
-  const [rate, setRate] = useState([0.9]);
-  const [volume, setVolume] = useState([1]);
+  const [rate] = useState([0.9]);
+  const [volume] = useState([1]);
   const [mode, setMode] = useState<SpellingMode>('listen');
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,13 +72,23 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [word, mode]);
+  
+  useEffect(() => {
+    setAnswer('');
+    setIsSubmitted(false);
+    if(mode === 'listen'){
+      const timeoutId = setTimeout(() => speak(accent), 200);
+      return () => clearTimeout(timeoutId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [word, mode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!answer.trim()) return;
     setIsSubmitted(true);
     const isCorrect = answer.trim().toLowerCase() === word.word.toLowerCase();
-    onComplete(isCorrect, answer.trim());
+    onComplete(isCorrect, answer.trim(), false, word.word);
   };
 
   return (

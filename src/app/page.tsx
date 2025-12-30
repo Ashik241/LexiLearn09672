@@ -88,7 +88,7 @@ export default function Home() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href={`/vocabulary?date=${today}`} passHref>
+            <Link href={`/learn?date=${today}`} passHref>
               <Card className="hover:bg-card-foreground/5 transition-colors h-full">
                 <CardHeader className="flex-row items-center gap-4 space-y-0">
                     <CalendarClock className="w-8 h-8 text-primary" />

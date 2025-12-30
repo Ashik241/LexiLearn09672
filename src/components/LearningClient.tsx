@@ -28,9 +28,10 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
   const searchParams = useSearchParams();
   const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
   const dateFilter = searchParams.get('date');
+  const learnedFilter = searchParams.get('learned');
   
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
-  const [testType, setTestType] = useState<TestType>('mcq');
+  const [testType, setTestType] = useState<TestType>(forcedTestType || 'mcq');
   const [sessionState, setSessionState] = useState<SessionState>('loading');
   const [isCorrect, setIsCorrect] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
@@ -42,25 +43,30 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
     const difficulties = difficultyFilter ? [difficultyFilter] : undefined;
     let effectiveTestType = forcedTestType || getRandomTestType();
 
-    const baseFilter = dateFilter 
-        ? (word: Word) => !!word.last_reviewed && word.last_reviewed.startsWith(dateFilter) 
-        : undefined;
-    
-    let filter = baseFilter;
-
-    if (effectiveTestType === 'synonym-antonym') {
-        const synonymAntonymFilter = (w: Word) => (w.synonyms && w.synonyms.length > 0) || (w.antonyms && w.antonyms.length > 0);
-        filter = baseFilter 
-            ? (w: Word) => baseFilter(w) && synonymAntonymFilter(w) 
-            : synonymAntonymFilter;
-    }
+    let filter = (word: Word) => {
+        if (dateFilter && (!word.last_reviewed || !word.last_reviewed.startsWith(dateFilter))) {
+            return false;
+        }
+        if (learnedFilter === 'true' && !word.is_learned) {
+            return false;
+        }
+        if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
+            return false;
+        }
+        return true;
+    };
     
     let word = getWordForSession(difficulties, filter);
 
     // If a random test was chosen and no suitable word was found, try another test type.
     if (!word && !forcedTestType && effectiveTestType === 'synonym-antonym') {
         effectiveTestType = 'mcq'; // Fallback
-        word = getWordForSession(difficulties, baseFilter);
+        filter = (w: Word) => !((!w.synonyms || w.synonyms.length === 0) && (!w.antonyms || w.antonyms.length === 0));
+        word = getWordForSession(difficulties, (w: Word) => {
+            if (dateFilter && (!w.last_reviewed || !w.last_reviewed.startsWith(dateFilter))) return false;
+            if (learnedFilter === 'true' && !w.is_learned) return false;
+            return true;
+        });
     }
     
     setCurrentWord(word);
@@ -72,7 +78,7 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
       setSessionState('finished');
     }
     setIsLoadingNext(false);
-  }, [getWordForSession, forcedTestType, difficultyFilter, dateFilter]);
+  }, [getWordForSession, forcedTestType, difficultyFilter, dateFilter, learnedFilter]);
 
   useEffect(() => {
     if (isInitialized) {

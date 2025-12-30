@@ -44,7 +44,7 @@ export function VocabularyList() {
     const allPos = useMemo(() => {
         if (!isInitialized) return [];
         const words = getAllWords();
-        const posSet = new Set(words.map(w => w.parts_of_speech));
+        const posSet = new Set(words.map(w => w.parts_of_speech).filter(Boolean));
         return Array.from(posSet);
     }, [isInitialized, getAllWords]);
 
@@ -169,7 +169,7 @@ export function VocabularyList() {
                         </SelectContent>
                     </Select>
                      {hasFilter && (
-                        <Link href={`/learn?type=mcq${difficultyFilter ? `&difficulty=${difficultyFilter}` : ''}${dateFilter ? `&date=${dateFilter}` : ''}${learnedFilter ? '&learned=true' : ''}`} passHref>
+                        <Link href={`/learn?${searchParams.toString()}`} passHref>
                             <Button>Start Exam</Button>
                         </Link>
                     )}

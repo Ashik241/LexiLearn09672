@@ -34,6 +34,7 @@ export function VocabularyList() {
     const { toast } = useToast();
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
     const dateFilter = searchParams.get('date');
+    const learnedFilter = searchParams.get('learned');
 
     const words = useMemo(() => {
         let allWords = getAllWords();
@@ -43,8 +44,11 @@ export function VocabularyList() {
         if (dateFilter) {
             allWords = allWords.filter(word => word.last_reviewed && word.last_reviewed.startsWith(dateFilter));
         }
+        if (learnedFilter === 'true') {
+            allWords = allWords.filter(word => word.is_learned);
+        }
         return allWords;
-    }, [getAllWords, difficultyFilter, dateFilter]);
+    }, [getAllWords, difficultyFilter, dateFilter, learnedFilter]);
 
     const title = useMemo(() => {
         if (difficultyFilter) return `${difficultyFilter} Words`;
@@ -60,8 +64,11 @@ export function VocabularyList() {
                 return 'Words from selected date';
             }
         }
+        if (learnedFilter === 'true') {
+            return 'Learned Words';
+        }
         return 'আপনার শব্দভান্ডার';
-    }, [difficultyFilter, dateFilter]);
+    }, [difficultyFilter, dateFilter, learnedFilter]);
     
     if (!isInitialized) {
         return (
@@ -84,12 +91,12 @@ export function VocabularyList() {
                 </CardHeader>
                 <CardContent className="text-center py-12">
                     <p className="text-muted-foreground mb-4">
-                        {difficultyFilter || dateFilter
+                        {difficultyFilter || dateFilter || learnedFilter
                             ? `এই ক্যাটেগরিতে কোনো শব্দ পাওয়া যায়নি।`
                             : 'এখনও কোনো শব্দ যোগ করা হয়নি।'
                         }
                     </p>
-                    { (difficultyFilter || dateFilter) && (
+                    { (difficultyFilter || dateFilter || learnedFilter) && (
                          <Link href="/vocabulary" passHref>
                             <Button variant="outline">সব শব্দ দেখুন</Button>
                         </Link>
@@ -112,12 +119,14 @@ export function VocabularyList() {
         })
     }
 
+    const hasFilter = difficultyFilter || dateFilter || learnedFilter;
+
     return (
         <Card>
             <CardHeader className="flex flex-row justify-between items-center">
                 <CardTitle className="font-headline">{title}</CardTitle>
-                {(difficultyFilter || dateFilter) && (
-                    <Link href={`/learn?type=mcq${difficultyFilter ? `&difficulty=${difficultyFilter}` : ''}${dateFilter ? `&date=${dateFilter}` : ''}`} passHref>
+                {hasFilter && (
+                    <Link href={`/learn?type=mcq${difficultyFilter ? `&difficulty=${difficultyFilter}` : ''}${dateFilter ? `&date=${dateFilter}` : ''}${learnedFilter ? '&learned=true' : ''}`} passHref>
                         <Button>Start Exam</Button>
                     </Link>
                 )}

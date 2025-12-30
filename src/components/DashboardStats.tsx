@@ -22,6 +22,7 @@ export function DashboardStats() {
       value: stats.wordsMastered,
       icon: BookCheck,
       description: "আপনার শেখা 'Easy' ক্যাটেগরির শব্দ।",
+      link: '/vocabulary?learned=true',
     },
     {
       title: 'সামগ্রিক নির্ভুলতা',
@@ -69,12 +70,12 @@ export function DashboardStats() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
       {statItems.map((item) => {
         const card = (
-            <Card className={item.link ? "hover:bg-card-foreground/5 transition-colors" : ""}>
+            <Card className={item.link ? "hover:bg-card-foreground/5 transition-colors h-full flex flex-col" : "h-full flex flex-col"}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
                     <item.icon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-grow">
                     <div className={`text-2xl font-bold ${item.className || ''}`}>{item.value}</div>
                     <p className="text-xs text-muted-foreground">{item.description}</p>
                 </CardContent>
@@ -83,12 +84,12 @@ export function DashboardStats() {
 
         if (item.link) {
             return (
-                <Link href={item.link} key={item.title} passHref>
+                <Link href={item.link} key={item.title} passHref className="flex">
                     {card}
                 </Link>
             )
         }
-        return <div key={item.title}>{card}</div>;
+        return <div key={item.title} className="flex">{card}</div>;
     })}
     </div>
   );

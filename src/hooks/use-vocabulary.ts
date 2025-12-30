@@ -3,8 +3,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Word, WordDifficulty } from '@/types';
-import { initialWordsData } from '@/lib/data';
-import { bulkWordsData } from '@/lib/bulk-words';
 
 interface VocabularyState {
   words: Word[];
@@ -55,41 +53,18 @@ const useVocabularyStore = create<VocabularyState>()(
 
       init: () => {
         if (get().isInitialized) return;
-
-        const wordsMap = new Map<string, Word>();
-        const now = new Date().toISOString();
-        const allWordsToProcess = [...initialWordsData, ...bulkWordsData];
-
-        allWordsToProcess.forEach((word) => {
-          const id = word.word.toLowerCase();
-          if (!wordsMap.has(id)) {
-            wordsMap.set(id, {
-              ...word,
-              id: id,
-              difficulty_level: 'New',
-              is_learned: false,
-              times_correct: 0,
-              times_incorrect: 0,
-              last_reviewed: null,
-              createdAt: now,
-              synonyms: word.synonyms || [],
-              antonyms: word.antonyms || [],
-            });
-          }
-        });
-        const initialData = Array.from(wordsMap.values());
         
         const currentState = get();
-        if (currentState.words.length === 0) {
-            set({ words: initialData, isInitialized: true });
-        } else {
-            // Migration for existing users: add createdAt if it's missing
-            const updatedWords = currentState.words.map(w => ({
-              ...w,
-              createdAt: w.createdAt || new Date(0).toISOString(), // Default to epoch for old words
-            }));
-            set({ isInitialized: true, words: updatedWords });
-        }
+        // Migration for existing users: add createdAt if it's missing and ensure word properties exist
+        const updatedWords = currentState.words.map(w => ({
+          ...w,
+          createdAt: w.createdAt || new Date(0).toISOString(), // Default to epoch for old words
+          synonyms: w.synonyms || [],
+          antonyms: w.antonyms || [],
+          syllables: w.syllables || [],
+          example_sentences: w.example_sentences || [],
+        }));
+        set({ isInitialized: true, words: updatedWords });
         
         get().calculateStats();
       },
@@ -294,3 +269,5 @@ export const useVocabulary = () => {
 
   return store;
 };
+
+    

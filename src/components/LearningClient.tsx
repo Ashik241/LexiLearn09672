@@ -66,11 +66,11 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
         return true;
     };
     
-    let word = getWordForSession(hasSpecificFilters ? undefined : difficulties, filter);
+    let word = getWordForSession(difficulties, filter);
 
     if (!word && !forcedTestType && effectiveTestType === 'synonym-antonym') {
         effectiveTestType = 'mcq';
-        word = getWordForSession(hasSpecificFilters ? undefined : difficulties, (w: Word) => {
+        word = getWordForSession(difficulties, (w: Word) => {
              if (dateFilter && (!w.last_reviewed || !w.last_reviewed.startsWith(dateFilter))) return false;
              if (learnedFilter && !w.is_learned) return false;
              if (!hasSpecificFilters && w.is_learned) return false;

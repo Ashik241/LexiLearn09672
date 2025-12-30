@@ -27,7 +27,7 @@ export async function generateStaticParams() {
 
   const allWords = Array.from(wordsMap.values());
   const paths = allWords.map((word: any) => ({
-    word: word.params ? word.params.word : word.id,
+    word: word.id,
   }));
  
   return paths;

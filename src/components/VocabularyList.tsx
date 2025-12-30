@@ -186,6 +186,7 @@ export function VocabularyList() {
                             <TableRow>
                                 <TableHead>শব্দ</TableHead>
                                 <TableHead>অর্থ</TableHead>
+                                <TableHead>পদ</TableHead>
                                 <TableHead className="text-center">স্তর</TableHead>
                                 <TableHead className="text-right">সম্পাদনা</TableHead>
                             </TableRow>
@@ -195,6 +196,7 @@ export function VocabularyList() {
                                 <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
                                     <TableCell className="font-medium font-code">{word.word}</TableCell>
                                     <TableCell>{word.meaning}</TableCell>
+                                    <TableCell>{word.parts_of_speech}</TableCell>
                                     <TableCell className="text-center">
                                         <Badge 
                                             variant={difficultyVariant[word.difficulty_level]}

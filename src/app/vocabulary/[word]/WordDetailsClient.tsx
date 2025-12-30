@@ -152,7 +152,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
             </div>
             
             {word.meaning_explanation && (
-              <div>
+              <div className="bg-card-foreground/5 p-4 rounded-lg">
                 <h3 className="text-xl font-semibold mb-2">অর্থের ব্যাখ্যা</h3>
                 <p className="text-muted-foreground italic">"{word.meaning_explanation}"</p>
               </div>

@@ -23,6 +23,7 @@ interface VocabularyState {
   getWordForSession: (type?: 'mcq' | 'spelling') => Word | null;
   calculateStats: () => void;
   getAllWords: () => Word[];
+  getWordById: (id: string) => Word | undefined;
 }
 
 const useVocabularyStore = create<VocabularyState>()(
@@ -158,6 +159,10 @@ const useVocabularyStore = create<VocabularyState>()(
 
       getAllWords: () => {
         return get().words.sort((a, b) => a.word.localeCompare(b.word));
+      },
+
+      getWordById: (id: string) => {
+        return get().words.find(w => w.id === id);
       }
     }),
     {

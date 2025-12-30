@@ -6,6 +6,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'ubiquitous',
     syllables: ['u', 'biq', 'ui', 'tous'],
     meaning: 'সর্বব্যাপী; যা সর্বত্র বিদ্যমান।',
+    parts_of_speech: 'Adjective',
+    synonyms: ['everywhere', 'omnipresent', 'pervasive'],
+    antonyms: ['rare', 'scarce'],
     accent_uk: '/juːˈbɪk.wɪ.təs/',
     accent_us: '/juːˈbɪk.wə.t̬əs/',
     example_sentences: [
@@ -17,6 +20,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'ephemeral',
     syllables: ['eph', 'em', 'er', 'al'],
     meaning: 'ক্ষণস্থায়ী; যা খুব অল্প সময়ের জন্য স্থায়ী হয়।',
+    parts_of_speech: 'Adjective',
+    synonyms: ['transitory', 'fleeting', 'short-lived'],
+    antonyms: ['permanent', 'enduring', 'lasting'],
     accent_uk: '/ɪˈfem.ər.əl/',
     accent_us: '/əˈfem.ər.əl/',
     example_sentences: [
@@ -28,6 +34,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'mellifluous',
     syllables: ['mel', 'lif', 'lu', 'ous'],
     meaning: 'সুমধুর; যা শুনতে খুব মিষ্টি বা সুরেলা।',
+    parts_of_speech: 'Adjective',
+    synonyms: ['sweet-sounding', 'dulcet', 'euphonious'],
+    antonyms: ['cacophonous', 'harsh-sounding'],
     accent_uk: '/məˈlɪf.lu.əs/',
     accent_us: '/məˈlɪf.lu.əs/',
     example_sentences: [
@@ -39,6 +48,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'pulchritudinous',
     syllables: ['pul', 'chri', 'tu', 'di', 'nous'],
     meaning: 'অসাধারণ শারীরিক সৌন্দর্য সম্পন্ন।',
+    parts_of_speech: 'Adjective',
+    synonyms: ['beautiful', 'gorgeous', 'stunning'],
+    antonyms: ['ugly', 'unattractive', 'plain'],
     accent_uk: '/ˌpʌl.krɪˈtjuː.dɪ.nəs/',
     accent_us: '/ˌpʌl.krəˈtuː.dən.əs/',
     example_sentences: [
@@ -50,6 +62,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'serendipity',
     syllables: ['ser', 'en', 'dip', 'i', 'ty'],
     meaning: 'আকস্মিকভাবে কোনো উপকারী জিনিস খুঁজে পাওয়ার সৌভাগ্য।',
+    parts_of_speech: 'Noun',
+    synonyms: ['fluke', 'chance', 'happy accident'],
+    antonyms: ['misfortune', 'bad luck'],
     accent_uk: '/ˌser.ənˈdɪp.ə.ti/',
     accent_us: '/ˌser.ənˈdɪp.ə.t̬i/',
     example_sentences: [
@@ -61,6 +76,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'eloquent',
     syllables: ['el', 'o', 'quent'],
     meaning: 'বাকপটু; যিনি বলা বা লেখায় পারদর্শী।',
+    parts_of_speech: 'Adjective',
+    synonyms: ['articulate', 'fluent', 'persuasive'],
+    antonyms: ['inarticulate'],
     accent_uk: '/ˈel.ə.kwənt/',
     accent_us: '/ˈel.ə.kwənt/',
     example_sentences: [
@@ -72,6 +90,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'profound',
     syllables: ['pro', 'found'],
     meaning: 'গভীর; যা খুব তীব্র বা জ্ঞানগর্ভ।',
+    parts_of_speech: 'Adjective',
+    synonyms: ['deep', 'intense', 'intellectual'],
+    antonyms: ['superficial', 'shallow'],
     accent_uk: '/prəˈfaʊnd/',
     accent_us: '/prəˈfaʊnd/',
     example_sentences: [
@@ -83,6 +104,9 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     word: 'resilience',
     syllables: ['re', 'sil', 'i', 'ence'],
     meaning: 'স্থিতিস্থাপকতা; কঠিন পরিস্থিতি থেকে দ্রুত স্বাভাবিক অবস্থায় ফিরে আসার ক্ষমতা।',
+    parts_of_speech: 'Noun',
+    synonyms: ['toughness', 'elasticity', 'flexibility'],
+    antonyms: ['fragility', 'vulnerability'],
     accent_uk: '/rɪˈzɪl.i.əns/',
     accent_us: '/rɪˈzɪl.jəns/',
     example_sentences: [

@@ -4,6 +4,7 @@ import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookCheck, Target, Percent, HelpCircle, ShieldAlert, Check } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
+import Link from 'next/link';
 
 export function DashboardStats() {
   const { stats, isInitialized } = useVocabulary();
@@ -14,6 +15,7 @@ export function DashboardStats() {
       value: stats.totalWords,
       icon: Target,
       description: 'আপনার শব্দভান্ডারে থাকা মোট শব্দ।',
+      link: '/vocabulary',
     },
     {
       title: 'শেখা হয়েছে',
@@ -62,18 +64,29 @@ export function DashboardStats() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-      {statItems.map((item) => (
-        <Card key={item.title}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-            <item.icon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${item.className || ''}`}>{item.value}</div>
-            <p className="text-xs text-muted-foreground">{item.description}</p>
-          </CardContent>
-        </Card>
-      ))}
+      {statItems.map((item) => {
+        const card = (
+            <Card className={item.link ? "hover:bg-card-foreground/5 transition-colors" : ""}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                    <item.icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className={`text-2xl font-bold ${item.className || ''}`}>{item.value}</div>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                </CardContent>
+            </Card>
+        );
+
+        if (item.link) {
+            return (
+                <Link href={item.link} key={item.title} passHref>
+                    {card}
+                </Link>
+            )
+        }
+        return <div key={item.title}>{card}</div>;
+    })}
     </div>
   );
 }

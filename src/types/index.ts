@@ -5,6 +5,9 @@ export interface Word {
   word: string;
   syllables: string[];
   meaning: string;
+  parts_of_speech: string;
+  synonyms: string[];
+  antonyms: string[];
   accent_uk: string;
   accent_us: string;
   example_sentences: string[];

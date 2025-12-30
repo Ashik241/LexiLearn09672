@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStats } from '@/components/DashboardStats';
 import { AddWordDialog } from '@/components/AddWordDialog';
-import { VocabularyList } from '@/components/VocabularyList';
 
 export default function Home() {
   const [isAddWordOpen, setIsAddWordOpen] = useState(false);
@@ -69,9 +68,6 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="mt-12">
-          <VocabularyList />
-        </div>
       </main>
 
       <div className="fixed bottom-8 right-8 z-20">

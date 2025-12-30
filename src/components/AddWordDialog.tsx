@@ -61,6 +61,9 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         accent_uk: details.accent_uk,
         accent_us: details.accent_us,
         example_sentences: details.example_sentences,
+        parts_of_speech: details.parts_of_speech,
+        synonyms: details.synonyms,
+        antonyms: details.antonyms,
       });
 
       if (success) {

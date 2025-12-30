@@ -34,7 +34,7 @@ function LearningClientInternal() {
   const dateFilter = searchParams.get('date');
   const learnedFilter = searchParams.get('learned') === 'true';
 
-  const [currentWord, setCurrentWord] = useState<Word | null>(null);
+  const [currentWord, setCurrentWord, ] = useState<Word | null>(null);
   const [testType, setTestType] = useState<Exclude<TestType, 'dynamic'> | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>('loading');
   const [isCorrect, setIsCorrect] = useState(false);
@@ -131,11 +131,6 @@ function LearningClientInternal() {
     } else {
       newDifficulty = 'Hard';
     }
-    
-    toast({
-        title: `Difficulty changed to ${newDifficulty}`,
-        description: `The word "${currentWord.word}" is now ${newDifficulty}.`
-    });
 
     const newTimesCorrect = currentWord.times_correct + (correct ? 1 : 0);
     const newTimesIncorrect = currentWord.times_incorrect + (correct ? 0 : 1);
@@ -267,5 +262,3 @@ export function LearningClient() {
     </Suspense>
   )
 }
-
-    

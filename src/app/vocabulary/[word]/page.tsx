@@ -1,9 +1,7 @@
 import { initialWordsData } from '@/lib/data';
 import { bulkWordsData } from '@/lib/bulk-words';
-import { Header } from '@/components/layout/Header';
 import { WordDetailsClient } from './WordDetailsClient';
 import type { Word } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export async function generateStaticParams() {
   const allWordsToProcess = [...initialWordsData, ...bulkWordsData];
@@ -57,5 +55,5 @@ export default function WordDetailsPage({ params }: { params: { word: string } }
   const initialData = word || { id: wordId, word: wordId, meaning: '', parts_of_speech: '' };
 
 
-  return <WordDetailsClient initialWord={initialData as Word} />;
+  return <WordDetailsClient word={initialData as Word} />;
 }

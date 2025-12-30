@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Word, WordDifficulty } from '@/types';
 import { initialWordsData } from '@/lib/data';
+import { bulkWordsData } from '@/lib/bulk-words';
 
 interface VocabularyState {
   words: Word[];
@@ -46,9 +47,10 @@ const useVocabularyStore = create<VocabularyState>()(
         if (get().isInitialized) return;
 
         const wordsMap = new Map<string, Word>();
+        const allWordsToProcess = [...initialWordsData, ...bulkWordsData];
         
-        // Add initial data first
-        initialWordsData.forEach((word) => {
+        // Add initial and bulk data first
+        allWordsToProcess.forEach((word) => {
             const id = word.word.toLowerCase();
             if (!wordsMap.has(id)) {
                 wordsMap.set(id, {
@@ -59,6 +61,8 @@ const useVocabularyStore = create<VocabularyState>()(
                     times_correct: 0,
                     times_incorrect: 0,
                     last_reviewed: null,
+                    accent_uk: '', // Default value
+                    accent_us: '', // Default value
                 });
             }
         });

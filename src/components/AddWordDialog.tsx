@@ -33,9 +33,6 @@ const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
   meaning: z.string().optional(),
   parts_of_speech: z.string().optional(),
-  syllables: z.string().optional(),
-  accent_uk: z.string().optional(),
-  accent_us: z.string().optional(),
   example_sentences: z.string().optional(),
   synonyms: z.string().optional(),
   antonyms: z.string().optional(),
@@ -60,9 +57,6 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       word: '',
       meaning: '',
       parts_of_speech: '',
-      syllables: '',
-      accent_uk: '',
-      accent_us: '',
       example_sentences: '',
       synonyms: '',
       antonyms: '',
@@ -88,9 +82,9 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         details = {
           meaning: values.meaning,
           parts_of_speech: values.parts_of_speech,
-          syllables: values.syllables?.split(',').map(s => s.trim()) || [],
-          accent_uk: values.accent_uk || '',
-          accent_us: values.accent_us || '',
+          syllables: values.word.split('-'), // Simple syllable split as a fallback
+          accent_uk: '',
+          accent_us: '',
           example_sentences: values.example_sentences?.split('\n').filter(s => s.trim() !== '') || [],
           synonyms: values.synonyms?.split(',').map(s => s.trim()) || [],
           antonyms: values.antonyms?.split(',').map(s => s.trim()) || [],
@@ -210,51 +204,12 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                 />
                 <FormField
                   control={form.control}
-                  name="syllables"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>সিলেবল (কমা দিয়ে আলাদা করুন)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ser,en,dip,i,ty" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="accent_us"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>US উচ্চারণ (IPA)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="/ˌser.ənˈdɪp.ə.t̬i/" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="accent_uk"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>UK উচ্চারণ (IPA)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="/ˌser.ənˈdɪp.ə.ti/" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="example_sentences"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>উদাহরণ বাক্য (প্রতিটি নতুন লাইনে)</FormLabel>
+                      <FormLabel>উদাহরণ বাক্য (ঐচ্ছিক)</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="উদাহরণ বাক্য এখানে লিখুন..." {...field} />
+                        <Textarea placeholder="উদাহরণ বাক্য এখানে লিখুন (প্রতিটি নতুন লাইনে)..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -265,9 +220,9 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                   name="synonyms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Synonyms (কমা দিয়ে আলাদা করুন)</FormLabel>
+                      <FormLabel>Synonyms (ঐচ্ছিক)</FormLabel>
                       <FormControl>
-                        <Input placeholder="chance, fluke" {...field} />
+                        <Input placeholder="chance, fluke (কমা দিয়ে আলাদা করুন)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -278,9 +233,9 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                   name="antonyms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Antonyms (কমা দিয়ে আলাদা করুন)</FormLabel>
+                      <FormLabel>Antonyms (ঐচ্ছিক)</FormLabel>
                       <FormControl>
-                        <Input placeholder="misfortune, bad luck" {...field} />
+                        <Input placeholder="misfortune, bad luck (কমা দিয়ে আলাদা করুন)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -14,6 +14,27 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { initialWordsData } from '@/lib/data';
+import { bulkWordsData } from '@/lib/bulk-words';
+
+export async function generateStaticParams() {
+  const allWordsToProcess = [...initialWordsData, ...bulkWordsData];
+  const wordsMap = new Map();
+  allWordsToProcess.forEach((word) => {
+      const id = word.word.toLowerCase();
+      if (!wordsMap.has(id)) {
+          wordsMap.set(id, { params: { word: id } });
+      }
+  });
+
+  const allWords = Array.from(wordsMap.values());
+  const paths = allWords.map(word => ({
+    word: word.params.word,
+  }));
+ 
+  return paths;
+}
+
 
 type Accent = 'UK' | 'US';
 

@@ -136,13 +136,6 @@ export default function WordDetailsPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <h3 className="text-xl font-semibold mb-2">উচ্চারণ</h3>
-                    <div className="space-y-1 text-muted-foreground font-code">
-                        <p><strong>UK:</strong> {word.accent_uk}</p>
-                        <p><strong>US:</strong> {word.accent_us}</p>
-                    </div>
-                </div>
-                <div>
                     <h3 className="text-xl font-semibold mb-2">সিলেবল</h3>
                     <p className="text-muted-foreground font-code">{word.syllables.join(' · ')}</p>
                 </div>

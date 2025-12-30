@@ -66,7 +66,7 @@ export function DashboardStats() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
       {statItems.map((item) => {
         const card = (
-            <Card className={item.link ? "hover:bg-card-foreground/5 transition-colors h-full flex flex-col" : "h-full flex flex-col"}>
+            <Card className="h-full flex flex-col hover:bg-card-foreground/5 transition-colors">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
                     <item.icon className="h-4 w-4 text-muted-foreground" />
@@ -80,7 +80,7 @@ export function DashboardStats() {
 
         if (item.link) {
             return (
-                <Link href={item.link} key={item.title} passHref className="flex">
+                <Link href={item.link} key={item.title} className="flex">
                     {card}
                 </Link>
             )

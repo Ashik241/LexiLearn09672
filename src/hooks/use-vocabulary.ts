@@ -53,18 +53,7 @@ const useVocabularyStore = create<VocabularyState>()(
 
       init: () => {
         if (get().isInitialized) return;
-        
-        const currentState = get();
-        const updatedWords = currentState.words.map(w => ({
-          ...w,
-          createdAt: w.createdAt || new Date(0).toISOString(),
-          synonyms: w.synonyms || [],
-          antonyms: w.antonyms || [],
-          syllables: w.syllables || [],
-          example_sentences: w.example_sentences || [],
-        }));
-        set({ isInitialized: true, words: updatedWords });
-        
+        set({ isInitialized: true });
         get().calculateStats();
       },
 
@@ -75,15 +64,17 @@ const useVocabularyStore = create<VocabularyState>()(
         }
         const now = new Date().toISOString();
         const newWord: Word = {
-          ...wordData,
           id: wordId,
+          word: wordData.word,
+          meaning: wordData.meaning,
+          parts_of_speech: wordData.parts_of_speech,
           difficulty_level: 'New',
           is_learned: false,
           times_correct: 0,
           times_incorrect: 0,
           last_reviewed: now,
           createdAt: now,
-          meaning_explanation: wordData.meaning_explanation,
+          meaning_explanation: wordData.meaning_explanation || '',
           syllables: wordData.syllables || [],
           synonyms: wordData.synonyms || [],
           antonyms: wordData.antonyms || [],
@@ -106,19 +97,22 @@ const useVocabularyStore = create<VocabularyState>()(
           const wordId = wordData.word.toLowerCase();
           if (!existingWordIds.has(wordId)) {
             acc.push({
-              ...wordData,
               id: wordId,
+              word: wordData.word,
+              meaning: wordData.meaning,
+              parts_of_speech: wordData.parts_of_speech,
               difficulty_level: 'New',
               is_learned: false,
               times_correct: 0,
               times_incorrect: 0,
               last_reviewed: now,
               createdAt: now,
-              meaning_explanation: wordData.meaning_explanation,
+              meaning_explanation: wordData.meaning_explanation || '',
               syllables: wordData.syllables || [],
               synonyms: wordData.synonyms || [],
               antonyms: wordData.antonyms || [],
               example_sentences: wordData.example_sentences || [],
+              verb_forms: wordData.verb_forms,
             });
             existingWordIds.add(wordId);
             addedCount++;

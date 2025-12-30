@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { Word, WordDifficulty } from '@/types';
 import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search, MoreHorizontal, Pencil } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -47,13 +47,14 @@ const difficultyClass: Record<WordDifficulty, string> = {
 }
 
 export function VocabularyList() {
-    const { getAllWords, isInitialized, deleteWord } = useVocabulary();
+    const { getAllWords, isInitialized, deleteWord, deleteAllWords } = useVocabulary();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
     const [posFilter, setPosFilter] = useState('all');
     const [wordToDelete, setWordToDelete] = useState<Word | null>(null);
+    const [isDeleteAllAlertOpen, setIsDeleteAllAlertOpen] = useState(false);
 
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
     const dateFilter = searchParams.get('date');
@@ -125,7 +126,7 @@ export function VocabularyList() {
         );
     }
     
-    if (words.length === 0 && !searchQuery && posFilter === 'all') {
+    if (words.length === 0 && !searchQuery && posFilter === 'all' && !hasFilter) {
         return (
             <Card>
                 <CardHeader>
@@ -133,16 +134,8 @@ export function VocabularyList() {
                 </CardHeader>
                 <CardContent className="text-center py-12">
                     <p className="text-muted-foreground mb-4">
-                        {difficultyFilter || dateFilter || learnedFilter
-                            ? `এই ক্যাটেগরিতে কোনো শব্দ পাওয়া যায়নি।`
-                            : 'এখনও কোনো শব্দ যোগ করা হয়নি।'
-                        }
+                        এখনও কোনো শব্দ যোগ করা হয়নি।
                     </p>
-                    { (difficultyFilter || dateFilter || learnedFilter) && (
-                         <Link href="/vocabulary" passHref>
-                            <Button variant="outline">সব শব্দ দেখুন</Button>
-                        </Link>
-                    )}
                 </CardContent>
             </Card>
         );
@@ -162,6 +155,15 @@ export function VocabularyList() {
             setWordToDelete(null);
         }
     };
+
+    const confirmDeleteAll = () => {
+        deleteAllWords();
+        toast({
+            title: "সমস্ত শব্দ মুছে ফেলা হয়েছে",
+            description: "আপনার শব্দভান্ডারের সমস্ত শব্দ সফলভাবে মুছে ফেলা হয়েছে।",
+        });
+        setIsDeleteAllAlertOpen(false);
+    };
     
     const handleEditClick = (e: MouseEvent<HTMLDivElement>, wordId: string) => {
         e.stopPropagation();
@@ -178,9 +180,9 @@ export function VocabularyList() {
         <>
             <Card>
                 <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <CardTitle className="font-headline whitespace-nowrap">{title}</CardTitle>
-                    <div className="flex w-full md:w-auto md:justify-end gap-2">
-                        <div className="relative w-full md:w-64">
+                    <CardTitle className="font-headline whitespace-nowrap">{title} ({words.length})</CardTitle>
+                    <div className="flex w-full flex-wrap md:w-auto md:justify-end gap-2">
+                        <div className="relative flex-grow md:flex-grow-0 w-full md:w-48">
                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                            <Input 
                                 placeholder="Search words..."
@@ -190,7 +192,7 @@ export function VocabularyList() {
                            />
                         </div>
                         <Select value={posFilter} onValueChange={setPosFilter}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="All Parts of Speech" />
                             </SelectTrigger>
                             <SelectContent>
@@ -203,12 +205,21 @@ export function VocabularyList() {
                                 <Button>Start Exam</Button>
                             </Link>
                         )}
+                        <Button variant="destructive" onClick={() => setIsDeleteAllAlertOpen(true)} disabled={words.length === 0}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete All
+                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
                     {words.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-muted-foreground">আপনার সার্চের সাথে মেলে এমন কোনো শব্দ পাওয়া যায়নি।</p>
+                            <p className="text-muted-foreground">আপনার সার্চ বা ফিল্টারের সাথে মেলে এমন কোনো শব্দ পাওয়া যায়নি।</p>
+                            { (difficultyFilter || dateFilter || learnedFilter || searchQuery || posFilter !== 'all') && (
+                                 <Link href="/vocabulary" passHref>
+                                    <Button variant="outline" className="mt-4" onClick={() => { setSearchQuery(''); setPosFilter('all'); }}>Clear Filters & Search</Button>
+                                </Link>
+                            )}
                         </div>
                     ) : (
                         <Table>
@@ -278,6 +289,24 @@ export function VocabularyList() {
                         <AlertDialogCancel onClick={() => setWordToDelete(null)}>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={confirmDelete} className={buttonVariants({ variant: "destructive" })}>
                             Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={isDeleteAllAlertOpen} onOpenChange={setIsDeleteAllAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                           <ShieldAlert className="text-destructive" /> Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete all <strong>{words.length}</strong> words from your vocabulary.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDeleteAll} className={buttonVariants({ variant: "destructive" })}>
+                            Yes, delete all
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

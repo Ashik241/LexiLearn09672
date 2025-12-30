@@ -26,6 +26,7 @@ interface VocabularyState {
   addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>[]) => { addedCount: number; skippedCount: number };
   updateWord: (wordId: string, updates: Partial<Word>) => void;
   deleteWord: (wordId: string) => void;
+  deleteAllWords: () => void;
   getWordForSession: (difficulties: WordDifficulty[], filter?: ((word: Word) => boolean) | undefined) => Word | null;
   calculateStats: () => void;
   getAllWords: () => Word[];
@@ -112,6 +113,7 @@ const useVocabularyStore = create<VocabularyState>()(
           synonyms: wordData.synonyms || [],
           antonyms: wordData.antonyms || [],
           example_sentences: wordData.example_sentences || [],
+          verb_forms: wordData.verb_forms,
         };
         set((state) => ({ words: [...state.words, newWord] }));
         get().calculateStats();
@@ -171,6 +173,11 @@ const useVocabularyStore = create<VocabularyState>()(
         set((state) => ({
             words: state.words.filter((word) => word.id !== wordId),
         }));
+        get().calculateStats();
+      },
+      
+      deleteAllWords: () => {
+        set({ words: [] });
         get().calculateStats();
       },
 
@@ -287,5 +294,3 @@ export const useVocabulary = () => {
 
   return store;
 };
-
-    

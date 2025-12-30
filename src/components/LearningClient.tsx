@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useVocabulary } from '@/hooks/use-vocabulary';
-import { adjustDifficulty } from '@/ai/flows/automated-difficulty-adjustment';
-import type { Word } from '@/types';
+import type { Word, WordDifficulty } from '@/types';
 import McqTest from '@/components/McqTest';
 import SpellingTest from '@/components/SpellingTest';
 import FeedbackScreen from './FeedbackScreen';
@@ -46,47 +45,44 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
     }
   }, [isInitialized, loadNextWord]);
 
-  const handleTestComplete = async (correct: boolean, answer: string) => {
+  const handleTestComplete = (correct: boolean, answer: string) => {
     if (!currentWord) return;
 
     setIsCorrect(correct);
     setUserAnswer(answer);
-    setSessionState('loading'); // Show loading while AI processes
+    setSessionState('feedback');
 
-    try {
-      const difficultyResult = await adjustDifficulty({
-        word: currentWord.word,
-        userAnswer: answer,
-        correctAnswer: testType === 'spelling' ? currentWord.word : currentWord.meaning,
-        currentDifficulty: currentWord.difficulty_level,
-        isMCQ: testType === 'mcq',
-      });
-      
-      const newTimesCorrect = currentWord.times_correct + (correct ? 1 : 0);
-      const newTimesIncorrect = currentWord.times_incorrect + (correct ? 0 : 1);
-      
-      let isLearned = currentWord.is_learned;
-      if (correct && difficultyResult.newDifficulty === 'Easy' && currentWord.difficulty_level !== 'Easy') {
-        isLearned = true;
-      } else if (!correct) {
-        isLearned = false;
-      }
+    // --- Difficulty Adjustment Logic (Local) ---
+    const currentDifficulty = currentWord.difficulty_level;
+    let newDifficulty: WordDifficulty = currentDifficulty;
 
-      updateWord(currentWord.id, {
-        difficulty_level: difficultyResult.newDifficulty,
-        is_learned: isLearned,
-        times_correct: newTimesCorrect,
-        times_incorrect: newTimesIncorrect,
-      });
-
-    } catch (error) {
-      console.error("AI difficulty adjustment failed:", error);
-      // Fallback logic if AI fails
-      const newDifficulty = correct ? (currentWord.difficulty_level === 'Hard' ? 'Medium' : 'Easy') : 'Hard';
-      updateWord(currentWord.id, { difficulty_level: newDifficulty });
-    } finally {
-      setSessionState('feedback');
+    if (correct) {
+        if (currentDifficulty === 'Hard') newDifficulty = 'Medium';
+        else if (currentDifficulty === 'Medium') newDifficulty = 'Easy';
+        else if (currentDifficulty === 'New') newDifficulty = 'Medium';
+    } else {
+        if (currentDifficulty === 'Easy') newDifficulty = 'Medium';
+        else if (currentDifficulty === 'Medium') newDifficulty = 'Hard';
+        else if (currentDifficulty === 'New') newDifficulty = 'Hard';
     }
+    
+    // --- Update Word Stats ---
+    const newTimesCorrect = currentWord.times_correct + (correct ? 1 : 0);
+    const newTimesIncorrect = currentWord.times_incorrect + (correct ? 0 : 1);
+    
+    let isLearned = currentWord.is_learned;
+    if (correct && newDifficulty === 'Easy' && currentWord.difficulty_level !== 'Easy') {
+      isLearned = true;
+    } else if (!correct) {
+      isLearned = false;
+    }
+
+    updateWord(currentWord.id, {
+      difficulty_level: newDifficulty,
+      is_learned: isLearned,
+      times_correct: newTimesCorrect,
+      times_incorrect: newTimesIncorrect,
+    });
   };
 
   const TestComponent = useMemo(() => {
@@ -130,13 +126,13 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
   return (
     <div className="w-full max-w-2xl">
       {sessionState === 'testing' && TestComponent}
-      {sessionState === 'loading' && (
+      {sessionState === 'loading' && ( // This state might not be used anymore, but kept for potential future use
         <Card className="w-full max-w-2xl text-center">
             <CardHeader>
                 <CardTitle>আপনার উত্তর বিশ্লেষণ করা হচ্ছে...</CardTitle>
             </CardHeader>
             <CardContent>
-                <p>অনুগ্রহ করে অপেক্ষা করুন, AI শব্দের অসুবিধা স্তর সামঞ্জস্য করছে।</p>
+                <p>অনুগ্রহ করে অপেক্ষা করুন...</p>
                 <div className="flex justify-center items-center p-8">
                     <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>

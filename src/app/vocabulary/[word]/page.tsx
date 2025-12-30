@@ -182,7 +182,6 @@ export default function WordDetailsPage() {
                         <div>
                             <h4 className="text-lg font-semibold text-primary">Present: {word.verb_forms.present}</h4>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
-                                <span>{word.verb_forms.present_pronunciation}</span>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.present)}><Volume2 className="h-4 w-4"/></Button>
                             </div>
                             <p className="mt-1 italic">"{word.verb_forms.form_examples.present}"</p>
@@ -191,7 +190,6 @@ export default function WordDetailsPage() {
                         <div>
                             <h4 className="text-lg font-semibold text-primary">Past: {word.verb_forms.past}</h4>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
-                                <span>{word.verb_forms.past_pronunciation}</span>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past)}><Volume2 className="h-4 w-4"/></Button>
                             </div>
                             <p className="mt-1 italic">"{word.verb_forms.form_examples.past}"</p>
@@ -200,7 +198,6 @@ export default function WordDetailsPage() {
                         <div>
                             <h4 className="text-lg font-semibold text-primary">Past Participle: {word.verb_forms.past_participle}</h4>
                              <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
-                                <span>{word.verb_forms.past_participle_pronunciation}</span>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past_participle)}><Volume2 className="h-4 w-4"/></Button>
                             </div>
                             <p className="mt-1 italic">"{word.verb_forms.form_examples.past_participle}"</p>

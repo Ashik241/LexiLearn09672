@@ -65,7 +65,7 @@ const withPWA = withPWAInit({
     },
      {
       urlPattern: /.*/i,
-      handler: 'NetworkFirst',
+      handler: 'CacheFirst',
       options: {
         cacheName: 'others',
         expiration: {
@@ -80,8 +80,6 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // output: 'export', // REMOVED FOR SPA-LIKE BEHAVIOR
-  trailingSlash: true, // Required for SPA-like behavior on static hosts
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -89,7 +87,6 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

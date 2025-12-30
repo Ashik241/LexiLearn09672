@@ -5,6 +5,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Word, WordDifficulty } from '@/types';
 import { initialWordsData } from '@/lib/data';
 import { bulkWordsData } from '@/lib/bulk-words';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { collection, doc, getDocs, writeBatch, getFirestore, onSnapshot } from 'firebase/firestore';
+import { app } from '@/firebase/config';
 
 interface VocabularyState {
   words: Word[];
@@ -18,7 +21,8 @@ interface VocabularyState {
     newWords: number;
   };
   isInitialized: boolean;
-  init: () => void;
+  isSyncing: boolean;
+  init: (user: User | null) => void;
   addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>) => boolean;
   addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>[]) => { addedCount: number; skippedCount: number };
   updateWord: (wordId: string, updates: Partial<Word>) => void;
@@ -27,7 +31,11 @@ interface VocabularyState {
   calculateStats: () => void;
   getAllWords: () => Word[];
   getWordById: (id: string) => Word | undefined;
+  loadInitialData: () => void;
 }
+
+let firestoreUnsubscribe: (() => void) | null = null;
+const db = getFirestore(app);
 
 const useVocabularyStore = create<VocabularyState>()(
   persist(
@@ -43,47 +51,67 @@ const useVocabularyStore = create<VocabularyState>()(
         newWords: 0,
       },
       isInitialized: false,
+      isSyncing: true,
 
-      init: () => {
-        if (get().isInitialized) return;
-
+      loadInitialData: () => {
         const wordsMap = new Map<string, Word>();
         const allWordsToProcess = [...initialWordsData, ...bulkWordsData];
-        
-        // Add initial and bulk data first
+
         allWordsToProcess.forEach((word) => {
-            const id = word.word.toLowerCase();
-            if (!wordsMap.has(id)) {
-                wordsMap.set(id, {
-                    ...word,
-                    id: id,
-                    difficulty_level: 'New',
-                    is_learned: false,
-                    times_correct: 0,
-                    times_incorrect: 0,
-                    last_reviewed: null,
-                });
-            }
-        });
-
-        // If there is existing persisted data, merge it
-        const existingWords = get().words;
-        if (existingWords.length > 0) {
-            existingWords.forEach(word => {
-                wordsMap.set(word.id, word);
+          const id = word.word.toLowerCase();
+          if (!wordsMap.has(id)) {
+            wordsMap.set(id, {
+              ...word,
+              id: id,
+              difficulty_level: 'New',
+              is_learned: false,
+              times_correct: 0,
+              times_incorrect: 0,
+              last_reviewed: null,
             });
-        }
-        
-        const mergedWords = Array.from(wordsMap.values());
-
-        set({ words: mergedWords, isInitialized: true });
+          }
+        });
+        const initialData = Array.from(wordsMap.values());
+        set({ words: initialData, isInitialized: true, isSyncing: false });
         get().calculateStats();
+      },
+
+      init: (user: User | null) => {
+        if (firestoreUnsubscribe) {
+          firestoreUnsubscribe();
+          firestoreUnsubscribe = null;
+        }
+
+        if (user) {
+          set({ isSyncing: true });
+          const userWordsCol = collection(db, 'users', user.uid, 'words');
+          
+          firestoreUnsubscribe = onSnapshot(userWordsCol, (snapshot) => {
+            const serverWords = snapshot.docs.map(doc => doc.data() as Word);
+            const localWords = get().words;
+            const wordsMap = new Map(localWords.map(w => [w.id, w]));
+
+            serverWords.forEach(serverWord => {
+              wordsMap.set(serverWord.id, serverWord);
+            });
+            
+            const mergedWords = Array.from(wordsMap.values());
+            set({ words: mergedWords, isInitialized: true, isSyncing: false });
+            get().calculateStats();
+          }, (error) => {
+            console.error("Firestore snapshot error:", error);
+            set({ isInitialized: true, isSyncing: false });
+          });
+        } else {
+          // Not logged in, use local data only
+          get().loadInitialData();
+        }
       },
 
       addWord: (wordData) => {
         const wordId = wordData.word.toLowerCase();
         if (get().words.some(w => w.id === wordId)) {
-          return false; // Word already exists
+          return false;
         }
         const newWord: Word = {
           ...wordData,
@@ -93,7 +121,6 @@ const useVocabularyStore = create<VocabularyState>()(
           times_correct: 0,
           times_incorrect: 0,
           last_reviewed: new Date().toISOString(),
-          // Ensure defaults for optional fields from bulk import
           syllables: wordData.syllables || [],
           synonyms: wordData.synonyms || [],
           antonyms: wordData.antonyms || [],
@@ -126,7 +153,7 @@ const useVocabularyStore = create<VocabularyState>()(
               antonyms: wordData.antonyms || [],
               example_sentences: wordData.example_sentences || [],
             });
-            existingWordIds.add(wordId); // Avoid duplicates within the same batch
+            existingWordIds.add(wordId);
             addedCount++;
           } else {
             skippedCount++;
@@ -173,10 +200,8 @@ const useVocabularyStore = create<VocabularyState>()(
 
         const priorityOrder: WordDifficulty[] = ['Hard', 'Medium', 'New', 'Easy'];
         
-        // Give priority to words that have never been reviewed
         const neverReviewed = words.filter(w => w.last_reviewed === null);
         if (neverReviewed.length > 0) {
-            // Among never-reviewed, still use priority, but they come first
             for (const difficulty of priorityOrder) {
                 const priorityWords = neverReviewed.filter(w => w.difficulty_level === difficulty);
                 if (priorityWords.length > 0) {
@@ -185,12 +210,10 @@ const useVocabularyStore = create<VocabularyState>()(
             }
         }
         
-        // If all words have been reviewed at least once, sort by oldest review
         for (const difficulty of priorityOrder) {
             const priorityWords = words.filter(w => w.difficulty_level === difficulty);
             if (priorityWords.length > 0) {
                 priorityWords.sort((a, b) => {
-                    // This should not happen if neverReviewed is handled, but as a fallback
                     if (!a.last_reviewed) return -1;
                     if (!b.last_reviewed) return 1;
                     return new Date(a.last_reviewed).getTime() - new Date(b.last_reviewed).getTime();
@@ -199,7 +222,6 @@ const useVocabularyStore = create<VocabularyState>()(
             }
         }
         
-        // Fallback, should ideally not be reached if logic is correct
         return words[Math.floor(Math.random() * words.length)];
       },
       
@@ -231,18 +253,70 @@ const useVocabularyStore = create<VocabularyState>()(
     {
       name: 'lexilearn-vocabulary',
       storage: createJSONStorage(() => localStorage),
+       onRehydrateStorage: (state) => {
+        return (state, error) => {
+          if (error) {
+            console.error('An error happened during storage rehydration', error)
+          } else {
+            // This is called when rehydration is done.
+            // We can now listen to auth changes.
+            const auth = getAuth(app);
+            onAuthStateChanged(auth, (user) => {
+              useVocabularyStore.getState().init(user);
+            });
+          }
+        }
+      },
+      partialize: (state) => ({ words: state.words }),
     }
   )
 );
 
+let isStoreInitialized = false;
+
 // Custom hook to initialize the store on client-side
-let isInitialized = false;
 export const useVocabulary = () => {
   const store = useVocabularyStore();
 
-  if (typeof window !== 'undefined' && !isInitialized) {
-    store.init();
-    isInitialized = true;
+  if (typeof window !== 'undefined' && !isStoreInitialized) {
+     const auth = getAuth(app);
+      onAuthStateChanged(auth, (user) => {
+        store.init(user);
+      });
+    isStoreInitialized = true;
+  }
+  
+  // Sync local changes to Firestore
+  if (typeof window !== 'undefined') {
+    useVocabularyStore.subscribe(
+      (currentState, prevState) => {
+        const auth = getAuth(app);
+        const user = auth.currentUser;
+        if (user && !currentState.isSyncing) {
+          const changedWords = currentState.words.filter(currentWord => {
+            const prevWord = prevState.words.find(p => p.id === currentWord.id);
+            return !prevWord || JSON.stringify(currentWord) !== JSON.stringify(prevWord);
+          });
+
+          const deletedWordIds = prevState.words
+            .filter(p => !currentState.words.some(c => c.id === p.id))
+            .map(p => p.id);
+
+          if (changedWords.length > 0 || deletedWordIds.length > 0) {
+            const batch = writeBatch(db);
+            changedWords.forEach(word => {
+              const docRef = doc(db, 'users', user.uid, 'words', word.id);
+              batch.set(docRef, word);
+            });
+            deletedWordIds.forEach(wordId => {
+              const docRef = doc(db, 'users', user.uid, 'words', wordId);
+              batch.delete(docRef);
+            });
+            batch.commit().catch(console.error);
+          }
+        }
+      }
+    );
   }
 
   return store;

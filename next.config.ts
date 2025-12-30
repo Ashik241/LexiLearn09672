@@ -8,7 +8,8 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: 'export',
+  // output: 'export', // REMOVED FOR SPA-LIKE BEHAVIOR
+  trailingSlash: true, // Required for SPA-like behavior on static hosts
   typescript: {
     ignoreBuildErrors: true,
   },

@@ -16,7 +16,7 @@ import { useVocabulary } from '@/hooks/use-vocabulary';
 
 type Accent = 'UK' | 'US';
 
-export function WordDetailsClient({ word: initialWord }: { word: Word }) {
+export function WordDetailsClient({ word: initialWord }: { word: Word | null }) {
   const { getWordById, isInitialized } = useVocabulary();
   const [rate, setRate] = useState([0.9]);
   const [volume, setVolume] = useState([1]);
@@ -24,13 +24,14 @@ export function WordDetailsClient({ word: initialWord }: { word: Word }) {
   const [word, setWord] = useState<Word | null>(initialWord);
 
   useEffect(() => {
-    if (isInitialized) {
+    // This effect ensures that if the data in the store updates, this component reflects it.
+    if (isInitialized && initialWord) {
       const clientWord = getWordById(initialWord.id);
-      if (clientWord) {
-        setWord(clientWord);
-      }
+      setWord(clientWord || initialWord); // Use the fresher word from store if available
+    } else {
+      setWord(initialWord);
     }
-  }, [isInitialized, initialWord.id, getWordById]);
+  }, [isInitialized, initialWord, getWordById]);
 
 
   const speak = (text: string, selectedAccent: Accent = accent) => {
@@ -72,7 +73,8 @@ export function WordDetailsClient({ word: initialWord }: { word: Word }) {
       );
   }
 
-  if (!word || !word.meaning) { // Check for a meaningful property like 'meaning'
+  // A "real" word should have a meaning. The placeholder from the page won't.
+  if (!word || !word.meaning) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
@@ -82,7 +84,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word }) {
               <CardTitle>শব্দ পাওয়া যায়নি</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>দুঃখিত, এই শব্দটি আপনার শব্দভান্ডারে পাওয়া যায়নি।</p>
+              <p>দুঃখিত, এই শব্দটি ("{word?.word}") আপনার শব্দভান্ডারে পাওয়া যায়নি।</p>
             </CardContent>
           </Card>
         </main>
@@ -133,7 +135,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word }) {
                             </div>
                             <div>
                                 <Label htmlFor="volume-slider">ভলিউম</Label>
-                                <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
+                                <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueeChange={setVolume} />
                             </div>
                         </div>
                       </div>

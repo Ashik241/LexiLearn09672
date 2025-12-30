@@ -7,13 +7,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { WordDifficulty } from '@/types';
+import type { Word, WordDifficulty } from '@/types';
 import { Button } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 const difficultyVariant: Record<WordDifficulty, 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Easy': 'default',
@@ -36,6 +53,7 @@ export function VocabularyList() {
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
     const [posFilter, setPosFilter] = useState('all');
+    const [wordToDelete, setWordToDelete] = useState<Word | null>(null);
 
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
     const dateFilter = searchParams.get('date');
@@ -134,93 +152,136 @@ export function VocabularyList() {
         router.push(`/vocabulary/${wordId}`);
     };
 
-    const handleDelete = (e: MouseEvent<HTMLButtonElement>, wordId: string, word: string) => {
+    const confirmDelete = () => {
+        if (wordToDelete) {
+            deleteWord(wordToDelete.id);
+            toast({
+                title: "শব্দ মুছে ফেলা হয়েছে",
+                description: `"${wordToDelete.word}" আপনার তালিকা থেকে মুছে ফেলা হয়েছে।`,
+            });
+            setWordToDelete(null);
+        }
+    };
+    
+    const handleEditClick = (e: MouseEvent<HTMLDivElement>, wordId: string) => {
         e.stopPropagation();
-        deleteWord(wordId);
+        // Implement edit functionality here, e.g., router.push(`/vocabulary/edit/${wordId}`)
         toast({
-            title: "শব্দ মুছে ফেলা হয়েছে",
-            description: `"${word}" আপনার তালিকা থেকে মুছে ফেলা হয়েছে।`,
-        })
+            title: "Coming Soon!",
+            description: "Edit functionality is not yet implemented.",
+        });
     }
 
     const hasFilter = difficultyFilter || dateFilter || learnedFilter;
 
     return (
-        <Card>
-            <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <CardTitle className="font-headline whitespace-nowrap">{title}</CardTitle>
-                <div className="flex w-full md:w-auto md:justify-end gap-2">
-                    <div className="relative w-full md:w-64">
-                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                       <Input 
-                            placeholder="Search words..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                       />
+        <>
+            <Card>
+                <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <CardTitle className="font-headline whitespace-nowrap">{title}</CardTitle>
+                    <div className="flex w-full md:w-auto md:justify-end gap-2">
+                        <div className="relative w-full md:w-64">
+                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                           <Input 
+                                placeholder="Search words..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10"
+                           />
+                        </div>
+                        <Select value={posFilter} onValueChange={setPosFilter}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="All Parts of Speech" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Parts of Speech</SelectItem>
+                                {allPos.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                         {hasFilter && (
+                            <Link href={`/learn?${searchParams.toString()}`} passHref>
+                                <Button>Start Exam</Button>
+                            </Link>
+                        )}
                     </div>
-                    <Select value={posFilter} onValueChange={setPosFilter}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="All Parts of Speech" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Parts of Speech</SelectItem>
-                            {allPos.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                     {hasFilter && (
-                        <Link href={`/learn?${searchParams.toString()}`} passHref>
-                            <Button>Start Exam</Button>
-                        </Link>
-                    )}
-                </div>
-            </CardHeader>
-            <CardContent>
-                {words.length === 0 ? (
-                    <div className="text-center py-12">
-                        <p className="text-muted-foreground">আপনার সার্চের সাথে মেলে এমন কোনো শব্দ পাওয়া যায়নি।</p>
-                    </div>
-                ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>শব্দ</TableHead>
-                                <TableHead>অর্থ</TableHead>
-                                <TableHead>পদ</TableHead>
-                                <TableHead className="text-center">স্তর</TableHead>
-                                <TableHead className="text-right">সম্পাদনা</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {words.map((word) => (
-                                <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
-                                    <TableCell className="font-medium font-code">{word.word}</TableCell>
-                                    <TableCell>{word.meaning}</TableCell>
-                                    <TableCell>{word.parts_of_speech}</TableCell>
-                                    <TableCell className="text-center">
-                                        <Badge 
-                                            variant={difficultyVariant[word.difficulty_level]}
-                                            className={cn('font-bold', difficultyClass[word.difficulty_level])}
-                                        >
-                                            {word.difficulty_level}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            onClick={(e) => handleDelete(e, word.id, word.word)}
-                                            aria-label="Delete word"
-                                        >
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </TableCell>
+                </CardHeader>
+                <CardContent>
+                    {words.length === 0 ? (
+                        <div className="text-center py-12">
+                            <p className="text-muted-foreground">আপনার সার্চের সাথে মেলে এমন কোনো শব্দ পাওয়া যায়নি।</p>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>শব্দ</TableHead>
+                                    <TableHead>অর্থ</TableHead>
+                                    <TableHead>পদ</TableHead>
+                                    <TableHead className="text-center">স্তর</TableHead>
+                                    <TableHead className="text-right w-[80px]">সম্পাদনা</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                )}
-            </CardContent>
-        </Card>
+                            </TableHeader>
+                            <TableBody>
+                                {words.map((word) => (
+                                    <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
+                                        <TableCell className="font-medium font-code">{word.word}</TableCell>
+                                        <TableCell>{word.meaning}</TableCell>
+                                        <TableCell>{word.parts_of_speech}</TableCell>
+                                        <TableCell className="text-center">
+                                            <Badge 
+                                                variant={difficultyVariant[word.difficulty_level]}
+                                                className={cn('font-bold', difficultyClass[word.difficulty_level])}
+                                            >
+                                                {word.difficulty_level}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">Open menu</span>
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                                    <DropdownMenuItem onClick={(e) => handleEditClick(e, word.id)}>
+                                                        <Pencil className="mr-2 h-4 w-4" />
+                                                        <span>Edit</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setWordToDelete(word)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        <span>Delete</span>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+            <AlertDialog open={!!wordToDelete} onOpenChange={(open) => !open && setWordToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the word "{wordToDelete?.word}" from your vocabulary.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setWordToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className={buttonVariants({ variant: "destructive" })}>
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }

@@ -85,8 +85,8 @@ export function VocabularyList() {
             allWords = allWords.filter(word => 
                 word.word.toLowerCase().includes(lowercasedQuery) ||
                 word.meaning.toLowerCase().includes(lowercasedQuery) ||
-                (word.synonyms && word.synonyms.some(s => s.word.toLowerCase().includes(lowercasedQuery))) ||
-                (word.antonyms && word.antonyms.some(a => a.word.toLowerCase().includes(lowercasedQuery)))
+                (word.synonyms && word.synonyms.some(s => s && s.word && s.word.toLowerCase().includes(lowercasedQuery))) ||
+                (word.antonyms && word.antonyms.some(a => a && a.word && a.word.toLowerCase().includes(lowercasedQuery)))
             );
         }
         return allWords;

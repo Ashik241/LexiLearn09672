@@ -1,0 +1,16 @@
+{
+  "name": "LexiLearn",
+  "short_name": "LexiLearn",
+  "description": "An offline-first vocabulary learning app.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2a303c",
+  "theme_color": "#43a08d",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

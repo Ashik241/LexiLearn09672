@@ -112,6 +112,35 @@ export const initialWordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learne
     example_sentences: [
         'The community showed great resilience after the natural disaster.',
         'Resilience is key to overcoming life\'s challenges.'
-    ]
+    ],
+    antonyms: [],
+    synonyms: []
   },
+  {
+    word: 'go',
+    meaning: "চলা বা স্থানান্তর করা।",
+    parts_of_speech: "Verb",
+    syllables: ["go"],
+    accent_uk: "/ɡəʊ/",
+    accent_us: "/ɡoʊ/",
+    example_sentences: [
+        "I have to go to work now.",
+        "Let's go to the park."
+    ],
+    verb_forms: {
+        present: "go",
+        past: "went",
+        past_participle: "gone",
+        present_pronunciation: "/ɡəʊ/",
+        past_pronunciation: "/went/",
+        past_participle_pronunciation: "/ɡɒn/",
+        form_examples: {
+            present: "They go to school by bus.",
+            past: "She went to the store yesterday.",
+            past_participle: "He has gone on vacation."
+        }
+    },
+    antonyms: [],
+    synonyms: []
+  }
 ];

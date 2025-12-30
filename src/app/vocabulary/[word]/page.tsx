@@ -3,11 +3,12 @@
 import { useParams } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Header } from '@/components/layout/Header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 export default function WordDetailsPage() {
   const params = useParams();
@@ -15,11 +16,14 @@ export default function WordDetailsPage() {
   const wordId = Array.isArray(params.word) ? params.word[0] : params.word;
   const word = getWordById(wordId);
 
-  const speak = (text: string, lang: string) => {
+  const speak = (text: string, lang: string = 'en-US') => {
     if (typeof window.speechSynthesis === 'undefined') return;
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
-    utterance.voice = voices.find(v => v.lang.startsWith(lang)) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+    const voice = voices.find(v => v.lang.startsWith(lang)) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+    if (voice) {
+      utterance.voice = voice;
+    }
     utterance.pitch = 1;
     utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
@@ -91,34 +95,72 @@ export default function WordDetailsPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {word.synonyms && word.synonyms.length > 0 &&
-                    <div>
-                        <h3 className="text-xl font-semibold mb-2">Synonyms (সমার্থক শব্দ)</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {word.synonyms.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
-                        </div>
-                    </div>
-                }
-                {word.antonyms && word.antonyms.length > 0 &&
-                    <div>
-                        <h3 className="text-xl font-semibold mb-2">Antonyms (বিপরীতার্থক শব্দ)</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {word.antonyms.map(a => <Badge key={a} variant="outline">{a}</Badge>)}
-                        </div>
-                    </div>
-                }
-            </div>
+            {word.parts_of_speech !== 'Verb' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {word.synonyms && word.synonyms.length > 0 &&
+                      <div>
+                          <h3 className="text-xl font-semibold mb-2">Synonyms (সমার্থক শব্দ)</h3>
+                          <div className="flex flex-wrap gap-2">
+                              {word.synonyms.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+                          </div>
+                      </div>
+                  }
+                  {word.antonyms && word.antonyms.length > 0 &&
+                      <div>
+                          <h3 className="text-xl font-semibold mb-2">Antonyms (বিপরীতার্থক শব্দ)</h3>
+                          <div className="flex flex-wrap gap-2">
+                              {word.antonyms.map(a => <Badge key={a} variant="outline">{a}</Badge>)}
+                          </div>
+                      </div>
+                  }
+              </div>
+            )}
 
             {word.example_sentences && word.example_sentences.length > 0 && (
               <div>
-                <h3 className="text-xl font-semibold mb-2">উদাহরণ</h3>
+                <h3 className="text-xl font-semibold mb-2">সাধারণ উদাহরণ</h3>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                   {word.example_sentences.map((sentence, i) => (
                     <li key={i}>"{sentence}"</li>
                   ))}
                 </ul>
               </div>
+            )}
+
+            {word.verb_forms && (
+                <div>
+                    <Separator className="my-6" />
+                    <h3 className="text-2xl font-bold font-headline mb-4">Verb Forms (ক্রিয়ার রূপ)</h3>
+                    <div className="space-y-6">
+                        {/* Present Form */}
+                        <div>
+                            <h4 className="text-lg font-semibold text-primary">Present: {word.verb_forms.present}</h4>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
+                                <span>{word.verb_forms.present_pronunciation}</span>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.present)}><Volume2 className="h-4 w-4"/></Button>
+                            </div>
+                            <p className="mt-1 italic">"{word.verb_forms.form_examples.present}"</p>
+                        </div>
+                        {/* Past Form */}
+                        <div>
+                            <h4 className="text-lg font-semibold text-primary">Past: {word.verb_forms.past}</h4>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
+                                <span>{word.verb_forms.past_pronunciation}</span>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past)}><Volume2 className="h-4 w-4"/></Button>
+                            </div>
+                            <p className="mt-1 italic">"{word.verb_forms.form_examples.past}"</p>
+                        </div>
+                        {/* Past Participle Form */}
+                        <div>
+                            <h4 className="text-lg font-semibold text-primary">Past Participle: {word.verb_forms.past_participle}</h4>
+                             <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
+                                <span>{word.verb_forms.past_participle_pronunciation}</span>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past_participle)}><Volume2 className="h-4 w-4"/></Button>
+                            </div>
+                            <p className="mt-1 italic">"{word.verb_forms.form_examples.past_participle}"</p>
+                        </div>
+                    </div>
+                </div>
             )}
           </CardContent>
         </Card>

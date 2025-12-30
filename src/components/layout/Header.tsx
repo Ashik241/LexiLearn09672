@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Logo } from '@/components/icons/Logo';
-import { UserProfileButton } from '../auth/UserProfileButton';
 
 export function Header() {
   return (
@@ -12,7 +11,6 @@ export function Header() {
             LexiLearn
           </span>
         </Link>
-        <UserProfileButton />
       </div>
     </header>
   );

@@ -59,6 +59,7 @@ export function VocabularyList() {
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
     const dateFilter = searchParams.get('date');
     const learnedFilter = searchParams.get('learned');
+    const hasFilter = difficultyFilter || dateFilter || learnedFilter;
     
     const allPos = useMemo(() => {
         if (!isInitialized) return [];
@@ -173,8 +174,6 @@ export function VocabularyList() {
             description: "Edit functionality is not yet implemented.",
         });
     }
-
-    const hasFilter = difficultyFilter || dateFilter || learnedFilter;
 
     return (
         <>

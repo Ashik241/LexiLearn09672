@@ -9,6 +9,7 @@ import FeedbackScreen from './FeedbackScreen';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 type TestType = 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym';
 type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
@@ -24,6 +25,10 @@ const getRandomTestType = (): TestType => {
 
 export function LearningClient({ forcedTestType }: LearningClientProps) {
   const { getWordForSession, updateWord, isInitialized } = useVocabulary();
+  const searchParams = useSearchParams();
+  const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
+  const dateFilter = searchParams.get('date');
+  
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [testType, setTestType] = useState<TestType>('mcq');
   const [sessionState, setSessionState] = useState<SessionState>('loading');
@@ -33,7 +38,13 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
 
   const loadNextWord = useCallback(() => {
     setIsLoadingNext(true);
-    let word = getWordForSession();
+
+    const difficulties = difficultyFilter ? [difficultyFilter] : undefined;
+    const filter = dateFilter 
+        ? (word: Word) => !!word.last_reviewed && word.last_reviewed.startsWith(dateFilter) 
+        : undefined;
+
+    let word = getWordForSession(difficulties, filter);
     let effectiveTestType = forcedTestType || getRandomTestType();
 
     // Ensure the word is suitable for the test type
@@ -42,7 +53,7 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
         const hasAntonyms = word.antonyms && word.antonyms.length > 0;
         if (!hasSynonyms && !hasAntonyms) {
             // If word not suitable, try to find one that is, or switch test type
-            const suitableWord = getWordForSession(undefined, w => (w.synonyms.length > 0 || w.antonyms.length > 0));
+            const suitableWord = getWordForSession(difficulties, w => (w.synonyms.length > 0 || w.antonyms.length > 0));
             if (suitableWord) {
                 word = suitableWord;
             } else {
@@ -61,7 +72,7 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
       setSessionState('finished');
     }
     setIsLoadingNext(false);
-  }, [getWordForSession, forcedTestType]);
+  }, [getWordForSession, forcedTestType, difficultyFilter, dateFilter]);
 
   useEffect(() => {
     if (isInitialized) {

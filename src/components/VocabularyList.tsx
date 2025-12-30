@@ -49,6 +49,10 @@ export function VocabularyList() {
     const title = useMemo(() => {
         if (difficultyFilter) return `${difficultyFilter} Words`;
         if (dateFilter) {
+            const today = new Date().toISOString().split('T')[0];
+            if (dateFilter === today) {
+                return "Today's Words";
+            }
             try {
                 const date = new Date(dateFilter);
                 return `Words from ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
@@ -112,8 +116,8 @@ export function VocabularyList() {
         <Card>
             <CardHeader className="flex flex-row justify-between items-center">
                 <CardTitle className="font-headline">{title}</CardTitle>
-                {difficultyFilter && (
-                    <Link href={`/learn?type=mcq`} passHref>
+                {(difficultyFilter || dateFilter) && (
+                    <Link href={`/learn?type=mcq${difficultyFilter ? `&difficulty=${difficultyFilter}` : ''}${dateFilter ? `&date=${dateFilter}` : ''}`} passHref>
                         <Button>Start Exam</Button>
                     </Link>
                 )}

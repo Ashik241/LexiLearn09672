@@ -19,7 +19,7 @@ function LoadingFallback() {
   );
 }
 
-export default function LearnPage({ searchParams }: { searchParams: { type?: 'mcq' | 'spelling' } }) {
+export default function LearnPage({ searchParams }: { searchParams: { type?: 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym' } }) {
   const testType = searchParams.type;
 
   return (

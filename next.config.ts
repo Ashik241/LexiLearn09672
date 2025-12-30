@@ -32,7 +32,7 @@ const withPWA = withPWAInit({
     },
      {
       urlPattern: /\.(?:js)$/i,
-      handler: 'StaleWhileRevalidate',
+      handler: 'CacheFirst',
       options: {
         cacheName: 'static-js-assets',
         expiration: {
@@ -43,7 +43,7 @@ const withPWA = withPWAInit({
     },
     {
       urlPattern: /\.(?:css|less)$/i,
-      handler: 'StaleWhileRevalidate',
+      handler: 'CacheFirst',
       options: {
         cacheName: 'static-style-assets',
         expiration: {
@@ -54,7 +54,7 @@ const withPWA = withPWAInit({
     },
     {
       urlPattern: /\.(?:json|xml|csv)$/i,
-      handler: 'NetworkFirst',
+      handler: 'CacheFirst',
       options: {
         cacheName: 'static-data-assets',
         expiration: {

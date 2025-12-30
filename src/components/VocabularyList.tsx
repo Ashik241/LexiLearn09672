@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { Word, WordDifficulty } from '@/types';
-import { Button } from './ui/button';
+import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
 import { Trash2, Search, MoreHorizontal, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';

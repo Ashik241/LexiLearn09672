@@ -11,14 +11,14 @@ export function DashboardStats() {
 
   const statItems = [
     {
-      title: 'মোট শব্দ',
+      title: 'Total Words',
       value: stats.totalWords,
       icon: Target,
       description: 'আপনার শব্দভান্ডারে থাকা মোট শব্দ।',
       link: '/vocabulary',
     },
     {
-      title: 'শেখা হয়েছে',
+      title: 'Learned Words',
       value: stats.wordsMastered,
       icon: BookCheck,
       description: "আপনার শেখা 'Easy' ক্যাটেগরির শব্দ।",
@@ -30,25 +30,28 @@ export function DashboardStats() {
       description: 'সব সেশনে আপনার উত্তরের নির্ভুলতার হার।',
     },
     {
-      title: 'কঠিন',
+      title: 'Hard',
       value: stats.hardWords,
       icon: ShieldAlert,
       description: "'Hard' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
-      className: 'text-red-500'
+      className: 'text-red-500',
+      link: '/vocabulary?difficulty=Hard',
     },
     {
       title: 'Medium',
       value: stats.mediumWords,
       icon: HelpCircle,
       description: "'Medium' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
-       className: 'text-yellow-500'
+      className: 'text-yellow-500',
+      link: '/vocabulary?difficulty=Medium',
     },
     {
-      title: 'সহজ',
+      title: 'Easy',
       value: stats.easyWords,
       icon: Check,
       description: "'Easy' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
-      className: 'text-green-500'
+      className: 'text-green-500',
+      link: '/vocabulary?difficulty=Easy',
     },
   ];
 

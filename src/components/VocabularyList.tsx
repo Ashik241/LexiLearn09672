@@ -1,13 +1,15 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { WordDifficulty } from '@/types';
+import { Button } from './ui/button';
+import Link from 'next/link';
 
 const difficultyVariant: Record<WordDifficulty, 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Easy': 'default',
@@ -26,13 +28,24 @@ const difficultyClass: Record<WordDifficulty, string> = {
 export function VocabularyList() {
     const { getAllWords, isInitialized } = useVocabulary();
     const router = useRouter();
-    const words = useMemo(() => getAllWords(), [getAllWords, isInitialized]);
+    const searchParams = useSearchParams();
+    const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
+
+    const words = useMemo(() => {
+        const allWords = getAllWords();
+        if (difficultyFilter) {
+            return allWords.filter(word => word.difficulty_level === difficultyFilter);
+        }
+        return allWords;
+    }, [getAllWords, isInitialized, difficultyFilter]);
+
+    const title = difficultyFilter ? `${difficultyFilter} Words` : 'আপনার শব্দভান্ডার';
 
     if (!isInitialized) {
         return (
              <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline">আপনার শব্দভান্ডার</CardTitle>
+                    <CardTitle className="font-headline">{title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p>লোড হচ্ছে...</p>
@@ -45,10 +58,20 @@ export function VocabularyList() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline">আপনার শব্দভান্ডার</CardTitle>
+                    <CardTitle className="font-headline">{title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <p>এখনও কোনো শব্দ যোগ করা হয়নি।</p>
+                <CardContent className="text-center py-12">
+                    <p className="text-muted-foreground mb-4">
+                        {difficultyFilter 
+                            ? `এই ক্যাটেগরিতে কোনো শব্দ পাওয়া যায়নি।`
+                            : 'এখনও কোনো শব্দ যোগ করা হয়নি।'
+                        }
+                    </p>
+                    {difficultyFilter && (
+                         <Link href="/vocabulary" passHref>
+                            <Button variant="outline">সব শব্দ দেখুন</Button>
+                        </Link>
+                    )}
                 </CardContent>
             </Card>
         );
@@ -60,8 +83,13 @@ export function VocabularyList() {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">আপনার শব্দভান্ডার</CardTitle>
+            <CardHeader className="flex flex-row justify-between items-center">
+                <CardTitle className="font-headline">{title}</CardTitle>
+                {difficultyFilter && (
+                    <Link href={`/learn?type=mcq`} passHref>
+                        <Button>Start Exam</Button>
+                    </Link>
+                )}
             </CardHeader>
             <CardContent>
                 <Table>

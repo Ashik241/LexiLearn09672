@@ -12,6 +12,9 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+type Accent = 'UK' | 'US';
 
 export default function WordDetailsPage() {
   const params = useParams();
@@ -20,12 +23,19 @@ export default function WordDetailsPage() {
   const word = getWordById(wordId);
   const [rate, setRate] = useState([0.9]);
   const [volume, setVolume] = useState([1]);
+  const [accent, setAccent] = useState<Accent>('US');
 
-  const speak = (text: string, lang: string = 'en-US') => {
+  const speak = (text: string, selectedAccent: Accent = accent) => {
     if (typeof window.speechSynthesis === 'undefined') return;
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => v.lang.startsWith(lang)) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+    let voice;
+    if (selectedAccent === 'UK') {
+      voice = voices.find(v => v.lang.startsWith('en-GB')) || voices.find(v => v.lang.startsWith('en'));
+    } else {
+      voice = voices.find(v => v.lang.startsWith('en-US')) || voices.find(v => v.lang.startsWith('en'));
+    }
+
     if (voice) {
       utterance.voice = voice;
     }
@@ -74,7 +84,7 @@ export default function WordDetailsPage() {
               <div>
                 <CardTitle className="text-4xl font-bold font-code text-primary flex items-center gap-4">
                   {word.word}
-                   <Button variant="outline" size="icon" onClick={() => speak(word.word, 'en-US')}><Volume2 className="h-5 w-5"/></Button>
+                   <Button variant="outline" size="icon" onClick={() => speak(word.word)}><Volume2 className="h-5 w-5"/></Button>
                 </CardTitle>
                 <CardDescription className="text-lg mt-2">{word.parts_of_speech}</CardDescription>
               </div>
@@ -173,6 +183,19 @@ export default function WordDetailsPage() {
             <Separator />
             <h3 className="text-xl font-semibold">উচ্চারণ নিয়ন্ত্রণ</h3>
             <div className="w-full space-y-4">
+                <div>
+                    <Label>উচ্চারণ</Label>
+                    <RadioGroup value={accent} onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4 pt-2">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="US" id="us-accent" />
+                            <Label htmlFor="us-accent">US Accent</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="UK" id="uk-accent" />
+                            <Label htmlFor="uk-accent">UK Accent</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
                 <div>
                     <Label htmlFor="rate-slider">গতি</Label>
                     <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />

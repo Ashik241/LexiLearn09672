@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, MouseEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import type { WordDifficulty } from '@/types';
 import { Button } from './ui/button';
 import Link from 'next/link';
+import { Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const difficultyVariant: Record<WordDifficulty, 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Easy': 'default',
@@ -26,9 +28,10 @@ const difficultyClass: Record<WordDifficulty, string> = {
 }
 
 export function VocabularyList() {
-    const { getAllWords, isInitialized } = useVocabulary();
+    const { getAllWords, isInitialized, deleteWord } = useVocabulary();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
 
     const words = useMemo(() => {
@@ -81,6 +84,15 @@ export function VocabularyList() {
         router.push(`/vocabulary/${wordId}`);
     };
 
+    const handleDelete = (e: MouseEvent<HTMLButtonElement>, wordId: string, word: string) => {
+        e.stopPropagation();
+        deleteWord(wordId);
+        toast({
+            title: "শব্দ মুছে ফেলা হয়েছে",
+            description: `"${word}" আপনার তালিকা থেকে মুছে ফেলা হয়েছে।`,
+        })
+    }
+
     return (
         <Card>
             <CardHeader className="flex flex-row justify-between items-center">
@@ -98,6 +110,7 @@ export function VocabularyList() {
                             <TableHead>শব্দ</TableHead>
                             <TableHead>অর্থ</TableHead>
                             <TableHead className="text-center">স্তর</TableHead>
+                            <TableHead className="text-right">সম্পাদনা</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -112,6 +125,16 @@ export function VocabularyList() {
                                     >
                                         {word.difficulty_level}
                                     </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={(e) => handleDelete(e, word.id, word.word)}
+                                        aria-label="Delete word"
+                                    >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))}

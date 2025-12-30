@@ -135,7 +135,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                             </div>
                             <div>
                                 <Label htmlFor="volume-slider">ভলিউম</Label>
-                                <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueeChange={setVolume} />
+                                <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
                             </div>
                         </div>
                       </div>

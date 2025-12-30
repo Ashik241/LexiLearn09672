@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, BookOpen, SpellCheck, FileQuestion } from 'lucide-react';
+import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { AddWordDialog } from '@/components/AddWordDialog';
 
 export default function Home() {
   const [isAddWordOpen, setIsAddWordOpen] = useState(false);
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -47,10 +48,10 @@ export default function Home() {
               <Card className="hover:bg-card-foreground/5 transition-colors h-full">
                 <CardHeader className="flex-row items-center gap-4 space-y-0">
                     <FileQuestion className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">MCQ টেস্ট</CardTitle>
+                    <CardTitle className="font-headline">MCQ (Eng to Ban)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CardDescription>একাধিক পছন্দের প্রশ্নের মাধ্যমে অনুশীলন করুন।</CardDescription>
+                    <CardDescription>ইংরেজি শব্দের সঠিক বাংলা অর্থ বাছাই করুন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>
@@ -62,6 +63,39 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                     <CardDescription>বানান অনুশীলনের মাধ্যমে আপনার দক্ষতা বাড়ান।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/learn?type=bengali-to-english" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <Languages className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">MCQ (Ban to Eng)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>বাংলা অর্থের সঠিক ইংরেজি শব্দ বাছাই করুন।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/learn?type=synonym-antonym" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <Repeat className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">Synonym/Antonym Test</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>সমার্থক ও বিপরীতার্থক শব্দ পরীক্ষা করুন।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href={`/vocabulary?date=${today}`} passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <CalendarClock className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">আজকের শব্দ</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>আজ যোগ করা শব্দগুলো দেখুন ও পরীক্ষা দিন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>

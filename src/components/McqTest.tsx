@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { Word } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -8,18 +8,20 @@ import { Skeleton } from './ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 
+type McqTestType = 'english-to-bengali' | 'bengali-to-english' | 'synonym-antonym';
+
 interface McqTestProps {
   word: Word;
   onComplete: (isCorrect: boolean, answer: string) => void;
+  testType: McqTestType;
 }
 
 interface Quiz {
   question: string;
   options: string[];
-  correctAnswerIndex: number;
+  correctAnswer: string;
 }
 
-// Function to shuffle an array
 const shuffleArray = <T,>(array: T[]): T[] => {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
@@ -29,10 +31,67 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return newArray;
 };
 
-export default function McqTest({ word, onComplete }: McqTestProps) {
+const generateQuiz = (word: Word, allWords: Word[], testType: McqTestType): Quiz | null => {
+    let question = '';
+    let options: string[] = [];
+    let correctAnswer = '';
+
+    const getIncorrectOptions = (correctValue: string, valueField: 'meaning' | 'word', count = 3) => {
+        return allWords
+            .filter(w => w.id !== word.id && w[valueField] !== correctValue)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, count)
+            .map(w => w[valueField]);
+    };
+
+    if (testType === 'english-to-bengali') {
+        question = `Which of the following is the correct translation of "${word.word}" in Bengali?`;
+        correctAnswer = word.meaning;
+        const incorrectOptions = getIncorrectOptions(correctAnswer, 'meaning');
+        if (incorrectOptions.length < 3) return null;
+        options = shuffleArray([correctAnswer, ...incorrectOptions]);
+    } else if (testType === 'bengali-to-english') {
+        question = `"${word.meaning}" is the meaning of which English word?`;
+        correctAnswer = word.word;
+        const incorrectOptions = getIncorrectOptions(correctAnswer, 'word');
+        if (incorrectOptions.length < 3) return null;
+        options = shuffleArray([correctAnswer, ...incorrectOptions]);
+    } else if (testType === 'synonym-antonym') {
+        const isSynonymTest = Math.random() > 0.5;
+        const targetArray = isSynonymTest ? word.synonyms : word.antonyms;
+        
+        if (!targetArray || targetArray.length === 0) {
+            // Fallback if no synonyms/antonyms
+            return generateQuiz(word, allWords, 'english-to-bengali');
+        }
+
+        const correctRelation = targetArray[Math.floor(Math.random() * targetArray.length)];
+        correctAnswer = correctRelation.word;
+        
+        question = `Which of the following is a ${isSynonymTest ? 'synonym' : 'antonym'} of "${word.word}"?`;
+
+        const incorrectOptions = allWords
+            .filter(w => 
+                w.id !== word.id && 
+                !word.synonyms.some(s => s.word === w.word) && 
+                !word.antonyms.some(a => a.word === w.word)
+            )
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(w => w.word);
+
+        if (incorrectOptions.length < 3) return null;
+        options = shuffleArray([correctAnswer, ...incorrectOptions]);
+    }
+
+    return { question, options, correctAnswer };
+}
+
+
+export default function McqTest({ word, onComplete, testType }: McqTestProps) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { getAllWords } = useVocabulary();
 
@@ -40,43 +99,27 @@ export default function McqTest({ word, onComplete }: McqTestProps) {
     setLoading(true);
     const allWords = getAllWords();
     
-    // Find 3 incorrect options
-    const incorrectOptions = allWords
-      .filter(w => w.id !== word.id) // Exclude the correct word
-      .sort(() => 0.5 - Math.random()) // Shuffle to get random words
-      .slice(0, 3)
-      .map(w => w.meaning);
+    const newQuiz = generateQuiz(word, allWords, testType);
 
-    // If there aren't enough words for incorrect options, we can't make a quiz
-    if (incorrectOptions.length < 3) {
-       // Fallback or show an error. For now, let's just use what we have.
-       while(incorrectOptions.length < 3) {
-         incorrectOptions.push(`ভুল উত্তর ${incorrectOptions.length + 1}`);
-       }
+    if (newQuiz) {
+        setQuiz(newQuiz);
+    } else {
+        // Fallback if quiz generation fails
+        const fallbackQuiz = generateQuiz(word, allWords, 'english-to-bengali');
+        setQuiz(fallbackQuiz);
     }
     
-    const options = [word.meaning, ...incorrectOptions];
-    const shuffledOptions = shuffleArray(options);
-    const correctIndex = shuffledOptions.findIndex(opt => opt === word.meaning);
-
-    setQuiz({
-      question: `Which of the following is the correct translation of "${word.word}" in Bengali?`,
-      options: shuffledOptions,
-      correctAnswerIndex: correctIndex,
-    });
-    
     setLoading(false);
-    // Reset component state for the new word
     setSelectedOption(null);
     setIsSubmitted(false);
 
-  }, [word, getAllWords]);
+  }, [word, getAllWords, testType]);
 
   const handleSubmit = () => {
     if (selectedOption === null || quiz === null) return;
     setIsSubmitted(true);
-    const isCorrect = selectedOption === quiz.correctAnswerIndex;
-    onComplete(isCorrect, quiz.options[selectedOption] || '');
+    const isCorrect = selectedOption === quiz.correctAnswer;
+    onComplete(isCorrect, selectedOption || '');
   };
 
   if (loading || !quiz) {
@@ -103,19 +146,19 @@ export default function McqTest({ word, onComplete }: McqTestProps) {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">{quiz.question}</CardTitle>
-        <CardDescription>সঠিক অর্থটি নির্বাচন করুন।</CardDescription>
+        <CardDescription>সঠিক উত্তরটি নির্বাচন করুন।</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {quiz.options.map((option, index) => (
           <Button
-            key={index}
+            key={option}
             variant="outline"
             size="lg"
             className={cn(
               'w-full justify-start h-auto py-3 text-left',
-              selectedOption === index && 'ring-2 ring-primary border-primary'
+              selectedOption === option && 'ring-2 ring-primary border-primary'
             )}
-            onClick={() => setSelectedOption(index)}
+            onClick={() => setSelectedOption(option)}
             disabled={isSubmitted}
           >
             <span className="mr-4 font-bold">{String.fromCharCode(65 + index)}</span>

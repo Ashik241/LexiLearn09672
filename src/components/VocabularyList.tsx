@@ -33,17 +33,32 @@ export function VocabularyList() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
+    const dateFilter = searchParams.get('date');
 
     const words = useMemo(() => {
-        const allWords = getAllWords();
+        let allWords = getAllWords();
         if (difficultyFilter) {
-            return allWords.filter(word => word.difficulty_level === difficultyFilter);
+            allWords = allWords.filter(word => word.difficulty_level === difficultyFilter);
+        }
+        if (dateFilter) {
+            allWords = allWords.filter(word => word.last_reviewed && word.last_reviewed.startsWith(dateFilter));
         }
         return allWords;
-    }, [getAllWords, difficultyFilter]);
+    }, [getAllWords, difficultyFilter, dateFilter]);
 
-    const title = difficultyFilter ? `${difficultyFilter} Words` : 'আপনার শব্দভান্ডার';
-
+    const title = useMemo(() => {
+        if (difficultyFilter) return `${difficultyFilter} Words`;
+        if (dateFilter) {
+            try {
+                const date = new Date(dateFilter);
+                return `Words from ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+            } catch {
+                return 'Words from selected date';
+            }
+        }
+        return 'আপনার শব্দভান্ডার';
+    }, [difficultyFilter, dateFilter]);
+    
     if (!isInitialized) {
         return (
              <Card>
@@ -65,12 +80,12 @@ export function VocabularyList() {
                 </CardHeader>
                 <CardContent className="text-center py-12">
                     <p className="text-muted-foreground mb-4">
-                        {difficultyFilter 
+                        {difficultyFilter || dateFilter
                             ? `এই ক্যাটেগরিতে কোনো শব্দ পাওয়া যায়নি।`
                             : 'এখনও কোনো শব্দ যোগ করা হয়নি।'
                         }
                     </p>
-                    {difficultyFilter && (
+                    { (difficultyFilter || dateFilter) && (
                          <Link href="/vocabulary" passHref>
                             <Button variant="outline">সব শব্দ দেখুন</Button>
                         </Link>

@@ -23,7 +23,7 @@ interface VocabularyState {
   addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>[]) => { addedCount: number; skippedCount: number };
   updateWord: (wordId: string, updates: Partial<Word>) => void;
   deleteWord: (wordId: string) => void;
-  getWordForSession: (type?: 'mcq' | 'spelling') => Word | null;
+  getWordForSession: (difficulties?: WordDifficulty[], filter?: (word: Word) => boolean) => Word | null;
   calculateStats: () => void;
   getAllWords: () => Word[];
   getWordById: (id: string) => Word | undefined;
@@ -92,7 +92,7 @@ const useVocabularyStore = create<VocabularyState>()(
           is_learned: false,
           times_correct: 0,
           times_incorrect: 0,
-          last_reviewed: null,
+          last_reviewed: new Date().toISOString(),
           // Ensure defaults for optional fields from bulk import
           syllables: wordData.syllables || [],
           synonyms: wordData.synonyms || [],
@@ -120,7 +120,7 @@ const useVocabularyStore = create<VocabularyState>()(
               is_learned: false,
               times_correct: 0,
               times_incorrect: 0,
-              last_reviewed: null,
+              last_reviewed: new Date().toISOString(),
               syllables: wordData.syllables || [],
               synonyms: wordData.synonyms || [],
               antonyms: wordData.antonyms || [],
@@ -158,8 +158,17 @@ const useVocabularyStore = create<VocabularyState>()(
         get().calculateStats();
       },
 
-      getWordForSession: () => {
-        const words = get().words.filter(w => !w.is_learned);
+      getWordForSession: (difficulties, filter) => {
+        let words = get().words.filter(w => !w.is_learned);
+        
+        if (difficulties) {
+            words = words.filter(w => difficulties.includes(w.difficulty_level));
+        }
+
+        if (filter) {
+            words = words.filter(filter);
+        }
+
         if (words.length === 0) return null;
 
         const priorityOrder: WordDifficulty[] = ['Hard', 'Medium', 'New', 'Easy'];
@@ -182,8 +191,8 @@ const useVocabularyStore = create<VocabularyState>()(
             if (priorityWords.length > 0) {
                 priorityWords.sort((a, b) => {
                     // This should not happen if neverReviewed is handled, but as a fallback
-                    if (a.last_reviewed === null) return -1;
-                    if (b.last_reviewed === null) return 1;
+                    if (!a.last_reviewed) return -1;
+                    if (!b.last_reviewed) return 1;
                     return new Date(a.last_reviewed).getTime() - new Date(b.last_reviewed).getTime();
                 });
                 return priorityWords[0];

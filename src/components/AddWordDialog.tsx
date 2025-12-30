@@ -35,7 +35,6 @@ const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
   meaning: z.string().optional(),
   parts_of_speech: z.string().optional(),
-  syllables: z.string().optional(),
   example_sentences: z.string().optional(),
   synonyms: z.string().optional(),
   antonyms: z.string().optional(),
@@ -56,7 +55,20 @@ interface AddWordDialogProps {
 
 const parseSynAnt = (value?: string): SynonymAntonym[] => {
     if (!value) return [];
-    return value.split(',').map(s => ({ word: s.trim(), meaning: '' }));
+    try {
+        // Attempt to parse as JSON for the new format
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+            return parsed.map(item => ({
+                word: item.word || '',
+                meaning: item.meaning || ''
+            }));
+        }
+    } catch (e) {
+        // Fallback to comma-separated for simple manual entry
+        return value.split(',').map(s => ({ word: s.trim(), meaning: '' }));
+    }
+    return [];
 }
 
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
@@ -72,7 +84,6 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       word: '',
       meaning: '',
       parts_of_speech: '',
-      syllables: '',
       example_sentences: '',
       synonyms: '',
       antonyms: '',
@@ -123,7 +134,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         details = {
           meaning: values.meaning,
           parts_of_speech: values.parts_of_speech,
-          syllables: values.syllables ? values.syllables.split(',').map(s => s.trim()) : values.word.split('-'),
+          syllables: values.word.split('-'), // Auto-generate simple syllables
           example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
           synonyms: parseSynAnt(values.synonyms),
           antonyms: parseSynAnt(values.antonyms),
@@ -290,14 +301,14 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                                 </FormItem>
                             )}
                         />
-                        <FormField
+                         <FormField
                             control={singleWordForm.control}
                             name="synonyms"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Synonyms (কমা দিয়ে আলাদা করুন)</FormLabel>
+                                <FormLabel>Synonyms (ঐচ্ছিক)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="good, great, excellent" {...field} />
+                                    <Input placeholder='[{"word":"good","meaning":"ভাল"}]' {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -308,9 +319,9 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                             name="antonyms"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Antonyms (কমা দিয়ে আলাদা করুন)</FormLabel>
+                                <FormLabel>Antonyms (ঐচ্ছিক)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="bad, awful, terrible" {...field} />
+                                    <Input placeholder='[{"word":"bad","meaning":"খারাপ"}]' {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>

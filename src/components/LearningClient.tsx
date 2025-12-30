@@ -10,11 +10,16 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import Link from 'next/link';
 
-type TestType = 'mcq' | 'spelling';
+type TestType = 'mcq' | 'spelling' | 'bengali-to-english' | 'synonym-antonym';
 type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
 
 interface LearningClientProps {
   forcedTestType?: TestType;
+}
+
+const getRandomTestType = (): TestType => {
+    const types: TestType[] = ['mcq', 'spelling', 'bengali-to-english', 'synonym-antonym'];
+    return types[Math.floor(Math.random() * types.length)];
 }
 
 export function LearningClient({ forcedTestType }: LearningClientProps) {
@@ -28,10 +33,29 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
 
   const loadNextWord = useCallback(() => {
     setIsLoadingNext(true);
-    const word = getWordForSession();
+    let word = getWordForSession();
+    let effectiveTestType = forcedTestType || getRandomTestType();
+
+    // Ensure the word is suitable for the test type
+    if (word && effectiveTestType === 'synonym-antonym') {
+        const hasSynonyms = word.synonyms && word.synonyms.length > 0;
+        const hasAntonyms = word.antonyms && word.antonyms.length > 0;
+        if (!hasSynonyms && !hasAntonyms) {
+            // If word not suitable, try to find one that is, or switch test type
+            const suitableWord = getWordForSession(undefined, w => (w.synonyms.length > 0 || w.antonyms.length > 0));
+            if (suitableWord) {
+                word = suitableWord;
+            } else {
+                // if no suitable word, switch test type
+                effectiveTestType = 'mcq';
+            }
+        }
+    }
+    
     setCurrentWord(word);
+
     if (word) {
-      setTestType(forcedTestType || (Math.random() > 0.5 ? 'mcq' : 'spelling'));
+      setTestType(effectiveTestType);
       setSessionState('testing');
     } else {
       setSessionState('finished');
@@ -88,10 +112,18 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
   const TestComponent = useMemo(() => {
     if (!currentWord) return null;
 
-    if (testType === 'mcq') {
-      return <McqTest word={currentWord} onComplete={handleTestComplete} />;
+    switch (testType) {
+        case 'mcq':
+            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="english-to-bengali" />;
+        case 'bengali-to-english':
+            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="bengali-to-english" />;
+        case 'synonym-antonym':
+            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="synonym-antonym" />;
+        case 'spelling':
+            return <SpellingTest word={currentWord} onComplete={handleTestComplete} />;
+        default:
+            return <McqTest word={currentWord} onComplete={handleTestComplete} testType="english-to-bengali" />;
     }
-    return <SpellingTest word={currentWord} onComplete={handleTestComplete} />;
   }, [currentWord, testType]);
 
   if (!isInitialized) {
@@ -126,7 +158,7 @@ export function LearningClient({ forcedTestType }: LearningClientProps) {
   return (
     <div className="w-full max-w-2xl">
       {sessionState === 'testing' && TestComponent}
-      {sessionState === 'loading' && ( // This state might not be used anymore, but kept for potential future use
+      {sessionState === 'loading' && ( 
         <Card className="w-full max-w-2xl text-center">
             <CardHeader>
                 <CardTitle>আপনার উত্তর বিশ্লেষণ করা হচ্ছে...</CardTitle>

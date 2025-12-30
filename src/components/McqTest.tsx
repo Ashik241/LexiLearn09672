@@ -28,7 +28,7 @@ export default function McqTest({ word, onComplete }: McqTestProps) {
       try {
         const result = await generateMeaningQuiz({
           word: word.word,
-          targetLanguage: 'English',
+          targetLanguage: 'Bengali',
           optionsCount: 4,
           knownMeanings: [],
         });
@@ -84,7 +84,7 @@ export default function McqTest({ word, onComplete }: McqTestProps) {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">{quiz.question}</CardTitle>
-        <CardDescription>Select the correct meaning for the word.</CardDescription>
+        <CardDescription>সঠিক অর্থটি নির্বাচন করুন।</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {quiz.options.map((option, index) => (
@@ -106,7 +106,7 @@ export default function McqTest({ word, onComplete }: McqTestProps) {
       </CardContent>
       <CardFooter>
         <Button onClick={handleSubmit} disabled={selectedOption === null || isSubmitted} className="ml-auto">
-          Submit
+          জমা দিন
         </Button>
       </CardFooter>
     </Card>

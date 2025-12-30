@@ -7,6 +7,7 @@ export interface Word {
   meaning: string;
   accent_uk: string;
   accent_us: string;
+  example_sentences: string[];
   difficulty_level: WordDifficulty;
   is_learned: boolean;
   times_correct: number;

@@ -3,7 +3,7 @@
 /**
  * @fileOverview A flow that generates details for a given word using AI.
  *
- * - generateWordDetails - A function to get meaning, syllables, and accents for a word.
+ * - generateWordDetails - A function to get meaning, syllables, accents, and example sentences for a word.
  * - WordDetailsInput - The input type for the generateWordDetails function.
  * - WordDetailsOutput - The return type for the generateWordDetails function.
  */
@@ -18,10 +18,13 @@ const WordDetailsInputSchema = z.object({
 export type WordDetailsInput = z.infer<typeof WordDetailsInputSchema>;
 
 const WordDetailsOutputSchema = z.object({
-  meaning: z.string().describe('The primary definition of the word.'),
+  meaning: z.string().describe('The primary definition of the word in Bengali (বাংলা).'),
   syllables: z.array(z.string()).describe('The word broken down into its syllables.'),
   accent_uk: z.string().describe('The phonetic spelling for the UK accent (IPA).'),
   accent_us: z.string().describe('The phonetic spelling for the US accent (IPA).'),
+  example_sentences: z
+    .array(z.string())
+    .describe('Two or three example sentences using the word.'),
 });
 
 export type WordDetailsOutput = z.infer<typeof WordDetailsOutputSchema>;
@@ -34,17 +37,24 @@ const generateDetailsPrompt = ai.definePrompt({
   name: 'generateWordDetailsPrompt',
   input: {schema: WordDetailsInputSchema},
   output: {schema: WordDetailsOutputSchema},
-  prompt: `You are a linguistic expert. For the word '{{word}}', provide its primary meaning, its breakdown into syllables, and its IPA phonetic spelling for both UK and US accents.
-
-  Provide the output in a valid JSON format with the following keys: 'meaning', 'syllables', 'accent_uk', 'accent_us'.
-  The syllables should be an array of strings.
+  prompt: `You are a linguistic expert. For the English word '{{word}}', provide the following in a valid JSON format:
+  1.  'meaning': Its primary meaning, explained in simple Bengali (বাংলা).
+  2.  'syllables': The word broken down into its syllables as an array of strings.
+  3.  'accent_uk': Its IPA phonetic spelling for the UK accent.
+  4.  'accent_us': Its IPA phonetic spelling for the US accent.
+  5.  'example_sentences': Two or three example sentences that clearly demonstrate the word's usage.
 
   Example for the word "serendipity":
   {
-    "meaning": "The occurrence and development of events by chance in a happy or beneficial way.",
+    "meaning": "কোনো কিছু অপ্রত্যাশিতভাবে খুঁজে পাওয়ার সৌভাগ্য, যা আনন্দদায়ক বা উপকারী।",
     "syllables": ["ser", "en", "dip", "i", "ty"],
     "accent_uk": "/ˌser.ənˈdɪp.ə.ti/",
-    "accent_us": "/ˌser.ənˈdɪp.ə.t̬i/"
+    "accent_us": "/ˌser.ənˈdɪp.ə.t̬i/",
+    "example_sentences": [
+      "Finding a twenty-dollar bill in my old coat was a moment of serendipity.",
+      "Their meeting was pure serendipity, happening by chance at a crowded station.",
+      "The discovery of penicillin is a famous example of serendipity in science."
+    ]
   }`,
 });
 

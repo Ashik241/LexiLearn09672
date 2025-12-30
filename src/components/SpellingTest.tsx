@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
@@ -29,8 +28,8 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
     if (typeof window.speechSynthesis === 'undefined') {
       toast({
         variant: 'destructive',
-        title: 'TTS Not Supported',
-        description: 'Your browser does not support text-to-speech.',
+        title: 'TTS সমর্থিত নয়',
+        description: 'আপনার ব্রাউজার টেক্সট-টু-স্পিচ সমর্থন করে না।',
       });
       return;
     }
@@ -54,10 +53,17 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
 
   useEffect(() => {
     // Preload voices
-    window.speechSynthesis.getVoices();
-    // Speak word on component mount
-    const timeoutId = setTimeout(() => speak('US'), 200);
-    return () => clearTimeout(timeoutId);
+    const handleVoicesChanged = () => {
+      // Speak after voices are loaded
+      const timeoutId = setTimeout(() => speak('US'), 200);
+      return () => clearTimeout(timeoutId);
+    };
+    window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
+    handleVoicesChanged(); // Also call it in case voices are already loaded
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [word]);
 
@@ -74,8 +80,8 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
       <CardHeader>
         <div className="flex justify-between items-center">
             <div>
-                <CardTitle className="font-headline text-2xl">Spelling Test</CardTitle>
-                <CardDescription>Listen to the word and type it below.</CardDescription>
+                <CardTitle className="font-headline text-2xl">বানান পরীক্ষা</CardTitle>
+                <CardDescription>শব্দটি শুনুন এবং নীচে টাইপ করুন।</CardDescription>
             </div>
             <BrainCircuit className="w-8 h-8 text-primary" />
         </div>
@@ -98,7 +104,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
                 variant="outline"
                 size="icon"
                 onClick={() => speak(accent)}
-                aria-label="Listen to word"
+                aria-label="শব্দটি শুনুন"
                 >
                 <Volume2 className="h-6 w-6" />
             </Button>
@@ -108,7 +114,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
               ref={inputRef}
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Type the word you hear..."
+              placeholder="এখানে শব্দটি টাইপ করুন..."
               className="text-center text-lg h-14"
               disabled={isSubmitted}
               aria-label="Your answer"
@@ -117,7 +123,7 @@ export default function SpellingTest({ word, onComplete }: SpellingTestProps) {
         </CardContent>
         <CardFooter>
           <Button type="submit" disabled={!answer.trim() || isSubmitted} className="ml-auto">
-            Submit
+            জমা দিন
           </Button>
         </CardFooter>
       </form>

@@ -29,31 +29,35 @@ export default function FeedbackScreen({ isCorrect, word, userAnswer, onNext, is
           <XCircle className="w-16 h-16 text-red-500" />
         )}
         <h2 className="text-3xl font-bold font-headline mt-4">
-          {isCorrect ? 'Correct!' : 'Incorrect'}
+          {isCorrect ? 'সঠিক!' : 'ভুল'}
         </h2>
       </CardHeader>
       <CardContent className="text-center space-y-4">
         <div className="bg-card-foreground/5 p-4 rounded-lg">
-          <p className="text-sm text-muted-foreground">The word was:</p>
+          <p className="text-sm text-muted-foreground">শব্দটি ছিল:</p>
           <p className="text-2xl font-bold font-code text-primary">{word.word}</p>
           <p className="text-lg text-foreground mt-1">"{word.meaning}"</p>
         </div>
         {!isCorrect && (
           <div className="bg-destructive/10 p-4 rounded-lg">
-            <p className="text-sm text-muted-foreground">Your answer:</p>
+            <p className="text-sm text-muted-foreground">আপনার উত্তর:</p>
             <p className="text-xl font-code text-destructive-foreground line-through">{userAnswer}</p>
-            {word.syllables && word.syllables.length > 0 && (
-                <div className="mt-2">
-                    <p className="text-sm text-muted-foreground">Syllable breakdown:</p>
-                    <p className="text-lg font-code text-foreground">{word.syllables.join(' - ')}</p>
-                </div>
-            )}
+          </div>
+        )}
+         {word.example_sentences && word.example_sentences.length > 0 && (
+          <div className="bg-card-foreground/5 p-4 rounded-lg text-left">
+            <p className="text-sm text-muted-foreground mb-2">উদাহরণ:</p>
+            <ul className="list-disc list-inside space-y-1 text-foreground">
+              {word.example_sentences.map((sentence, i) => (
+                <li key={i}>"{sentence}"</li>
+              ))}
+            </ul>
           </div>
         )}
       </CardContent>
       <CardFooter>
         <Button onClick={onNext} className="w-full md:w-auto md:ml-auto" size="lg" disabled={isLoading}>
-          {isLoading ? 'Loading...' : 'Next Word'}
+          {isLoading ? 'লোড হচ্ছে...' : 'পরবর্তী শব্দ'}
           {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
         </Button>
       </CardFooter>

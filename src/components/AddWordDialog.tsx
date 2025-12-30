@@ -60,6 +60,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         syllables: details.syllables,
         accent_uk: details.accent_uk,
         accent_us: details.accent_us,
+        example_sentences: details.example_sentences,
       });
 
       if (success) {
@@ -94,7 +95,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         <DialogHeader>
           <DialogTitle>নতুন শব্দ যোগ করুন</DialogTitle>
           <DialogDescription>
-            একটি নতুন শব্দ লিখুন। AI স্বয়ংক্রিয়ভাবে এর অর্থ এবং সিলেবল খুঁজে বের করবে।
+            একটি নতুন ইংরেজি শব্দ লিখুন। AI স্বয়ংক্রিয়ভাবে এর বাংলা অর্থ, উদাহরণ এবং সিলেবল খুঁজে বের করবে।
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

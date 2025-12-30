@@ -32,6 +32,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './
 const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
   meaning: z.string().min(1, 'Meaning is required.'),
+  meaning_explanation: z.string().optional(),
   parts_of_speech: z.string().min(1, 'Parts of speech is required.'),
   example_sentences: z.string().optional(),
   syllables: z.string().optional(),
@@ -111,6 +112,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     defaultValues: {
       word: '',
       meaning: '',
+      meaning_explanation: '',
       parts_of_speech: '',
       example_sentences: '',
       syllables: '',
@@ -153,6 +155,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       const success = addWord({
         word: values.word,
         meaning: values.meaning,
+        meaning_explanation: values.meaning_explanation,
         parts_of_speech: values.parts_of_speech,
         syllables: values.syllables ? values.syllables.split(',').map(s => s.trim()).filter(Boolean) : values.word.split('-'),
         example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
@@ -278,6 +281,19 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                         <FormMessage />
                         </FormItem>
                     )}
+                    />
+                     <FormField
+                        control={singleWordForm.control}
+                        name="meaning_explanation"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>অর্থের ব্যাখ্যা (ঐচ্ছিক)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="শব্দটির অর্থ সম্পর্কে একটি সংক্ষিপ্ত ব্যাখ্যা দিন।" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
                     />
                     <FormField
                     control={singleWordForm.control}

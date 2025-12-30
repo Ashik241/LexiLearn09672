@@ -24,6 +24,7 @@ export interface Word {
   word: string;
   syllables?: string[];
   meaning: string;
+  meaning_explanation?: string;
   parts_of_speech: string;
   synonyms?: SynonymAntonym[];
   antonyms?: SynonymAntonym[];

@@ -151,6 +151,13 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
               <p className="text-muted-foreground">{word.meaning}</p>
             </div>
             
+            {word.meaning_explanation && (
+              <div>
+                <h3 className="text-xl font-semibold mb-2">অর্থের ব্যাখ্যা</h3>
+                <p className="text-muted-foreground italic">"{word.meaning_explanation}"</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h3 className="text-xl font-semibold mb-2">সিলেবল</h3>

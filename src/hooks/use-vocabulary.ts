@@ -20,6 +20,7 @@ interface VocabularyState {
   init: () => void;
   addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>) => boolean;
   updateWord: (wordId: string, updates: Partial<Word>) => void;
+  deleteWord: (wordId: string) => void;
   getWordForSession: (type?: 'mcq' | 'spelling') => Word | null;
   calculateStats: () => void;
   getAllWords: () => Word[];
@@ -100,6 +101,13 @@ const useVocabularyStore = create<VocabularyState>()(
           words: state.words.map((word) =>
             word.id === wordId ? { ...word, ...updates, last_reviewed: new Date().toISOString() } : word
           ),
+        }));
+        get().calculateStats();
+      },
+
+      deleteWord: (wordId) => {
+        set((state) => ({
+            words: state.words.filter((word) => word.id !== wordId),
         }));
         get().calculateStats();
       },

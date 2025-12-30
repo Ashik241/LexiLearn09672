@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,9 @@ import { cn } from '@/lib/utils';
 import type { WordDifficulty } from '@/types';
 import { Button } from './ui/button';
 import Link from 'next/link';
+import { Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 
 const difficultyVariant: Record<WordDifficulty, 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Easy': 'default',
@@ -26,7 +29,8 @@ const difficultyClass: Record<WordDifficulty, string> = {
 }
 
 export function VocabularyList() {
-    const { getAllWords, isInitialized } = useVocabulary();
+    const { getAllWords, isInitialized, deleteWord } = useVocabulary();
+    const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
@@ -40,6 +44,16 @@ export function VocabularyList() {
     }, [getAllWords, isInitialized, difficultyFilter]);
 
     const title = difficultyFilter ? `${difficultyFilter} Words` : 'আপনার শব্দভান্ডার';
+
+    const handleDelete = useCallback((e: React.MouseEvent, wordId: string, word: string) => {
+        e.stopPropagation();
+        deleteWord(wordId);
+        toast({
+            title: 'শব্দ মুছে ফেলা হয়েছে',
+            description: `"${word}" আপনার শব্দভান্ডার থেকে মুছে ফেলা হয়েছে।`,
+        });
+    }, [deleteWord, toast]);
+
 
     if (!isInitialized) {
         return (
@@ -97,7 +111,8 @@ export function VocabularyList() {
                         <TableRow>
                             <TableHead>শব্দ</TableHead>
                             <TableHead>অর্থ</TableHead>
-                            <TableHead className="text-right">স্তর</TableHead>
+                            <TableHead className="text-center">স্তর</TableHead>
+                            <TableHead className="text-right">মুছুন</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -105,13 +120,36 @@ export function VocabularyList() {
                             <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
                                 <TableCell className="font-medium font-code">{word.word}</TableCell>
                                 <TableCell>{word.meaning}</TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="text-center">
                                     <Badge 
                                         variant={difficultyVariant[word.difficulty_level]}
                                         className={cn('font-bold', difficultyClass[word.difficulty_level])}
                                     >
                                         {word.difficulty_level}
                                     </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>আপনি কি নিশ্চিত?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    এই পদক্ষেপটি необратиযোগ্য। এটি আপনার শব্দভান্ডার থেকে "{word.word}" শব্দটি স্থায়ীভাবে মুছে ফেলবে।
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>বাতিল</AlertDialogCancel>
+                                                <AlertDialogAction onClick={(e) => handleDelete(e, word.id, word.word)}>
+                                                    মুছে ফেলুন
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </TableCell>
                             </TableRow>
                         ))}

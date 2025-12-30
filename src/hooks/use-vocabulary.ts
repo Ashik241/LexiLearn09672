@@ -55,10 +55,9 @@ const useVocabularyStore = create<VocabularyState>()(
         if (get().isInitialized) return;
         
         const currentState = get();
-        // Migration for existing users: add createdAt if it's missing and ensure word properties exist
         const updatedWords = currentState.words.map(w => ({
           ...w,
-          createdAt: w.createdAt || new Date(0).toISOString(), // Default to epoch for old words
+          createdAt: w.createdAt || new Date(0).toISOString(),
           synonyms: w.synonyms || [],
           antonyms: w.antonyms || [],
           syllables: w.syllables || [],
@@ -269,5 +268,3 @@ export const useVocabulary = () => {
 
   return store;
 };
-
-    

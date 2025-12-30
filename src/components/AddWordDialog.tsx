@@ -81,6 +81,25 @@ const parseSynAnt = (value?: string): SynonymAntonym[] => {
     return value.split(',').map(s => s.trim()).filter(s => s).map(s => ({ word: s, meaning: '' }));
 };
 
+const parseSynAntStringArray = (arr: any): SynonymAntonym[] => {
+    if (!Array.isArray(arr)) return [];
+    
+    return arr.map(item => {
+        if (typeof item === 'string') {
+            const match = item.match(/^(.*?)\s*\((.*?)\)$/);
+            if (match) {
+                return { word: match[1].trim(), meaning: match[2].trim() };
+            }
+            return { word: item, meaning: '' };
+        }
+        if (typeof item === 'object' && item !== null && 'word' in item) {
+            return { word: item.word, meaning: item.meaning || '' };
+        }
+        return null;
+    }).filter((item): item is SynonymAntonym => item !== null);
+};
+
+
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   const { addWord, addMultipleWords } = useVocabulary();
   const { toast } = useToast();
@@ -171,11 +190,18 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
   const onBulkSubmit = async (values: BulkImportFormValues) => {
     setIsLoading(true);
     try {
-      const wordsToImport: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>[] = JSON.parse(values.json);
+      const parsedJson = JSON.parse(values.json);
       
-      if (!Array.isArray(wordsToImport)) {
+      if (!Array.isArray(parsedJson)) {
         throw new Error("JSON must be an array.");
       }
+
+      const wordsToImport = parsedJson.map((word: any) => ({
+          ...word,
+          synonyms: parseSynAntStringArray(word.synonyms),
+          antonyms: parseSynAntStringArray(word.antonyms),
+      }));
+
 
       const { addedCount, skippedCount } = addMultipleWords(wordsToImport);
 

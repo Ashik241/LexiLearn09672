@@ -28,17 +28,22 @@ import { generateWordDetails } from '@/ai/flows/generate-word-details';
 import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Word } from '@/types';
 
 const formSchema = z.object({
   word: z.string().min(1, 'Word is required.'),
   meaning: z.string().optional(),
   parts_of_speech: z.string().optional(),
-  example_sentences: z.string().optional(),
-  synonyms: z.string().optional(),
-  antonyms: z.string().optional(),
 });
 
 type AddWordFormValues = z.infer<typeof formSchema>;
+
+const bulkImportSchema = z.object({
+  json: z.string().min(1, 'JSON data is required.'),
+});
+
+type BulkImportFormValues = z.infer<typeof bulkImportSchema>;
 
 interface AddWordDialogProps {
   isOpen: boolean;
@@ -46,24 +51,29 @@ interface AddWordDialogProps {
 }
 
 export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
-  const { addWord } = useVocabulary();
+  const { addWord, addMultipleWords } = useVocabulary();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isManualEntry, setIsManualEntry] = useState(false);
+  const [activeTab, setActiveTab] = useState("single");
 
-  const form = useForm<AddWordFormValues>({
+  const singleWordForm = useForm<AddWordFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       word: '',
       meaning: '',
       parts_of_speech: '',
-      example_sentences: '',
-      synonyms: '',
-      antonyms: '',
     },
   });
 
-  const onSubmit = async (values: AddWordFormValues) => {
+  const bulkImportForm = useForm<BulkImportFormValues>({
+    resolver: zodResolver(bulkImportSchema),
+    defaultValues: {
+      json: '',
+    },
+  });
+
+  const onSingleSubmit = async (values: AddWordFormValues) => {
     setIsGenerating(true);
     try {
       let details;
@@ -82,12 +92,12 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         details = {
           meaning: values.meaning,
           parts_of_speech: values.parts_of_speech,
-          syllables: values.word.split('-'), // Simple syllable split as a fallback
+          syllables: values.word.split('-'),
           accent_uk: '',
           accent_us: '',
-          example_sentences: values.example_sentences?.split('\n').filter(s => s.trim() !== '') || [],
-          synonyms: values.synonyms?.split(',').map(s => s.trim()) || [],
-          antonyms: values.antonyms?.split(',').map(s => s.trim()) || [],
+          example_sentences: [],
+          synonyms: [],
+          antonyms: [],
           verb_forms: undefined,
         }
       }
@@ -110,7 +120,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
           title: 'শব্দ যোগ করা হয়েছে',
           description: `"${values.word}" আপনার শব্দভান্ডারে যোগ করা হয়েছে।`,
         });
-        form.reset();
+        singleWordForm.reset();
         onOpenChange(false);
         setIsManualEntry(false);
       } else {
@@ -127,16 +137,51 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         title: 'AI ত্রুটি',
         description: 'শব্দের বিবরণ তৈরি করা যায়নি। অনুগ্রহ করে ম্যানুয়ালি চেষ্টা করুন অথবা পরে আবার চেষ্টা করুন।',
       });
-      setIsManualEntry(true); // Switch to manual entry on AI error
+      setIsManualEntry(true);
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const onBulkSubmit = async (values: BulkImportFormValues) => {
+    setIsGenerating(true);
+    try {
+      const wordsToImport: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>[] = JSON.parse(values.json);
+      
+      // Basic validation
+      if (!Array.isArray(wordsToImport)) {
+        throw new Error("JSON must be an array.");
+      }
+
+      const { addedCount, skippedCount } = addMultipleWords(wordsToImport);
+
+      toast({
+        title: "ইম্পোর্ট সম্পন্ন",
+        description: `${addedCount}টি নতুন শব্দ যোগ করা হয়েছে। ${skippedCount}টি শব্দ আগে থেকেই ছিল।`,
+      });
+
+      bulkImportForm.reset();
+      onOpenChange(false);
+
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "JSON ইম্পোর্ট ত্রুটি",
+        description: error.message || "অনুগ্রহ করে সঠিক JSON ফরম্যাট চেক করুন।",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      form.reset();
+      singleWordForm.reset();
+      bulkImportForm.reset();
       setIsManualEntry(false);
+      setActiveTab("single");
     }
     onOpenChange(open);
   }
@@ -147,110 +192,104 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         <DialogHeader>
           <DialogTitle>নতুন শব্দ যোগ করুন</DialogTitle>
           <DialogDescription>
-            {isManualEntry 
-              ? "শব্দের বিবরণ ম্যানুয়ালি পূরণ করুন।"
-              : "একটি নতুন ইংরেজি শব্দ লিখুন। AI স্বয়ংক্রিয়ভাবে এর বিবরণ তৈরি করবে।"
-            }
+            একটি নতুন শব্দ যোগ করুন অথবা JSON ব্যবহার করে একসাথে অনেক শব্দ ইম্পোর্ট করুন।
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center space-x-2 my-4">
-          <Switch id="manual-entry-switch" checked={isManualEntry} onCheckedChange={setIsManualEntry} />
-          <Label htmlFor="manual-entry-switch">ম্যানুয়াল এন্ট্রি</Label>
-        </div>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-            <FormField
-              control={form.control}
-              name="word"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>শব্দ</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., serendipity" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {isManualEntry && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="meaning"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>অর্থ (বাংলা)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="বাংলায় অর্থ" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="parts_of_speech"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Parts of Speech</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Noun, Verb" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="example_sentences"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>উদাহরণ বাক্য (ঐচ্ছিক)</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="উদাহরণ বাক্য এখানে লিখুন (প্রতিটি নতুন লাইনে)..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="synonyms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Synonyms (ঐচ্ছিক)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="chance, fluke (কমা দিয়ে আলাদা করুন)" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="antonyms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Antonyms (ঐচ্ছিক)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="misfortune, bad luck (কমা দিয়ে আলাদা করুন)" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="single">একটি শব্দ যোগ করুন</TabsTrigger>
+                <TabsTrigger value="bulk">JSON থেকে ইম্পোর্ট</TabsTrigger>
+            </TabsList>
+            <TabsContent value="single">
+                <div className="flex items-center space-x-2 my-4">
+                    <Switch id="manual-entry-switch" checked={isManualEntry} onCheckedChange={setIsManualEntry} />
+                    <Label htmlFor="manual-entry-switch">ম্যানুয়াল এন্ট্রি</Label>
+                </div>
+                
+                <Form {...singleWordForm}>
+                <form onSubmit={singleWordForm.handleSubmit(onSingleSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <FormField
+                    control={singleWordForm.control}
+                    name="word"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>শব্দ</FormLabel>
+                        <FormControl>
+                            <Input placeholder="e.g., serendipity" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    {isManualEntry && (
+                    <>
+                        <FormField
+                        control={singleWordForm.control}
+                        name="meaning"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>অর্থ (বাংলা)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="বাংলায় অর্থ" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={singleWordForm.control}
+                        name="parts_of_speech"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Parts of Speech</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Noun, Verb" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </>
+                    )}
 
-            <DialogFooter>
-              <Button type="submit" disabled={isGenerating}>
-                {isGenerating ? (isManualEntry ? 'যোগ করা হচ্ছে...' : 'জেনারেট করা হচ্ছে...') : 'শব্দ যোগ করুন'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                    <DialogFooter>
+                    <Button type="submit" disabled={isGenerating}>
+                        {isGenerating ? (isManualEntry ? 'যোগ করা হচ্ছে...' : 'জেনারেট করা হচ্ছে...') : 'শব্দ যোগ করুন'}
+                    </Button>
+                    </DialogFooter>
+                </form>
+                </Form>
+            </TabsContent>
+            <TabsContent value="bulk">
+                 <Form {...bulkImportForm}>
+                    <form onSubmit={bulkImportForm.handleSubmit(onBulkSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pt-4">
+                        <FormField
+                        control={bulkImportForm.control}
+                        name="json"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>JSON ডেটা</FormLabel>
+                            <FormControl>
+                                <Textarea 
+                                    placeholder='[{"word": "example", "meaning": "উদাহরণ", ...}]'
+                                    className="min-h-[250px] font-code text-xs"
+                                    {...field} 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <DialogFooter>
+                            <Button type="submit" disabled={isGenerating}>
+                                {isGenerating ? 'ইম্পোর্ট করা হচ্ছে...' : 'শব্দগুলো যোগ করুন'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

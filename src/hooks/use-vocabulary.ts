@@ -20,6 +20,7 @@ interface VocabularyState {
   isInitialized: boolean;
   init: () => void;
   addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>) => boolean;
+  addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed'>[]) => { addedCount: number; skippedCount: number };
   updateWord: (wordId: string, updates: Partial<Word>) => void;
   deleteWord: (wordId: string) => void;
   getWordForSession: (type?: 'mcq' | 'spelling') => Word | null;
@@ -61,8 +62,6 @@ const useVocabularyStore = create<VocabularyState>()(
                     times_correct: 0,
                     times_incorrect: 0,
                     last_reviewed: null,
-                    accent_uk: '', // Default value
-                    accent_us: '', // Default value
                 });
             }
         });
@@ -94,10 +93,57 @@ const useVocabularyStore = create<VocabularyState>()(
           times_correct: 0,
           times_incorrect: 0,
           last_reviewed: null,
+          // Ensure defaults for optional fields from bulk import
+          accent_uk: wordData.accent_uk || '',
+          accent_us: wordData.accent_us || '',
+          syllables: wordData.syllables || [],
+          synonyms: wordData.synonyms || [],
+          antonyms: wordData.antonyms || [],
+          example_sentences: wordData.example_sentences || [],
         };
         set((state) => ({ words: [...state.words, newWord] }));
         get().calculateStats();
         return true;
+      },
+      
+      addMultipleWords: (wordsData) => {
+        const currentWords = get().words;
+        const existingWordIds = new Set(currentWords.map(w => w.id));
+        let addedCount = 0;
+        let skippedCount = 0;
+
+        const newWords = wordsData.reduce((acc: Word[], wordData) => {
+          const wordId = wordData.word.toLowerCase();
+          if (!existingWordIds.has(wordId)) {
+            acc.push({
+              ...wordData,
+              id: wordId,
+              difficulty_level: 'New',
+              is_learned: false,
+              times_correct: 0,
+              times_incorrect: 0,
+              last_reviewed: null,
+              accent_uk: wordData.accent_uk || '',
+              accent_us: wordData.accent_us || '',
+              syllables: wordData.syllables || [],
+              synonyms: wordData.synonyms || [],
+              antonyms: wordData.antonyms || [],
+              example_sentences: wordData.example_sentences || [],
+            });
+            existingWordIds.add(wordId); // Avoid duplicates within the same batch
+            addedCount++;
+          } else {
+            skippedCount++;
+          }
+          return acc;
+        }, []);
+
+        if (newWords.length > 0) {
+            set((state) => ({ words: [...state.words, ...newWords] }));
+            get().calculateStats();
+        }
+        
+        return { addedCount, skippedCount };
       },
 
       updateWord: (wordId, updates) => {

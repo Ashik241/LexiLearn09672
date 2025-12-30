@@ -24,16 +24,16 @@ const AuthContext = createContext<AuthContextType>({ user: null, loading: true }
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { init, isInitialized, words } = useVocabulary();
+  const { init, words } = useVocabulary();
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
-      init(user);
-      if(!user && words.length <= 4) { // Only show login for new users
+      init(currentUser);
+      if(!currentUser && words.length <= 4) { // Only show login for new users
         setShowLogin(true);
       } else {
         setShowLogin(false);
@@ -41,7 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [init, words.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [init]);
   
   const handleGoogleSignIn = async () => {
     const auth = getFirebaseAuth(app);

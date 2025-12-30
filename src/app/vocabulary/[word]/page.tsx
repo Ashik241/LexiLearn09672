@@ -6,13 +6,14 @@ import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 type Accent = 'UK' | 'US';
 
@@ -27,6 +28,7 @@ export default function WordDetailsPage() {
 
   const speak = (text: string, selectedAccent: Accent = accent) => {
     if (typeof window.speechSynthesis === 'undefined') return;
+    window.speechSynthesis.cancel(); // Cancel any previous speech
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
     let voice;
@@ -84,11 +86,46 @@ export default function WordDetailsPage() {
               <div>
                 <CardTitle className="text-4xl font-bold font-code text-primary flex items-center gap-4">
                   {word.word}
-                   <Button variant="outline" size="icon" onClick={() => speak(word.word)}><Volume2 className="h-5 w-5"/></Button>
                 </CardTitle>
                 <CardDescription className="text-lg mt-2">{word.parts_of_speech}</CardDescription>
               </div>
-              <Badge className="text-lg">{word.difficulty_level}</Badge>
+              <div className="flex items-center gap-4">
+                  <RadioGroup value={accent} onValueChange={(value: Accent) => setAccent(value)} className="flex gap-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="US" id="us-accent-radio" />
+                      <Label htmlFor="us-accent-radio" className="text-xs">US</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="UK" id="uk-accent-radio" />
+                      <Label htmlFor="uk-accent-radio" className="text-xs">UK</Label>
+                    </div>
+                  </RadioGroup>
+                  <Button variant="outline" size="icon" onClick={() => speak(word.word)}><Volume2 className="h-5 w-5"/></Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon"><Settings className="h-5 w-5"/></Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-60">
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium leading-none">উচ্চারণ নিয়ন্ত্রণ</h4>
+                          <p className="text-sm text-muted-foreground">গতি এবং ভলিউম সামঞ্জস্য করুন।</p>
+                        </div>
+                        <div className="grid gap-2">
+                            <div>
+                                <Label htmlFor="rate-slider">গতি</Label>
+                                <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />
+                            </div>
+                            <div>
+                                <Label htmlFor="volume-slider">ভলিউম</Label>
+                                <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
+                            </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Badge className="text-lg">{word.difficulty_level}</Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -179,33 +216,6 @@ export default function WordDetailsPage() {
                 </div>
             )}
           </CardContent>
-          <CardFooter className="flex-col items-start gap-4">
-            <Separator />
-            <h3 className="text-xl font-semibold">উচ্চারণ নিয়ন্ত্রণ</h3>
-            <div className="w-full space-y-4">
-                <div>
-                    <Label>উচ্চারণ</Label>
-                    <RadioGroup value={accent} onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4 pt-2">
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="US" id="us-accent" />
-                            <Label htmlFor="us-accent">US Accent</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="UK" id="uk-accent" />
-                            <Label htmlFor="uk-accent">UK Accent</Label>
-                        </div>
-                    </RadioGroup>
-                </div>
-                <div>
-                    <Label htmlFor="rate-slider">গতি</Label>
-                    <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />
-                </div>
-                <div>
-                    <Label htmlFor="volume-slider">ভলিউম</Label>
-                    <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
-                </div>
-            </div>
-          </CardFooter>
         </Card>
       </main>
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, MouseEvent, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { Word, WordDifficulty } from '@/types';
 import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search, MoreHorizontal, Pencil, ShieldAlert } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -50,6 +50,7 @@ const difficultyClass: Record<WordDifficulty, string> = {
 export function VocabularyList() {
     const { getAllWords, isInitialized, deleteWord, deleteAllWords } = useVocabulary();
     const router = useRouter();
+    const pathname = usePathname();
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
@@ -152,7 +153,7 @@ export function VocabularyList() {
     }
 
     const handleRowClick = (wordId: string) => {
-        router.push(`/vocabulary?word=${encodeURIComponent(wordId)}`);
+        router.push(`${pathname}?word=${encodeURIComponent(wordId)}`);
     };
 
     const confirmDelete = () => {
@@ -213,9 +214,9 @@ export function VocabularyList() {
                             </SelectContent>
                         </Select>
                          {hasFilter && (
-                            <Link href={`/learn?${searchParams.toString()}`} passHref>
-                                <Button>Start Exam</Button>
-                            </Link>
+                            <Button asChild>
+                                <Link href={`/learn?${searchParams.toString()}`}>Start Exam</Link>
+                            </Button>
                         )}
                         <Button variant="destructive" onClick={() => setIsDeleteAllAlertOpen(true)} disabled={words.length === 0}>
                             <Trash2 className="mr-2 h-4 w-4" />
@@ -228,9 +229,9 @@ export function VocabularyList() {
                         <div className="text-center py-12">
                             <p className="text-muted-foreground">আপনার সার্চ বা ফিল্টারের সাথে মেলে এমন কোনো শব্দ পাওয়া যায়নি।</p>
                             { (difficultyFilter || dateFilter || learnedFilter || searchQuery || posFilter !== 'all') && (
-                                 <Link href="/vocabulary" passHref>
-                                    <Button variant="outline" className="mt-4" onClick={() => { setSearchQuery(''); setPosFilter('all'); }}>Clear Filters & Search</Button>
-                                </Link>
+                                 <Button asChild variant="outline" className="mt-4">
+                                    <Link href="/vocabulary" onClick={() => { setSearchQuery(''); setPosFilter('all'); }}>Clear Filters & Search</Link>
+                                </Button>
                             )}
                         </div>
                     ) : (

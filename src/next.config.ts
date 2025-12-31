@@ -1,6 +1,8 @@
 import type {NextConfig} from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
+const REPO_NAME = 'LexiLearn09672';
+
 const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
@@ -79,14 +81,12 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  output: 'export',
+  trailingSlash: true,
+  basePath: `/${REPO_NAME}`,
+  assetPrefix: `/${REPO_NAME}`,
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -108,6 +108,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
-export default withPWA(nextConfig);
+module.exports = withPWA(nextConfig);

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock, Zap, Mic, Text } from 'lucide-react';
+import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock, Zap, Mic, Text, Brain, Pilcrow, SquareFunction } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,6 +107,39 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                     <CardDescription>সমার্থক ও বিপরীতার্থক শব্দ পরীক্ষা করুন।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/learn?type=fill_blank_word" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <Brain className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">Fill in the Blanks (Word)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>অসম্পূর্ণ শব্দটি পূরণ করুন।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/learn?type=fill_blank_sentence" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <Pilcrow className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">Fill in the Blanks (Sentence)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>বাক্যের শূন্যস্থান সঠিক শব্দ দিয়ে পূরণ করুন।</CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/learn?type=verb_form" passHref>
+              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <SquareFunction className="w-8 h-8 text-primary" />
+                    <CardTitle className="font-headline">Verb Form Test</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>ক্রিয়ার সঠিক V2 এবং V3 ফর্ম লিখুন।</CardDescription>
                 </CardContent>
               </Card>
             </Link>

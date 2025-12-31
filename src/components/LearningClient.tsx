@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useVocabulary } from '@/hooks/use-vocabulary';
-import type { Word, WordDifficulty } from '@/types';
+import type { Word, WordDifficulty, TestType } from '@/types';
 import McqTest from '@/components/McqTest';
 import SpellingTest from '@/components/SpellingTest';
+import FillInBlanksWordTest from '@/components/FillInBlanksWordTest';
+import FillInBlanksSentenceTest from '@/components/FillInBlanksSentenceTest';
+import VerbFormTest from '@/components/VerbFormTest';
 import FeedbackScreen from './FeedbackScreen';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -12,20 +15,29 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
-type TestType = 'mcq' | 'spelling_listen' | 'spelling_meaning' | 'bengali-to-english' | 'synonym-antonym' | 'dynamic';
 type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
 
 const getRandomTestTypeForWord = (word: Word): Exclude<TestType, 'dynamic'> => {
     const types: Exclude<TestType, 'dynamic' | 'synonym-antonym'>[] = ['mcq', 'spelling_meaning', 'spelling_listen', 'bengali-to-english'];
-    const hasSynAnt = (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
-    if (hasSynAnt) {
-        types.push('synonym-antonym' as any);
+    
+    if ((word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0)) {
+        types.push('synonym-antonym');
     }
+    if (word.word.length > 3) {
+        types.push('fill_blank_word');
+    }
+    if (word.example_sentences && word.example_sentences.length > 0) {
+        types.push('fill_blank_sentence');
+    }
+    if (word.verb_forms) {
+        types.push('verb_form');
+    }
+
     return types[Math.floor(Math.random() * types.length)];
 }
 
 function LearningClientInternal() {
-  const { getWordForSession, updateWord, isInitialized, resetSession, getSessionProgress } = useVocabulary();
+  const { getWordForSession, updateWord, isInitialized, resetSession } = useVocabulary();
   const { toast } = useToast();
   const searchParams = useSearchParams();
 
@@ -60,6 +72,10 @@ function LearningClientInternal() {
       filter = (word: Word) => word.is_learned;
     } else if (forcedTestType === 'synonym-antonym') {
       filter = (word: Word) => (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
+    } else if (forcedTestType === 'verb_form') {
+        filter = (word: Word) => !!word.verb_forms;
+    } else if (forcedTestType === 'fill_blank_sentence') {
+        filter = (word: Word) => !!word.example_sentences && word.example_sentences.length > 0;
     }
     return filter;
   }, [dateFilter, learnedFilter, forcedTestType]);
@@ -88,9 +104,20 @@ function LearningClientInternal() {
           effectiveTestType = forcedTestType || 'mcq';
       }
 
+      // Fallback logic
       if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
            effectiveTestType = 'mcq';
       }
+      if (effectiveTestType === 'verb_form' && !word.verb_forms) {
+          effectiveTestType = 'mcq';
+      }
+      if (effectiveTestType === 'fill_blank_sentence' && (!word.example_sentences || word.example_sentences.length === 0)) {
+          effectiveTestType = 'mcq';
+      }
+      if (effectiveTestType === 'fill_blank_word' && word.word.length <= 3) {
+          effectiveTestType = 'spelling_meaning';
+      }
+
 
       setCurrentWord(word);
       setTestType(effectiveTestType);
@@ -158,7 +185,7 @@ function LearningClientInternal() {
   const TestComponent = useMemo(() => {
     if (!currentWord || !testType) return null;
 
-    const onComplete = (isCorrect: boolean, answer: string, isMCQ: boolean, correctAnswer: string) => {
+    const onComplete = (isCorrect: boolean, answer: string) => {
       handleTestComplete(isCorrect, answer);
     }
 
@@ -172,6 +199,12 @@ function LearningClientInternal() {
         case 'spelling_listen':
         case 'spelling_meaning':
              return <SpellingTest word={currentWord} onComplete={onComplete} mode={testType === 'spelling_listen' ? 'listen' : 'meaning'} />;
+        case 'fill_blank_word':
+            return <FillInBlanksWordTest word={currentWord} onComplete={onComplete} />;
+        case 'fill_blank_sentence':
+            return <FillInBlanksSentenceTest word={currentWord} onComplete={onComplete} />;
+        case 'verb_form':
+            return <VerbFormTest word={currentWord} onComplete={onComplete} />;
         default:
             return <McqTest word={currentWord} onComplete={onComplete} testType="english-to-bengali" />;
     }

@@ -12,7 +12,7 @@ type McqTestType = 'english-to-bengali' | 'bengali-to-english' | 'synonym-antony
 
 interface McqTestProps {
   word: Word;
-  onComplete: (isCorrect: boolean, answer: string, isMCQ: boolean, correctAnswer: string) => void;
+  onComplete: (isCorrect: boolean, answer: string) => void;
   testType: McqTestType;
 }
 
@@ -73,6 +73,7 @@ const generateQuiz = (word: Word, allWords: Word[], testType: McqTestType): Quiz
         }
 
         const targetArray = isSynonymTest ? word.synonyms : word.antonyms;
+        if (!targetArray) return generateQuiz(word, allWords, 'english-to-bengali');
         
         const correctRelation = targetArray[Math.floor(Math.random() * targetArray.length)];
         correctAnswer = correctRelation.word;
@@ -82,8 +83,8 @@ const generateQuiz = (word: Word, allWords: Word[], testType: McqTestType): Quiz
         const incorrectOptions = allWords
             .filter(w => 
                 w.id !== word.id && 
-                !word.synonyms.some(s => s.word === w.word) && 
-                !word.antonyms.some(a => a.word === w.word)
+                !word.synonyms?.some(s => s.word === w.word) && 
+                !word.antonyms?.some(a => a.word === w.word)
             )
             .sort(() => 0.5 - Math.random())
             .slice(0, 3)
@@ -128,7 +129,7 @@ export default function McqTest({ word, onComplete, testType }: McqTestProps) {
     if (selectedOption === null || quiz === null) return;
     setIsSubmitted(true);
     const isCorrect = selectedOption === quiz.correctAnswer;
-    onComplete(isCorrect, selectedOption || '', true, quiz.correctAnswer);
+    onComplete(isCorrect, selectedOption || '');
   };
 
   if (loading || !quiz) {

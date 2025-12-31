@@ -14,7 +14,7 @@ type SpellingMode = 'listen' | 'meaning';
 
 interface SpellingTestProps {
   word: Word;
-  onComplete: (isCorrect: boolean, answer: string, isMCQ: boolean, correctAnswer: string) => void;
+  onComplete: (isCorrect: boolean, answer: string) => void;
   mode: SpellingMode;
 }
 
@@ -105,7 +105,7 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
     if (!answer.trim()) return;
     setIsSubmitted(true);
     const isCorrect = answer.trim().toLowerCase() === word.word.toLowerCase();
-    onComplete(isCorrect, answer.trim(), false, word.word);
+    onComplete(isCorrect, answer.trim());
   };
 
   return (

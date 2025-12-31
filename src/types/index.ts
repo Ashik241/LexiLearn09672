@@ -1,5 +1,17 @@
 export type WordDifficulty = 'Easy' | 'Medium' | 'Hard' | 'New';
 
+export type TestType = 
+  | 'mcq' 
+  | 'spelling_listen' 
+  | 'spelling_meaning' 
+  | 'bengali-to-english' 
+  | 'synonym-antonym' 
+  | 'dynamic'
+  | 'fill_blank_word'
+  | 'fill_blank_sentence'
+  | 'verb_form';
+
+
 export interface SynonymAntonym {
   word: string;
   meaning: string;

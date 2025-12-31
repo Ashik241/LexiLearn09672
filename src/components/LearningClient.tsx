@@ -6,7 +6,7 @@ import type { Word, WordDifficulty, TestType } from '@/types';
 import McqTest from '@/components/McqTest';
 import SpellingTest from '@/components/SpellingTest';
 import FillInBlanksWordTest from '@/components/FillInBlanksWordTest';
-import FillInBlanksSentenceTest from '@/components/FillInBlanksSentenceTest';
+import FillInBlanksSentenceTest, { createSentenceWithBlank } from '@/components/FillInBlanksSentenceTest';
 import VerbFormTest from '@/components/VerbFormTest';
 import FeedbackScreen from './FeedbackScreen';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -21,12 +21,12 @@ const getRandomTestTypeForWord = (word: Word): Exclude<TestType, 'dynamic'> => {
     const types: Exclude<TestType, 'dynamic' | 'synonym-antonym'>[] = ['mcq', 'spelling_meaning', 'spelling_listen', 'bengali-to-english'];
     
     if ((word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0)) {
-        types.push('synonym-antonym');
+        // types.push('synonym-antonym'); // This test type is not fully implemented
     }
     if (word.word.length > 3) {
         types.push('fill_blank_word');
     }
-    if (word.example_sentences && word.example_sentences.length > 0) {
+    if (word.example_sentences && word.example_sentences.length > 0 && createSentenceWithBlank(word.example_sentences, word.word)) {
         types.push('fill_blank_sentence');
     }
     if (word.verb_forms) {
@@ -75,7 +75,7 @@ function LearningClientInternal() {
     } else if (forcedTestType === 'verb_form') {
         filter = (word: Word) => !!word.verb_forms;
     } else if (forcedTestType === 'fill_blank_sentence') {
-        filter = (word: Word) => !!word.example_sentences && word.example_sentences.length > 0;
+        filter = (word: Word) => !!word.example_sentences && word.example_sentences.length > 0 && !!createSentenceWithBlank(word.example_sentences, word.word);
     }
     return filter;
   }, [dateFilter, learnedFilter, forcedTestType]);
@@ -111,7 +111,7 @@ function LearningClientInternal() {
       if (effectiveTestType === 'verb_form' && !word.verb_forms) {
           effectiveTestType = 'mcq';
       }
-      if (effectiveTestType === 'fill_blank_sentence' && (!word.example_sentences || word.example_sentences.length === 0)) {
+      if (effectiveTestType === 'fill_blank_sentence' && (!word.example_sentences || word.example_sentences.length === 0 || !createSentenceWithBlank(word.example_sentences, word.word))) {
           effectiveTestType = 'mcq';
       }
       if (effectiveTestType === 'fill_blank_word' && word.word.length <= 3) {

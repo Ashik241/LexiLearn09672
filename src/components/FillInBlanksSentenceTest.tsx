@@ -12,13 +12,17 @@ interface FillInBlanksSentenceTestProps {
   onComplete: (isCorrect: boolean, answer: string) => void;
 }
 
-const createSentenceWithBlank = (sentences: string[], wordToBlank: string): { sentence: string, original: string } | null => {
+export const createSentenceWithBlank = (sentences: string[] | undefined, wordToBlank: string): { sentence: string, original: string } | null => {
   if (!sentences || sentences.length === 0) return null;
   
-  const sentence = sentences[Math.floor(Math.random() * sentences.length)];
+  const suitableSentences = sentences.filter(s => new RegExp(`\\b${wordToBlank}\\b`, 'i').test(s));
+
+  if (suitableSentences.length === 0) return null;
+
+  const sentence = suitableSentences[Math.floor(Math.random() * suitableSentences.length)];
   const blankedSentence = sentence.replace(new RegExp(`\\b${wordToBlank}\\b`, 'gi'), '_________');
   
-  // If no replacement happened, it's not a good test
+  // This check is redundant now but kept for safety
   if (sentence === blankedSentence) return null;
 
   return { sentence: blankedSentence, original: sentence };
@@ -43,9 +47,8 @@ export default function FillInBlanksSentenceTest({ word, onComplete }: FillInBla
     onComplete(isCorrect, answer.trim());
   };
 
+  // This should theoretically not be reached anymore due to the fallback in LearningClient
   if (!quizSentence) {
-    // This can happen if the sentence doesn't contain the word, which is unlikely but possible.
-    // We should probably just show a different test type, but for now, this will do.
     return (
         <Card className="w-full">
             <CardHeader>

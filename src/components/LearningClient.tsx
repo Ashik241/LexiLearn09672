@@ -58,8 +58,8 @@ function LearningClientInternal() {
     return undefined;
   }
 
-  const getSessionFilter = useCallback(() => {
-    let filter: ((word: Word) => boolean) | undefined = undefined;
+  const getSessionFilter = useCallback((): ((word: Word) => boolean) => {
+    let filter: ((word: Word) => boolean);
     
     if (dateFilter) {
       const today = new Date().toISOString().split('T')[0];
@@ -71,11 +71,13 @@ function LearningClientInternal() {
     } else if (learnedFilter) {
       filter = (word: Word) => word.is_learned;
     } else if (forcedTestType === 'synonym-antonym') {
-      filter = (word: Word) => (word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0);
+      filter = (word: Word) => !!((word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0));
     } else if (forcedTestType === 'verb_form') {
         filter = (word: Word) => !!word.verb_forms;
     } else if (forcedTestType === 'fill_blank_sentence') {
         filter = (word: Word) => !!word.example_sentences && word.example_sentences.length > 0 && !!createSentenceWithBlank(word.example_sentences, word.word);
+    } else {
+      filter = () => true; // Default filter that includes all words
     }
     return filter;
   }, [dateFilter, learnedFilter, forcedTestType]);

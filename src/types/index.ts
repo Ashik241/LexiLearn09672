@@ -5,13 +5,17 @@ export interface SynonymAntonym {
   meaning: string;
 }
 
+export interface VerbFormDetail {
+    word: string;
+    pronunciation: string;
+    bangla_meaning: string;
+    usage_context: string;
+}
+
 export interface VerbForms {
-  present: string;
-  past: string;
-  past_participle: string;
-  present_pronunciation: string;
-  past_pronunciation: string;
-  past_participle_pronunciation: string;
+  present: VerbFormDetail;
+  past: VerbFormDetail;
+  past_participle: VerbFormDetail;
   form_examples: {
     present: string;
     past: string;
@@ -26,6 +30,7 @@ export interface Word {
   meaning: string;
   meaning_explanation?: string;
   parts_of_speech: string;
+  usage_distinction?: string;
   synonyms?: SynonymAntonym[];
   antonyms?: SynonymAntonym[];
   example_sentences?: string[];

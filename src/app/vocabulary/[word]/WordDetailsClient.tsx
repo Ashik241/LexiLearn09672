@@ -11,10 +11,27 @@ import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { Word } from '@/types';
+import type { Word, VerbFormDetail } from '@/types';
 import { useVocabulary } from '@/hooks/use-vocabulary';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type Accent = 'UK' | 'US';
+
+const VerbFormRow = ({ formName, form, onSpeak }: { formName: string; form: VerbFormDetail; onSpeak: (text: string) => void; }) => (
+    <TableRow>
+        <TableCell className="font-semibold">{formName}</TableCell>
+        <TableCell>
+            <div className="flex items-center gap-2">
+                <span className="font-code">{form.word}</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onSpeak(form.word)}><Volume2 className="h-4 w-4"/></Button>
+            </div>
+             <p className="text-sm text-muted-foreground">{form.pronunciation}</p>
+        </TableCell>
+        <TableCell>{form.bangla_meaning}</TableCell>
+        <TableCell className="text-sm text-muted-foreground">{form.usage_context}</TableCell>
+    </TableRow>
+);
+
 
 export function WordDetailsClient({ word: initialWord }: { word: Word | null }) {
   const { getWordById, isInitialized } = useVocabulary();
@@ -92,6 +109,8 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
     );
   }
 
+  const isVerb = word.parts_of_speech.toLowerCase().includes('verb');
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -157,6 +176,13 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                 <p className="text-muted-foreground italic break-words">"{word.meaning_explanation}"</p>
               </div>
             )}
+            
+            {word.usage_distinction && (
+                <div className="bg-card-foreground/5 p-4 rounded-lg">
+                    <h3 className="text-xl font-semibold mb-2">ব্যবহারের পার্থক্য</h3>
+                    <p className="text-muted-foreground italic break-words">"{word.usage_distinction}"</p>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -166,6 +192,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
             </div>
 
             
+            {!isVerb && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {word.synonyms && word.synonyms.length > 0 &&
                       <div>
@@ -194,7 +221,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                       </div>
                   }
               </div>
-            
+            )}
 
             {word.example_sentences && word.example_sentences.length > 0 && (
               <div>
@@ -207,34 +234,34 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
               </div>
             )}
 
-            {word.verb_forms && (
+            {isVerb && word.verb_forms && (
                 <div>
                     <Separator className="my-6" />
                     <h3 className="text-2xl font-bold font-headline mb-4">Verb Forms (ক্রিয়ার রূপ)</h3>
-                    <div className="space-y-6">
-                        {/* Present Form */}
-                        <div>
-                            <h4 className="text-lg font-semibold text-primary break-words">Present: {word.verb_forms.present}</h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.present)}><Volume2 className="h-4 w-4"/></Button>
-                            </div>
-                            <p className="mt-1 italic break-words">"{word.verb_forms.form_examples.present}"</p>
-                        </div>
-                        {/* Past Form */}
-                        <div>
-                            <h4 className="text-lg font-semibold text-primary break-words">Past: {word.verb_forms.past}</h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past)}><Volume2 className="h-4 w-4"/></Button>
-                            </div>
-                            <p className="mt-1 italic break-words">"{word.verb_forms.form_examples.past}"</p>
-                        </div>
-                        {/* Past Participle Form */}
-                        <div>
-                            <h4 className="text-lg font-semibold text-primary break-words">Past Participle: {word.verb_forms.past_participle}</h4>
-                             <div className="flex items-center gap-4 text-sm text-muted-foreground font-code">
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => speak(word.verb_forms.past_participle)}><Volume2 className="h-4 w-4"/></Button>
-                            </div>
-                            <p className="mt-1 italic break-words">"{word.verb_forms.form_examples.past_participle}"</p>
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Form</TableHead>
+                                    <TableHead>Word & Pronunciation</TableHead>
+                                    <TableHead>Bengali Meaning</TableHead>
+                                    <TableHead>Usage Context</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <VerbFormRow formName="Present (V1)" form={word.verb_forms.present} onSpeak={speak} />
+                                <VerbFormRow formName="Past (V2)" form={word.verb_forms.past} onSpeak={speak} />
+                                <VerbFormRow formName="Past Participle (V3)" form={word.verb_forms.past_participle} onSpeak={speak} />
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <div className="mt-6 space-y-4">
+                        <h4 className="text-lg font-semibold">Form Examples</h4>
+                        <div className="text-muted-foreground">
+                            <p><strong className='text-foreground'>Present:</strong> "{word.verb_forms.form_examples.present}"</p>
+                            <p><strong className='text-foreground'>Past:</strong> "{word.verb_forms.form_examples.past}"</p>
+                            <p><strong className='text-foreground'>Past Participle:</strong> "{word.verb_forms.form_examples.past_participle}"</p>
                         </div>
                     </div>
                 </div>

@@ -34,21 +34,31 @@ const formSchema = z.object({
   meaning: z.string().min(1, 'Meaning is required.'),
   meaning_explanation: z.string().optional(),
   parts_of_speech: z.string().min(1, 'Parts of speech is required.'),
+  usage_distinction: z.string().optional(),
   example_sentences: z.string().optional(),
   syllables: z.string().optional(),
   synonyms: z.string().optional(),
   antonyms: z.string().optional(),
   
-  // Verb forms
   is_verb: z.boolean().default(false),
-  present: z.string().optional(),
-  past: z.string().optional(),
-  past_participle: z.string().optional(),
+  
+  // Verb forms
+  present_word: z.string().optional(),
   present_pronunciation: z.string().optional(),
-  past_pronunciation: z.string().optional(),
-  past_participle_pronunciation: z.string().optional(),
+  present_bangla_meaning: z.string().optional(),
+  present_usage_context: z.string().optional(),
   present_example: z.string().optional(),
+
+  past_word: z.string().optional(),
+  past_pronunciation: z.string().optional(),
+  past_bangla_meaning: z.string().optional(),
+  past_usage_context: z.string().optional(),
   past_example: z.string().optional(),
+
+  past_participle_word: z.string().optional(),
+  past_participle_pronunciation: z.string().optional(),
+  past_participle_bangla_meaning: z.string().optional(),
+  past_participle_usage_context: z.string().optional(),
   past_participle_example: z.string().optional(),
 });
 
@@ -136,14 +146,28 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     setIsLoading(true);
     try {
       let verb_forms: VerbForms | undefined = undefined;
-      if (values.is_verb && values.present && values.past && values.past_participle) {
+      const isVerbDetected = values.is_verb || values.parts_of_speech.toLowerCase().includes('verb');
+      
+      if (isVerbDetected && values.present_word && values.past_word && values.past_participle_word) {
         verb_forms = {
-          present: values.present,
-          past: values.past,
-          past_participle: values.past_participle,
-          present_pronunciation: values.present_pronunciation || '',
-          past_pronunciation: values.past_pronunciation || '',
-          past_participle_pronunciation: values.past_participle_pronunciation || '',
+          present: {
+            word: values.present_word,
+            pronunciation: values.present_pronunciation || '',
+            bangla_meaning: values.present_bangla_meaning || '',
+            usage_context: values.present_usage_context || '',
+          },
+          past: {
+            word: values.past_word,
+            pronunciation: values.past_pronunciation || '',
+            bangla_meaning: values.past_bangla_meaning || '',
+            usage_context: values.past_usage_context || '',
+          },
+          past_participle: {
+            word: values.past_participle_word,
+            pronunciation: values.past_participle_pronunciation || '',
+            bangla_meaning: values.past_participle_bangla_meaning || '',
+            usage_context: values.past_participle_usage_context || '',
+          },
           form_examples: {
             present: values.present_example || '',
             past: values.past_example || '',
@@ -157,6 +181,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         meaning: values.meaning,
         meaning_explanation: values.meaning_explanation,
         parts_of_speech: values.parts_of_speech,
+        usage_distinction: values.usage_distinction,
         syllables: values.syllables ? values.syllables.split(',').map(s => s.trim()).filter(Boolean) : values.word.split('-'),
         example_sentences: values.example_sentences ? values.example_sentences.split('\n').filter(s => s.trim() !== '') : [],
         synonyms: parseSynAnt(values.synonyms),
@@ -310,6 +335,19 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                     />
                     <FormField
                         control={singleWordForm.control}
+                        name="usage_distinction"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Usage Distinction (ঐচ্ছিক)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Explain when to use this word over a synonym." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={singleWordForm.control}
                         name="syllables"
                         render={({ field }) => (
                             <FormItem>
@@ -380,25 +418,63 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                         <Accordion type="single" collapsible className="w-full">
                             <AccordionItem value="verb-forms">
                                 <AccordionTrigger>Verb Forms (ঐচ্ছিক)</AccordionTrigger>
-                                <AccordionContent className="space-y-4 pt-4">
-                                     <FormField control={singleWordForm.control} name="present" render={({ field }) => (
-                                        <FormItem><FormLabel>Present</FormLabel><FormControl><Input placeholder="e.g., go" {...field} /></FormControl></FormItem>
-                                     )} />
-                                     <FormField control={singleWordForm.control} name="past" render={({ field }) => (
-                                        <FormItem><FormLabel>Past</FormLabel><FormControl><Input placeholder="e.g., went" {...field} /></FormControl></FormItem>
-                                     )} />
-                                     <FormField control={singleWordForm.control} name="past_participle" render={({ field }) => (
-                                        <FormItem><FormLabel>Past Participle</FormLabel><FormControl><Input placeholder="e.g., gone" {...field} /></FormControl></FormItem>
-                                     )} />
-                                     <FormField control={singleWordForm.control} name="present_example" render={({ field }) => (
-                                        <FormItem><FormLabel>Present Form Example</FormLabel><FormControl><Input placeholder="I go to school." {...field} /></FormControl></FormItem>
-                                     )} />
-                                     <FormField control={singleWordForm.control} name="past_example" render={({ field }) => (
-                                        <FormItem><FormLabel>Past Form Example</FormLabel><FormControl><Input placeholder="I went to school." {...field} /></FormControl></FormItem>
-                                     )} />
-                                      <FormField control={singleWordForm.control} name="past_participle_example" render={({ field }) => (
-                                        <FormItem><FormLabel>Past Participle Example</FormLabel><FormControl><Input placeholder="I have gone to school." {...field} /></FormControl></FormItem>
-                                     )} />
+                                <AccordionContent className="space-y-6 pt-4">
+                                     <div className="space-y-2 p-4 border rounded-md">
+                                        <h4 className='font-semibold'>Present Form</h4>
+                                        <FormField control={singleWordForm.control} name="present_word" render={({ field }) => (
+                                            <FormItem><FormLabel>Word</FormLabel><FormControl><Input placeholder="e.g., go" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="present_pronunciation" render={({ field }) => (
+                                            <FormItem><FormLabel>Pronunciation</FormLabel><FormControl><Input placeholder="/ɡəʊ/" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="present_bangla_meaning" render={({ field }) => (
+                                            <FormItem><FormLabel>Bengali Meaning</FormLabel><FormControl><Input placeholder="যাওয়া" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="present_usage_context" render={({ field }) => (
+                                            <FormItem><FormLabel>Usage Context</FormLabel><FormControl><Textarea placeholder="সাধারণ বর্তমান কালে ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
+                                        )} />
+                                         <FormField control={singleWordForm.control} name="present_example" render={({ field }) => (
+                                            <FormItem><FormLabel>Example</FormLabel><FormControl><Input placeholder="I go to school." {...field} /></FormControl></FormItem>
+                                        )} />
+                                     </div>
+                                     
+                                     <div className="space-y-2 p-4 border rounded-md">
+                                        <h4 className='font-semibold'>Past Form</h4>
+                                        <FormField control={singleWordForm.control} name="past_word" render={({ field }) => (
+                                            <FormItem><FormLabel>Word</FormLabel><FormControl><Input placeholder="e.g., went" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_pronunciation" render={({ field }) => (
+                                            <FormItem><FormLabel>Pronunciation</FormLabel><FormControl><Input placeholder="/wɛnt/" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_bangla_meaning" render={({ field }) => (
+                                            <FormItem><FormLabel>Bengali Meaning</FormLabel><FormControl><Input placeholder="গিয়েছিল" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_usage_context" render={({ field }) => (
+                                            <FormItem><FormLabel>Usage Context</FormLabel><FormControl><Textarea placeholder="অতীতের কোনো কাজ বোঝাতে ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_example" render={({ field }) => (
+                                            <FormItem><FormLabel>Example</FormLabel><FormControl><Input placeholder="I went to school." {...field} /></FormControl></FormItem>
+                                        )} />
+                                     </div>
+
+                                     <div className="space-y-2 p-4 border rounded-md">
+                                        <h4 className='font-semibold'>Past Participle Form</h4>
+                                        <FormField control={singleWordForm.control} name="past_participle_word" render={({ field }) => (
+                                            <FormItem><FormLabel>Word</FormLabel><FormControl><Input placeholder="e.g., gone" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_participle_pronunciation" render={({ field }) => (
+                                            <FormItem><FormLabel>Pronunciation</FormLabel><FormControl><Input placeholder="/ɡɒn/" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_participle_bangla_meaning" render={({ field }) => (
+                                            <FormItem><FormLabel>Bengali Meaning</FormLabel><FormControl><Input placeholder="গিয়েছে" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_participle_usage_context" render={({ field }) => (
+                                            <FormItem><FormLabel>Usage Context</FormLabel><FormControl><Textarea placeholder="Present/Past/Future Perfect Tense-এ ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
+                                        )} />
+                                        <FormField control={singleWordForm.control} name="past_participle_example" render={({ field }) => (
+                                            <FormItem><FormLabel>Example</FormLabel><FormControl><Input placeholder="I have gone to school." {...field} /></FormControl></FormItem>
+                                        )} />
+                                     </div>
                                 </AccordionContent>
                             </AccordionItem>
                         </Accordion>

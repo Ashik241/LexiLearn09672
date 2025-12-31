@@ -70,19 +70,21 @@ export function DashboardStats() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
       {statItems.map((item) => (
-        <Link href={item.link || '#'} key={item.title} passHref legacyBehavior>
-          <a className="flex">
-            <Card className="h-full w-full flex flex-col hover:bg-card-foreground/5 transition-colors">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                <item.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <div className={`text-2xl font-bold ${item.className || ''}`}>{item.value}</div>
-                <p className="text-xs text-muted-foreground">{item.description}</p>
-              </CardContent>
-            </Card>
-          </a>
+        <Link
+          href={item.link || '#'}
+          key={item.title}
+          className="flex"
+        >
+          <Card className="h-full w-full flex flex-col hover:bg-card-foreground/5 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+              <item.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <div className={`text-2xl font-bold ${item.className || ''}`}>{item.value}</div>
+              <p className="text-xs text-muted-foreground">{item.description}</p>
+            </CardContent>
+          </Card>
         </Link>
       ))}
     </div>

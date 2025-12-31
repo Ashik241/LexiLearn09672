@@ -21,17 +21,17 @@ export interface VerbFormDetail {
     word: string;
     pronunciation: string;
     bangla_meaning: string;
-    usage_context: string;
+    usage_timing: string; // Changed from usage_context
 }
 
 export interface VerbForms {
-  present: VerbFormDetail;
-  past: VerbFormDetail;
-  past_participle: VerbFormDetail;
+  v1_present: VerbFormDetail;
+  v2_past: VerbFormDetail;
+  v3_past_participle: VerbFormDetail;
   form_examples: {
-    present: string;
-    past: string;
-    past_participle: string;
+    v1: string;
+    v2: string;
+    v3: string;
   };
 }
 

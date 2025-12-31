@@ -28,7 +28,7 @@ const VerbFormRow = ({ formName, form, onSpeak }: { formName: string; form: Verb
              <p className="text-sm text-muted-foreground">{form.pronunciation}</p>
         </TableCell>
         <TableCell>{form.bangla_meaning}</TableCell>
-        <TableCell className="text-sm text-muted-foreground">{form.usage_context}</TableCell>
+        <TableCell className="text-sm text-muted-foreground">{form.usage_timing}</TableCell>
     </TableRow>
 );
 
@@ -245,13 +245,13 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                                     <TableHead>Form</TableHead>
                                     <TableHead>Word & Pronunciation</TableHead>
                                     <TableHead>Bengali Meaning</TableHead>
-                                    <TableHead>Usage Context</TableHead>
+                                    <TableHead>Usage Timing</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <VerbFormRow formName="Present (V1)" form={word.verb_forms.present} onSpeak={speak} />
-                                <VerbFormRow formName="Past (V2)" form={word.verb_forms.past} onSpeak={speak} />
-                                <VerbFormRow formName="Past Participle (V3)" form={word.verb_forms.past_participle} onSpeak={speak} />
+                                <VerbFormRow formName="Present (V1)" form={word.verb_forms.v1_present} onSpeak={speak} />
+                                <VerbFormRow formName="Past (V2)" form={word.verb_forms.v2_past} onSpeak={speak} />
+                                <VerbFormRow formName="Past Participle (V3)" form={word.verb_forms.v3_past_participle} onSpeak={speak} />
                             </TableBody>
                         </Table>
                     </div>
@@ -259,9 +259,9 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                     <div className="mt-6 space-y-4">
                         <h4 className="text-lg font-semibold">Form Examples</h4>
                         <div className="text-muted-foreground">
-                            <p><strong className='text-foreground'>Present:</strong> "{word.verb_forms.form_examples.present}"</p>
-                            <p><strong className='text-foreground'>Past:</strong> "{word.verb_forms.form_examples.past}"</p>
-                            <p><strong className='text-foreground'>Past Participle:</strong> "{word.verb_forms.form_examples.past_participle}"</p>
+                            <p><strong className='text-foreground'>V1:</strong> "{word.verb_forms.form_examples.v1}"</p>
+                            <p><strong className='text-foreground'>V2:</strong> "{word.verb_forms.form_examples.v2}"</p>
+                            <p><strong className='text-foreground'>V3:</strong> "{word.verb_forms.form_examples.v3}"</p>
                         </div>
                     </div>
                 </div>

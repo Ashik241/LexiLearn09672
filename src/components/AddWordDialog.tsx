@@ -42,24 +42,23 @@ const formSchema = z.object({
   
   is_verb: z.boolean().default(false),
   
-  // Verb forms
-  present_word: z.string().optional(),
-  present_pronunciation: z.string().optional(),
-  present_bangla_meaning: z.string().optional(),
-  present_usage_context: z.string().optional(),
-  present_example: z.string().optional(),
+  v1_word: z.string().optional(),
+  v1_pronunciation: z.string().optional(),
+  v1_bangla_meaning: z.string().optional(),
+  v1_usage_timing: z.string().optional(),
+  v1_example: z.string().optional(),
 
-  past_word: z.string().optional(),
-  past_pronunciation: z.string().optional(),
-  past_bangla_meaning: z.string().optional(),
-  past_usage_context: z.string().optional(),
-  past_example: z.string().optional(),
+  v2_word: z.string().optional(),
+  v2_pronunciation: z.string().optional(),
+  v2_bangla_meaning: z.string().optional(),
+  v2_usage_timing: z.string().optional(),
+  v2_example: z.string().optional(),
 
-  past_participle_word: z.string().optional(),
-  past_participle_pronunciation: z.string().optional(),
-  past_participle_bangla_meaning: z.string().optional(),
-  past_participle_usage_context: z.string().optional(),
-  past_participle_example: z.string().optional(),
+  v3_word: z.string().optional(),
+  v3_pronunciation: z.string().optional(),
+  v3_bangla_meaning: z.string().optional(),
+  v3_usage_timing: z.string().optional(),
+  v3_example: z.string().optional(),
 });
 
 type AddWordFormValues = z.infer<typeof formSchema>;
@@ -160,23 +159,23 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
         antonyms: stringifySynAnt(wordToEdit.antonyms),
         is_verb: !!wordToEdit.verb_forms || wordToEdit.parts_of_speech.toLowerCase().includes('verb'),
         
-        present_word: wordToEdit.verb_forms?.present.word,
-        present_pronunciation: wordToEdit.verb_forms?.present.pronunciation,
-        present_bangla_meaning: wordToEdit.verb_forms?.present.bangla_meaning,
-        present_usage_context: wordToEdit.verb_forms?.present.usage_context,
-        present_example: wordToEdit.verb_forms?.form_examples.present,
+        v1_word: wordToEdit.verb_forms?.v1_present.word,
+        v1_pronunciation: wordToEdit.verb_forms?.v1_present.pronunciation,
+        v1_bangla_meaning: wordToEdit.verb_forms?.v1_present.bangla_meaning,
+        v1_usage_timing: wordToEdit.verb_forms?.v1_present.usage_timing,
+        v1_example: wordToEdit.verb_forms?.form_examples.v1,
 
-        past_word: wordToEdit.verb_forms?.past.word,
-        past_pronunciation: wordToEdit.verb_forms?.past.pronunciation,
-        past_bangla_meaning: wordToEdit.verb_forms?.past.bangla_meaning,
-        past_usage_context: wordToEdit.verb_forms?.past.usage_context,
-        past_example: wordToEdit.verb_forms?.form_examples.past,
+        v2_word: wordToEdit.verb_forms?.v2_past.word,
+        v2_pronunciation: wordToEdit.verb_forms?.v2_past.pronunciation,
+        v2_bangla_meaning: wordToEdit.verb_forms?.v2_past.bangla_meaning,
+        v2_usage_timing: wordToEdit.verb_forms?.v2_past.usage_timing,
+        v2_example: wordToEdit.verb_forms?.form_examples.v2,
         
-        past_participle_word: wordToEdit.verb_forms?.past_participle.word,
-        past_participle_pronunciation: wordToEdit.verb_forms?.past_participle.pronunciation,
-        past_participle_bangla_meaning: wordToEdit.verb_forms?.past_participle.bangla_meaning,
-        past_participle_usage_context: wordToEdit.verb_forms?.past_participle.usage_context,
-        past_participle_example: wordToEdit.verb_forms?.form_examples.past_participle,
+        v3_word: wordToEdit.verb_forms?.v3_past_participle.word,
+        v3_pronunciation: wordToEdit.verb_forms?.v3_past_participle.pronunciation,
+        v3_bangla_meaning: wordToEdit.verb_forms?.v3_past_participle.bangla_meaning,
+        v3_usage_timing: wordToEdit.verb_forms?.v3_past_participle.usage_timing,
+        v3_example: wordToEdit.verb_forms?.form_examples.v3,
       });
     } else {
         singleWordForm.reset();
@@ -199,30 +198,30 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
       let verb_forms: VerbForms | undefined = undefined;
       const isVerbDetected = values.is_verb || values.parts_of_speech.toLowerCase().includes('verb');
       
-      if (isVerbDetected && values.present_word && values.past_word && values.past_participle_word) {
+      if (isVerbDetected && values.v1_word && values.v2_word && values.v3_word) {
         verb_forms = {
-          present: {
-            word: values.present_word,
-            pronunciation: values.present_pronunciation || '',
-            bangla_meaning: values.present_bangla_meaning || '',
-            usage_context: values.present_usage_context || '',
+          v1_present: {
+            word: values.v1_word,
+            pronunciation: values.v1_pronunciation || '',
+            bangla_meaning: values.v1_bangla_meaning || '',
+            usage_timing: values.v1_usage_timing || '',
           },
-          past: {
-            word: values.past_word,
-            pronunciation: values.past_pronunciation || '',
-            bangla_meaning: values.past_bangla_meaning || '',
-            usage_context: values.past_usage_context || '',
+          v2_past: {
+            word: values.v2_word,
+            pronunciation: values.v2_pronunciation || '',
+            bangla_meaning: values.v2_bangla_meaning || '',
+            usage_timing: values.v2_usage_timing || '',
           },
-          past_participle: {
-            word: values.past_participle_word,
-            pronunciation: values.past_participle_pronunciation || '',
-            bangla_meaning: values.past_participle_bangla_meaning || '',
-            usage_context: values.past_participle_usage_context || '',
+          v3_past_participle: {
+            word: values.v3_word,
+            pronunciation: values.v3_pronunciation || '',
+            bangla_meaning: values.v3_bangla_meaning || '',
+            usage_timing: values.v3_usage_timing || '',
           },
           form_examples: {
-            present: values.present_example || '',
-            past: values.past_example || '',
-            past_participle: values.past_participle_example || '',
+            v1: values.v1_example || '',
+            v2: values.v2_example || '',
+            v3: values.v3_example || '',
           },
         };
       }
@@ -285,13 +284,12 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
       if (!Array.isArray(parsedJson)) {
         throw new Error("JSON must be an array.");
       }
-
+      
       const wordsToImport = parsedJson.map((word: any) => ({
-          ...word,
-          synonyms: parseSynAntStringArray(word.synonyms),
-          antonyms: parseSynAntStringArray(word.antonyms),
-      }));
-
+        ...word,
+        synonyms: parseSynAntStringArray(word.synonyms),
+        antonyms: parseSynAntStringArray(word.antonyms),
+    }));
 
       const { addedCount, skippedCount } = addMultipleWords(wordsToImport);
 
@@ -488,58 +486,58 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                                 <AccordionTrigger>Verb Forms (ঐচ্ছিক)</AccordionTrigger>
                                 <AccordionContent className="space-y-6 pt-4">
                                      <div className="space-y-2 p-4 border rounded-md">
-                                        <h4 className='font-semibold'>Present Form</h4>
-                                        <FormField control={singleWordForm.control} name="present_word" render={({ field }) => (
+                                        <h4 className='font-semibold'>Present Form (V1)</h4>
+                                        <FormField control={singleWordForm.control} name="v1_word" render={({ field }) => (
                                             <FormItem><FormLabel>Word</FormLabel><FormControl><Input placeholder="e.g., go" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="present_pronunciation" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v1_pronunciation" render={({ field }) => (
                                             <FormItem><FormLabel>Pronunciation</FormLabel><FormControl><Input placeholder="/ɡəʊ/" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="present_bangla_meaning" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v1_bangla_meaning" render={({ field }) => (
                                             <FormItem><FormLabel>Bengali Meaning</FormLabel><FormControl><Input placeholder="যাওয়া" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="present_usage_context" render={({ field }) => (
-                                            <FormItem><FormLabel>Usage Context</FormLabel><FormControl><Textarea placeholder="সাধারণ বর্তমান কালে ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
+                                        <FormField control={singleWordForm.control} name="v1_usage_timing" render={({ field }) => (
+                                            <FormItem><FormLabel>Usage Timing</FormLabel><FormControl><Textarea placeholder="সাধারণ বর্তমান কালে ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
                                         )} />
-                                         <FormField control={singleWordForm.control} name="present_example" render={({ field }) => (
+                                         <FormField control={singleWordForm.control} name="v1_example" render={({ field }) => (
                                             <FormItem><FormLabel>Example</FormLabel><FormControl><Input placeholder="I go to school." {...field} /></FormControl></FormItem>
                                         )} />
                                      </div>
                                      
                                      <div className="space-y-2 p-4 border rounded-md">
-                                        <h4 className='font-semibold'>Past Form</h4>
-                                        <FormField control={singleWordForm.control} name="past_word" render={({ field }) => (
+                                        <h4 className='font-semibold'>Past Form (V2)</h4>
+                                        <FormField control={singleWordForm.control} name="v2_word" render={({ field }) => (
                                             <FormItem><FormLabel>Word</FormLabel><FormControl><Input placeholder="e.g., went" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_pronunciation" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v2_pronunciation" render={({ field }) => (
                                             <FormItem><FormLabel>Pronunciation</FormLabel><FormControl><Input placeholder="/wɛnt/" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_bangla_meaning" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v2_bangla_meaning" render={({ field }) => (
                                             <FormItem><FormLabel>Bengali Meaning</FormLabel><FormControl><Input placeholder="গিয়েছিল" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_usage_context" render={({ field }) => (
-                                            <FormItem><FormLabel>Usage Context</FormLabel><FormControl><Textarea placeholder="অতীতের কোনো কাজ বোঝাতে ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
+                                        <FormField control={singleWordForm.control} name="v2_usage_timing" render={({ field }) => (
+                                            <FormItem><FormLabel>Usage Timing</FormLabel><FormControl><Textarea placeholder="অতীতের কোনো কাজ বোঝাতে ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_example" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v2_example" render={({ field }) => (
                                             <FormItem><FormLabel>Example</FormLabel><FormControl><Input placeholder="I went to school." {...field} /></FormControl></FormItem>
                                         )} />
                                      </div>
 
                                      <div className="space-y-2 p-4 border rounded-md">
-                                        <h4 className='font-semibold'>Past Participle Form</h4>
-                                        <FormField control={singleWordForm.control} name="past_participle_word" render={({ field }) => (
+                                        <h4 className='font-semibold'>Past Participle Form (V3)</h4>
+                                        <FormField control={singleWordForm.control} name="v3_word" render={({ field }) => (
                                             <FormItem><FormLabel>Word</FormLabel><FormControl><Input placeholder="e.g., gone" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_participle_pronunciation" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v3_pronunciation" render={({ field }) => (
                                             <FormItem><FormLabel>Pronunciation</FormLabel><FormControl><Input placeholder="/ɡɒn/" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_participle_bangla_meaning" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v3_bangla_meaning" render={({ field }) => (
                                             <FormItem><FormLabel>Bengali Meaning</FormLabel><FormControl><Input placeholder="গিয়েছে" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_participle_usage_context" render={({ field }) => (
-                                            <FormItem><FormLabel>Usage Context</FormLabel><FormControl><Textarea placeholder="Present/Past/Future Perfect Tense-এ ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
+                                        <FormField control={singleWordForm.control} name="v3_usage_timing" render={({ field }) => (
+                                            <FormItem><FormLabel>Usage Timing</FormLabel><FormControl><Textarea placeholder="Present/Past/Future Perfect Tense-এ ব্যবহৃত হয়।" {...field} /></FormControl></FormItem>
                                         )} />
-                                        <FormField control={singleWordForm.control} name="past_participle_example" render={({ field }) => (
+                                        <FormField control={singleWordForm.control} name="v3_example" render={({ field }) => (
                                             <FormItem><FormLabel>Example</FormLabel><FormControl><Input placeholder="I have gone to school." {...field} /></FormControl></FormItem>
                                         )} />
                                      </div>

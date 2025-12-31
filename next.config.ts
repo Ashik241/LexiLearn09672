@@ -1,6 +1,8 @@
 import type {NextConfig} from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
+const REPO_NAME = 'lexilearn'; // <-- অনুগ্রহ করে এখানে আপনার রিপোজিটরির নাম দিন
+
 const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
@@ -79,7 +81,9 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'export',
+  basePath: `/${REPO_NAME}`,
+  assetPrefix: `/${REPO_NAME}/`,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -87,6 +91,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

@@ -1,11 +1,14 @@
 import withPWAInit from '@ducanh2912/next-pwa';
 
-const REPO_NAME = 'LexiLearn09672';
 const isProd = process.env.NODE_ENV === 'production';
+const REPO_NAME = 'LexiLearn09672';
 
 const withPWA = withPWAInit({
   dest: 'public',
   disable: !isProd,
+  fallbacks: {
+    document: '/_offline',
+  },
 });
 
 /** @type {import('next').NextConfig} */

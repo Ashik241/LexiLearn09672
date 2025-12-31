@@ -279,17 +279,33 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
   const onBulkSubmit = async (values: BulkImportFormValues) => {
     setIsLoading(true);
     try {
-      const parsedJson = JSON.parse(values.json);
-      
+      // Clean up the JSON string
+      let jsonString = values.json.trim();
+      // Remove trailing commas from arrays and objects
+      jsonString = jsonString.replace(/,\s*([\]}])/g, '$1');
+
+      let parsedJson = JSON.parse(jsonString);
+
+      // Handle case where user pastes an object with a "word" key and the rest of the data
+      if (!Array.isArray(parsedJson) && parsedJson.word && parsedJson.meaning) {
+          parsedJson = [parsedJson];
+      }
+
       if (!Array.isArray(parsedJson)) {
         throw new Error("JSON must be an array.");
       }
       
-      const wordsToImport = parsedJson.map((word: any) => ({
+      const wordsToImport = parsedJson.map((item: any) => {
+        // If the `word` property is outside the main object, merge it in.
+        if (typeof item === 'object' && item !== null && item.word && typeof item.data === 'object') {
+          return { ...item.data, word: item.word };
+        }
+        return item;
+      }).map((word: any) => ({
         ...word,
         synonyms: parseSynAntStringArray(word.synonyms),
         antonyms: parseSynAntStringArray(word.antonyms),
-    }));
+      }));
 
       const { addedCount, skippedCount } = addMultipleWords(wordsToImport);
 

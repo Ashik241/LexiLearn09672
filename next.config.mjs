@@ -1,96 +1,66 @@
-import withPWAInit from 'next-pwa';
+import {
+  cacheFirst,
+  staleWhileRevalidate
+} from 'workbox-recipes';
+import {
+  precacheAndRoute
+} from 'workbox-precaching';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
   output: 'standalone',
+  reactStrictMode: true,
 };
 
-const withPWA = withPWAInit({
+// PWA configuration
+const withPWA = require('next-pwa')({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
   register: true,
-  skipWaiting: false, // Important for prompt to update
-  runtimeCaching: [
-    {
-      urlPattern: /^https?:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'google-fonts',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
-        },
-      },
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  buildExcludes: [/app-build-manifest.json$/],
+  cacheStartUrl: true,
+  runtimeCaching: [{
+      urlPattern: ({
+        request,
+        url
+      }) =>
+      request.destination === "document" ||
+      request.destination === "script" ||
+      request.destination === "style",
+      handler: staleWhileRevalidate({
+        cacheName: "pages-cache",
+        plugins: [{
+          // This plugin will cache responses with a 200 status code.
+          cacheableResponse: {
+            statuses: [200],
+          },
+        }, ],
+      }),
     },
     {
-      urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-font-assets',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
-        },
-      },
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+      handler: cacheFirst({
+        cacheName: 'image-cache',
+        plugins: [{
+          // This plugin will cache responses with a 200 status code.
+          cacheableResponse: {
+            statuses: [200],
+          },
+        }, ],
+      }),
     },
     {
-      urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-image-assets',
-        expiration: {
-          maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /\.(?:js)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-js-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /\.(?:css|less)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-style-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /\.(?:json|xml|csv)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-data-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /.*/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'others',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-        networkTimeoutSeconds: 10,
-      },
-    },
+      urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/,
+      handler: staleWhileRevalidate({
+        cacheName: 'google-fonts-cache',
+      }),
+    }
   ],
+  fallbacks: {
+    document: '/_offline',
+  }
 });
+
 
 export default withPWA(nextConfig);

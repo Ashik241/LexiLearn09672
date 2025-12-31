@@ -6,6 +6,14 @@ import { useParams } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { useEffect, useState } from 'react';
 
+// This function is required for static export with dynamic routes.
+// It tells Next.js what pages to pre-render at build time.
+// Since our data is purely client-side, we return an empty array
+// and handle rendering on the client.
+export async function generateStaticParams() {
+  return [];
+}
+
 export default function WordDetailsPage() {
   const params = useParams();
   const { getWordById, isInitialized } = useVocabulary();

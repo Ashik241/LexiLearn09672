@@ -45,7 +45,7 @@ Your tasks:
 1.  Check for grammatical errors.
 2.  Verify that the word '{{word}}' is used in a contextually and semantically correct way.
 3.  Set 'is_correct' to true if the sentence is perfect, otherwise set it to false.
-4s.  Provide clear, constructive feedback. If the sentence is correct, praise the user. If it's incorrect, explain the mistake (grammatical or contextual) and suggest how to fix it.
+4.  Provide clear, constructive feedback. If the sentence is correct, praise the user. If it's incorrect, explain the mistake (grammatical or contextual) and suggest how to fix it.
 5.  If the sentence is incorrect, provide a corrected version in 'corrected_sentence'.
 `,
 });

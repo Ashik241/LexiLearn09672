@@ -1,7 +1,7 @@
 import type {NextConfig} from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
-const REPO_NAME = 'lexilearn'; // <-- অনুগ্রহ করে এখানে আপনার রিপোজিটরির নাম দিন
+const REPO_NAME = 'lexilearn'; // <-- This is used for GitHub Pages deployment
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -81,9 +81,9 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  output: 'export',
-  basePath: `/${REPO_NAME}`,
-  assetPrefix: `/${REPO_NAME}/`,
+  // output: 'export', // Removed for now to fix 404 in dev mode
+  // basePath: `/${REPO_NAME}`, // Removed for now to fix 404 in dev mode
+  // assetPrefix: `/${REPO_NAME}/`, // Removed for now to fix 404 in dev mode
   typescript: {
     ignoreBuildErrors: true,
   },

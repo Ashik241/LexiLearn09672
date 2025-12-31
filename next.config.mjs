@@ -1,19 +1,19 @@
 /** @type {import('next').NextConfig} */
+import pwa from 'next-pwa';
 
-const withPWA = require('next-pwa')({
+const withPWA = pwa({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
   runtimeCaching: [
     {
-      urlPattern: /^https\:\/\/fonts\.googleapis\.com\/.*/i,
+      urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
       handler: 'CacheFirst',
       options: {
         cacheName: 'google-fonts-cache',
         expiration: {
           maxEntries: 10,
-          maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
         },
       },
     },
@@ -24,17 +24,16 @@ const withPWA = require('next-pwa')({
         cacheName: 'gstatic-fonts-cache',
         expiration: {
           maxEntries: 10,
-          maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
         },
       },
     },
   ],
 });
 
-
 const nextConfig = {
   output: 'standalone',
-  reactStrictMode: true,
+  // Your other Next.js config options here
 };
 
-module.exports = withPWA(nextConfig);
+export default withPWA(nextConfig);

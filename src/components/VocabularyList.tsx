@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { Word, WordDifficulty } from '@/types';
 import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search, MoreHorizontal, Pencil, ShieldAlert } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AddWordDialog } from './AddWordDialog';
 
 
 const difficultyVariant: Record<WordDifficulty, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -54,6 +55,9 @@ export function VocabularyList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [posFilter, setPosFilter] = useState('all');
     const [wordToDelete, setWordToDelete] = useState<Word | null>(null);
+    const [wordToEdit, setWordToEdit] = useState<Word | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
 
     const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
     const dateFilter = searchParams.get('date');
@@ -89,9 +93,9 @@ export function VocabularyList() {
                 (word.synonyms && word.synonyms.some(s => s && s.word && s.word.toLowerCase().includes(lowercasedQuery))) ||
                 (word.antonyms && word.antonyms.some(a => a && a.word && a.word.toLowerCase().includes(lowercasedQuery))) ||
                 (word.verb_forms && (
-                    word.verb_forms.present.toLowerCase().includes(lowercasedQuery) ||
-                    word.verb_forms.past.toLowerCase().includes(lowercasedQuery) ||
-                    word.verb_forms.past_participle.toLowerCase().includes(lowercasedQuery)
+                    (word.verb_forms.present.word && word.verb_forms.present.word.toLowerCase().includes(lowercasedQuery)) ||
+                    (word.verb_forms.past.word && word.verb_forms.past.word.toLowerCase().includes(lowercasedQuery)) ||
+                    (word.verb_forms.past_participle.word && word.verb_forms.past_participle.word.toLowerCase().includes(lowercasedQuery))
                 ))
             );
         }
@@ -161,13 +165,17 @@ export function VocabularyList() {
         }
     };
     
-    const handleEditClick = (e: MouseEvent<HTMLDivElement>, wordId: string) => {
+    const handleEditClick = (e: MouseEvent<HTMLDivElement>, word: Word) => {
         e.stopPropagation();
-        // Implement edit functionality here, e.g., router.push(`/vocabulary/edit/${wordId}`)
-        toast({
-            title: "Coming Soon!",
-            description: "Edit functionality is not yet implemented.",
-        });
+        setWordToEdit(word);
+        setIsEditDialogOpen(true);
+    }
+
+    const handleEditDialogChange = (open: boolean) => {
+        setIsEditDialogOpen(open);
+        if (!open) {
+            setWordToEdit(null);
+        }
     }
 
     return (
@@ -250,7 +258,7 @@ export function VocabularyList() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                                        <DropdownMenuItem onClick={(e) => handleEditClick(e, word.id)}>
+                                                        <DropdownMenuItem onClick={(e) => handleEditClick(e, word)}>
                                                             <Pencil className="mr-2 h-4 w-4" />
                                                             <span>Edit</span>
                                                         </DropdownMenuItem>
@@ -285,6 +293,11 @@ export function VocabularyList() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            <AddWordDialog
+                isOpen={isEditDialogOpen}
+                onOpenChange={handleEditDialogChange}
+                wordToEdit={wordToEdit}
+            />
         </>
     );
 }

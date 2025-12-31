@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -73,11 +73,13 @@ type BulkImportFormValues = z.infer<typeof bulkImportSchema>;
 interface AddWordDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  wordToEdit?: Word | null;
 }
 
 const parseSynAnt = (value?: string): SynonymAntonym[] => {
     if (!value?.trim()) return [];
     try {
+        // Try parsing as JSON array of objects
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed) && parsed.every(item => typeof item === 'object' && item !== null && 'word' in item)) {
             return parsed.map(item => ({
@@ -86,11 +88,21 @@ const parseSynAnt = (value?: string): SynonymAntonym[] => {
             }));
         }
     } catch (e) {
-        // Not a valid JSON array of objects, treat as comma-separated
+        // Not a valid JSON array of objects, fall through to treat as comma-separated
     }
     
+    // Treat as comma-separated strings
     return value.split(',').map(s => s.trim()).filter(s => s).map(s => ({ word: s, meaning: '' }));
 };
+
+const stringifySynAnt = (items?: SynonymAntonym[]): string => {
+    if (!items || items.length === 0) return '';
+    // If items have meanings, stringify as JSON, otherwise as comma-separated string
+    if (items.some(item => item.meaning)) {
+        return JSON.stringify(items);
+    }
+    return items.map(item => item.word).join(', ');
+}
 
 const parseSynAntStringArray = (arr: any): SynonymAntonym[] => {
     if (!Array.isArray(arr)) return [];
@@ -111,11 +123,13 @@ const parseSynAntStringArray = (arr: any): SynonymAntonym[] => {
 };
 
 
-export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
-  const { addWord, addMultipleWords } = useVocabulary();
+export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialogProps) {
+  const { addWord, addMultipleWords, updateWord } = useVocabulary();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("single");
+
+  const isEditMode = !!wordToEdit;
 
   const singleWordForm = useForm<AddWordFormValues>({
     resolver: zodResolver(formSchema),
@@ -131,6 +145,43 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
       is_verb: false,
     },
   });
+
+  useEffect(() => {
+    if (isEditMode && wordToEdit) {
+      singleWordForm.reset({
+        word: wordToEdit.word,
+        meaning: wordToEdit.meaning,
+        meaning_explanation: wordToEdit.meaning_explanation,
+        parts_of_speech: wordToEdit.parts_of_speech,
+        usage_distinction: wordToEdit.usage_distinction,
+        syllables: wordToEdit.syllables?.join(', '),
+        example_sentences: wordToEdit.example_sentences?.join('\n'),
+        synonyms: stringifySynAnt(wordToEdit.synonyms),
+        antonyms: stringifySynAnt(wordToEdit.antonyms),
+        is_verb: !!wordToEdit.verb_forms || wordToEdit.parts_of_speech.toLowerCase().includes('verb'),
+        
+        present_word: wordToEdit.verb_forms?.present.word,
+        present_pronunciation: wordToEdit.verb_forms?.present.pronunciation,
+        present_bangla_meaning: wordToEdit.verb_forms?.present.bangla_meaning,
+        present_usage_context: wordToEdit.verb_forms?.present.usage_context,
+        present_example: wordToEdit.verb_forms?.form_examples.present,
+
+        past_word: wordToEdit.verb_forms?.past.word,
+        past_pronunciation: wordToEdit.verb_forms?.past.pronunciation,
+        past_bangla_meaning: wordToEdit.verb_forms?.past.bangla_meaning,
+        past_usage_context: wordToEdit.verb_forms?.past.usage_context,
+        past_example: wordToEdit.verb_forms?.form_examples.past,
+        
+        past_participle_word: wordToEdit.verb_forms?.past_participle.word,
+        past_participle_pronunciation: wordToEdit.verb_forms?.past_participle.pronunciation,
+        past_participle_bangla_meaning: wordToEdit.verb_forms?.past_participle.bangla_meaning,
+        past_participle_usage_context: wordToEdit.verb_forms?.past_participle.usage_context,
+        past_participle_example: wordToEdit.verb_forms?.form_examples.past_participle,
+      });
+    } else {
+        singleWordForm.reset();
+    }
+  }, [isOpen, isEditMode, wordToEdit, singleWordForm]);
 
   const bulkImportForm = useForm<BulkImportFormValues>({
     resolver: zodResolver(bulkImportSchema),
@@ -176,7 +227,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         };
       }
 
-      const success = addWord({
+      const wordPayload = {
         word: values.word,
         meaning: values.meaning,
         meaning_explanation: values.meaning_explanation,
@@ -187,28 +238,39 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
         synonyms: parseSynAnt(values.synonyms),
         antonyms: parseSynAnt(values.antonyms),
         verb_forms: verb_forms,
-      });
+      };
 
-      if (success) {
+      if (isEditMode && wordToEdit) {
+        updateWord(wordToEdit.id, wordPayload);
         toast({
-          title: 'শব্দ যোগ করা হয়েছে',
-          description: `"${values.word}" আপনার শব্দভান্ডারে যোগ করা হয়েছে।`,
+          title: 'শব্দ আপডেট হয়েছে',
+          description: `"${values.word}" শব্দটি আপডেট করা হয়েছে।`,
         });
-        singleWordForm.reset();
-        onOpenChange(false);
       } else {
-        toast({
-            variant: 'destructive',
-            title: 'ত্রুটি',
-            description: `"${values.word}" শব্দটি ইতিমধ্যে বিদ্যমান।`,
-        });
+        const success = addWord(wordPayload);
+        if (success) {
+          toast({
+            title: 'শব্দ যোগ করা হয়েছে',
+            description: `"${values.word}" আপনার শব্দভান্ডারে যোগ করা হয়েছে।`,
+          });
+        } else {
+          toast({
+              variant: 'destructive',
+              title: 'ত্রুটি',
+              description: `"${values.word}" শব্দটি ইতিমধ্যে বিদ্যমান।`,
+          });
+        }
       }
+
+      singleWordForm.reset();
+      onOpenChange(false);
+
     } catch (error) {
       console.error(error);
       toast({
         variant: 'destructive',
         title: 'ত্রুটি',
-        description: 'শব্দটি যোগ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
+        description: isEditMode ? 'শব্দটি আপডেট করা যায়নি।' : 'শব্দটি যোগ করা যায়নি।',
       });
     } finally {
       setIsLoading(false);
@@ -258,27 +320,33 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
     if (!open) {
       singleWordForm.reset();
       bulkImportForm.reset();
-      setActiveTab("single");
+      if (!isEditMode) {
+        setActiveTab("single");
+      }
     }
     onOpenChange(open);
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md md:max-w-xl">
         <DialogHeader>
-          <DialogTitle>নতুন শব্দ যোগ করুন</DialogTitle>
-          <DialogDescription>
-            একটি নতুন শব্দ যোগ করুন অথবা JSON ব্যবহার করে একসাথে অনেক শব্দ ইম্পোর্ট করুন।
-          </DialogDescription>
+          <DialogTitle>{isEditMode ? 'শব্দ সম্পাদনা করুন' : 'নতুন শব্দ যোগ করুন'}</DialogTitle>
+           {!isEditMode && (
+            <DialogDescription>
+                একটি নতুন শব্দ যোগ করুন অথবা JSON ব্যবহার করে একসাথে অনেক শব্দ ইম্পোর্ট করুন।
+            </DialogDescription>
+           )}
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="single">একটি শব্দ যোগ করুন</TabsTrigger>
-                <TabsTrigger value="bulk">JSON থেকে ইম্পোর্ট</TabsTrigger>
-            </TabsList>
-            <TabsContent value="single">
+            {!isEditMode && (
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="single">একটি শব্দ যোগ করুন</TabsTrigger>
+                    <TabsTrigger value="bulk">JSON থেকে ইম্পোর্ট</TabsTrigger>
+                </TabsList>
+            )}
+            <TabsContent value="single" forceMount={isEditMode}>
                 <Form {...singleWordForm}>
                 <form onSubmit={singleWordForm.handleSubmit(onSingleSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pt-4">
                     <FormField
@@ -288,7 +356,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                         <FormItem>
                         <FormLabel>শব্দ</FormLabel>
                         <FormControl>
-                            <Input placeholder="e.g., serendipity" {...field} />
+                            <Input placeholder="e.g., serendipity" {...field} disabled={isEditMode} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -415,7 +483,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
                     />
 
                     {(isVerb || pos.toLowerCase().includes('verb')) && (
-                        <Accordion type="single" collapsible className="w-full">
+                        <Accordion type="single" collapsible className="w-full" defaultValue='verb-forms'>
                             <AccordionItem value="verb-forms">
                                 <AccordionTrigger>Verb Forms (ঐচ্ছিক)</AccordionTrigger>
                                 <AccordionContent className="space-y-6 pt-4">
@@ -483,7 +551,7 @@ export function AddWordDialog({ isOpen, onOpenChange }: AddWordDialogProps) {
 
                     <DialogFooter>
                     <Button type="submit" disabled={isLoading}>
-                        {isLoading ? 'যোগ করা হচ্ছে...' : 'শব্দ যোগ করুন'}
+                        {isLoading ? (isEditMode ? 'আপডেট করা হচ্ছে...' : 'যোগ করা হচ্ছে...') : (isEditMode ? 'শব্দ আপডেট করুন' : 'শব্দ যোগ করুন')}
                     </Button>
                     </DialogFooter>
                 </form>

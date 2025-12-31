@@ -4,6 +4,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Word, WordDifficulty } from '@/types';
 
+type UpdatePayload = Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>;
+
 interface VocabularyState {
   words: Word[];
   stats: {
@@ -22,7 +24,7 @@ interface VocabularyState {
   init: () => void;
   addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>) => boolean;
   addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>[]) => { addedCount: number; skippedCount: number };
-  updateWord: (wordId: string, updates: Partial<Word>) => void;
+  updateWord: (wordId: string, updates: Partial<Word> | UpdatePayload) => void;
   deleteWord: (wordId: string) => void;
   deleteAllWords: () => void;
   getWordForSession: (difficulties: WordDifficulty[], filter?: ((word: Word) => boolean) | undefined) => Word | null;

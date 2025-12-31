@@ -2,10 +2,11 @@ import type {NextConfig} from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
 const REPO_NAME = 'LexiLearn09672';
+const isProd = process.env.NODE_ENV === 'production';
 
 const withPWA = withPWAInit({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+  disable: !isProd,
   fallbacks: {
     document: `/${REPO_NAME}/_offline`,
   },
@@ -85,8 +86,8 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   output: 'export',
   trailingSlash: true,
-  basePath: `/${REPO_NAME}`,
-  assetPrefix: `/${REPO_NAME}`,
+  basePath: isProd ? `/${REPO_NAME}` : '',
+  assetPrefix: isProd ? `/${REPO_NAME}/` : '',
   images: {
     unoptimized: true,
     remotePatterns: [

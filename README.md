@@ -8,12 +8,10 @@ Follow these steps to get your application live.
 
 ### Step 1: Update Configuration Files (I have already done this for you)
 
-1.  **`package.json`**:
-    *   The `homepage` field has been set to `https://Ashik241.github.io/LexiLearn09672`.
-
-2.  **`next.config.ts`**:
-    *   The configuration has been updated for static export (`output: 'export'`).
+1.  **`next.config.mjs`**:
+    *   The configuration has been updated for static export (`output: 'export'`), including `trailingSlash: true`.
     *   `basePath` and `assetPrefix` have been set to your repository name (`/LexiLearn09672`).
+    *   PWA settings have been integrated correctly.
 
 ### Step 2: Push Your Code to GitHub
 

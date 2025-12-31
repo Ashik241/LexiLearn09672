@@ -9,6 +9,7 @@ import { Input } from './ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Separator } from './ui/separator';
 
 type SpellingMode = 'listen' | 'meaning';
 
@@ -158,9 +159,28 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
                 </Button>
             </div>
           ) : (
-            <div className="p-4 rounded-lg bg-card-foreground/10 text-center">
-                <p className="text-sm text-muted-foreground">এই বাংলা অর্থের ইংরেজি শব্দটি লিখুন:</p>
-                <p className="text-xl font-semibold text-primary mt-1">"{word.meaning}"</p>
+            <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-card-foreground/10 text-center">
+                    <p className="text-sm text-muted-foreground">এই বাংলা অর্থের ইংরেজি শব্দটি লিখুন:</p>
+                    <p className="text-xl font-semibold text-primary mt-1">"{word.meaning}"</p>
+                </div>
+                {(word.meaning_explanation || word.usage_distinction) && (
+                     <div className="p-4 rounded-lg bg-card-foreground/5 text-sm text-muted-foreground text-left space-y-3">
+                        {word.meaning_explanation && (
+                            <div>
+                                <h4 className="font-semibold text-foreground mb-1">অর্থের ব্যাখ্যা</h4>
+                                <p className="italic">"{word.meaning_explanation}"</p>
+                            </div>
+                        )}
+                        {word.meaning_explanation && word.usage_distinction && <Separator/>}
+                        {word.usage_distinction && (
+                            <div>
+                                <h4 className="font-semibold text-foreground mb-1">ব্যবহারের পার্থক্য</h4>
+                                <p className="italic">"{word.usage_distinction}"</p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
           )}
 

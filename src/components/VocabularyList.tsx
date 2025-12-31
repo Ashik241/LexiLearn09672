@@ -152,7 +152,7 @@ export function VocabularyList() {
     }
 
     const handleRowClick = (wordId: string) => {
-        router.push(`/vocabulary/${wordId}`);
+        router.push(`/vocabulary?word=${encodeURIComponent(wordId)}`);
     };
 
     const confirmDelete = () => {
@@ -331,5 +331,3 @@ export function VocabularyList() {
         </>
     );
 }
-
-    

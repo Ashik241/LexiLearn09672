@@ -1,9 +1,24 @@
+'use client';
+
 import { Header } from '@/components/layout/Header';
 import { VocabularyList } from '@/components/VocabularyList';
+import { WordDetailsClient } from './WordDetailsClient';
 import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 function Loading() {
-    return <div>Loading vocabulary...</div>
+    return <div>Loading...</div>;
+}
+
+function VocabularyPageContent() {
+  const searchParams = useSearchParams();
+  const wordId = searchParams.get('word');
+
+  if (wordId) {
+    return <WordDetailsClient wordId={wordId} />;
+  }
+
+  return <VocabularyList />;
 }
 
 export default function VocabularyPage() {
@@ -12,7 +27,7 @@ export default function VocabularyPage() {
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-8">
         <Suspense fallback={<Loading />}>
-            <VocabularyList />
+          <VocabularyPageContent />
         </Suspense>
       </main>
     </div>

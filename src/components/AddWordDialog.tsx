@@ -360,7 +360,7 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                     <TabsTrigger value="bulk">JSON থেকে ইম্পোর্ট</TabsTrigger>
                 </TabsList>
             )}
-            <TabsContent value="single" {...(isEditMode && { forceMount: true })}>
+            <TabsContent value="single" {...(isEditMode ? { forceMount: true } : {})}>
                 <Form {...singleWordForm}>
                 <form onSubmit={singleWordForm.handleSubmit(onSingleSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pt-4">
                     <FormField

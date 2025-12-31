@@ -7,7 +7,7 @@ const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   fallbacks: {
-    document: '/_offline',
+    document: `/${REPO_NAME}/_offline`,
   },
   workboxOptions: {
     runtimeCaching: [
@@ -67,7 +67,7 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: /.*/i,
+        urlPattern: new RegExp(`^/${REPO_NAME}/.*`, 'i'),
         handler: 'CacheFirst',
         options: {
           cacheName: 'others',

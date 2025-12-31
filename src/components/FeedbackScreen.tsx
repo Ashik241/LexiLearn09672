@@ -2,9 +2,10 @@
 
 import { CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import type { Word } from '@/types';
+import type { Word, VerbFormDetail } from '@/types';
+import { Separator } from './ui/separator';
 
 interface FeedbackScreenProps {
   isCorrect: boolean;
@@ -14,7 +15,17 @@ interface FeedbackScreenProps {
   isLoading: boolean;
 }
 
+const VerbFormFeedback = ({ formName, form }: { formName: string; form: VerbFormDetail }) => (
+    <div className="flex justify-between items-center text-sm">
+        <span className="font-semibold text-foreground">{formName} ({form.word})</span>
+        <span className="text-muted-foreground">{form.bangla_meaning}</span>
+    </div>
+);
+
+
 export default function FeedbackScreen({ isCorrect, word, userAnswer, onNext, isLoading }: FeedbackScreenProps) {
+  const isVerb = word.parts_of_speech.toLowerCase().includes('verb') && word.verb_forms;
+    
   return (
     <Card
       className={cn(
@@ -44,6 +55,22 @@ export default function FeedbackScreen({ isCorrect, word, userAnswer, onNext, is
             <p className="text-xl font-code text-destructive-foreground line-through break-words">{userAnswer}</p>
           </div>
         )}
+
+        {isVerb && (
+             <Card>
+                <CardHeader>
+                    <CardTitle className='text-lg font-semibold'>Verb Forms (ক্রিয়ার রূপ)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-left">
+                    <VerbFormFeedback formName="Present (V1)" form={word.verb_forms!.v1_present} />
+                    <Separator />
+                    <VerbFormFeedback formName="Past (V2)" form={word.verb_forms!.v2_past} />
+                    <Separator />
+                    <VerbFormFeedback formName="Past Participle (V3)" form={word.verb_forms!.v3_past_participle} />
+                </CardContent>
+            </Card>
+        )}
+
          {word.example_sentences && word.example_sentences.length > 0 && (
           <div className="bg-card-foreground/5 p-4 rounded-lg text-left">
             <p className="text-sm text-muted-foreground mb-2">উদাহরণ:</p>

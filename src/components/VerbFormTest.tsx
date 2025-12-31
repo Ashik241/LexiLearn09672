@@ -43,8 +43,8 @@ export default function VerbFormTest({ word, onComplete }: VerbFormTestProps) {
 
   const onSubmit = (data: VerbFormValues) => {
     setIsSubmitted(true);
-    const correctV2 = word.verb_forms!.past.word.toLowerCase();
-    const correctV3 = word.verb_forms!.past_participle.word.toLowerCase();
+    const correctV2 = word.verb_forms!.v2_past.word.toLowerCase();
+    const correctV3 = word.verb_forms!.v3_past_participle.word.toLowerCase();
 
     const isCorrect = data.v2.trim().toLowerCase() === correctV2 && data.v3.trim().toLowerCase() === correctV3;
     const userAnswer = `V2: ${data.v2}, V3: ${data.v3}`;

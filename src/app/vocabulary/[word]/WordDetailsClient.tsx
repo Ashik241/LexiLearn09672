@@ -33,22 +33,19 @@ const VerbFormRow = ({ formName, form, onSpeak }: { formName: string; form: Verb
 );
 
 
-export function WordDetailsClient({ word: initialWord }: { word: Word | null }) {
+export function WordDetailsClient({ wordId }: { wordId: string }) {
   const { getWordById, isInitialized } = useVocabulary();
   const [rate, setRate] = useState([0.9]);
   const [volume, setVolume] = useState([1]);
   const [accent, setAccent] = useState<Accent>('US');
-  const [word, setWord] = useState<Word | null>(initialWord);
+  const [word, setWord] = useState<Word | null>(null);
 
   useEffect(() => {
-    // This effect ensures that if the data in the store updates, this component reflects it.
-    if (isInitialized && initialWord) {
-      const clientWord = getWordById(initialWord.id);
-      setWord(clientWord || initialWord); // Use the fresher word from store if available
-    } else {
-      setWord(initialWord);
+    if (isInitialized && wordId) {
+      const foundWord = getWordById(wordId);
+      setWord(foundWord || { id: wordId, word: wordId, meaning: '', parts_of_speech: '' } as Word);
     }
-  }, [isInitialized, initialWord, getWordById]);
+  }, [isInitialized, wordId, getWordById]);
 
 
   const speak = (text: string, selectedAccent: Accent = accent) => {
@@ -72,7 +69,7 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
     window.speechSynthesis.speak(utterance);
   };
 
-  if (!isInitialized) {
+  if (!isInitialized || !word) {
     return (
         <div className="flex flex-col min-h-screen bg-background">
           <Header />
@@ -90,8 +87,8 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
       );
   }
 
-  // A "real" word should have a meaning. The placeholder from the page won't.
-  if (!word || !word.meaning) {
+  // A "real" word has a meaning. The placeholder from the logic above won't.
+  if (!word.meaning) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />

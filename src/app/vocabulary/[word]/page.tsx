@@ -1,45 +1,19 @@
-'use client';
-
 import { WordDetailsClient } from './WordDetailsClient';
-import type { Word } from '@/types';
-import { useParams } from 'next/navigation';
-import { useVocabulary } from '@/hooks/use-vocabulary';
-import { useEffect, useState } from 'react';
 
 // This function is required for static export with dynamic routes.
 // It tells Next.js what pages to pre-render at build time.
 // Since our data is purely client-side, we return an empty array
-// and handle rendering on the client.
+// and handle rendering on the client via dynamic routes.
 export async function generateStaticParams() {
   return [];
 }
 
-export default function WordDetailsPage() {
-  const params = useParams();
-  const { getWordById, isInitialized } = useVocabulary();
-  const [wordData, setWordData] = useState<Word | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Setting dynamic to 'force-dynamic' is not strictly necessary with an empty
+// generateStaticParams, but it makes the intention clear that these pages are
+// rendered on demand on the client.
+export const dynamic = 'force-dynamic';
 
-  const wordId = typeof params.word === 'string' ? decodeURIComponent(params.word) : '';
-
-  useEffect(() => {
-    if (isInitialized && wordId) {
-      const foundWord = getWordById(wordId);
-      setWordData(foundWord || { id: wordId, word: wordId, meaning: '', parts_of_speech: '' } as Word);
-      setIsLoading(false);
-    }
-  }, [isInitialized, wordId, getWordById]);
-
-  // This check is important for the initial render before the client-side logic runs.
-  if (typeof window === 'undefined' || isLoading) {
-    return (
-      <div className="flex flex-col min-h-screen bg-background">
-          <div className="flex-grow container mx-auto p-4 md:p-8">
-            <p>Loading...</p>
-          </div>
-      </div>
-    );
-  }
-
-  return <WordDetailsClient word={wordData} />;
+export default function WordDetailsPage({ params }: { params: { word: string } }) {
+  const wordId = decodeURIComponent(params.word);
+  return <WordDetailsClient wordId={wordId} />;
 }

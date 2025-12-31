@@ -90,13 +90,13 @@ const useVocabularyStore = create<VocabularyState>()(
       },
       
       addMultipleWords: (wordsData) => {
-        const currentWords = get().words;
-        const existingWordIds = new Set(currentWords.map(w => w.id));
+        const state = get();
+        const existingWordIds = new Set(state.words.map(w => w.id));
         let addedCount = 0;
         let skippedCount = 0;
         const now = new Date().toISOString();
-
-        const newWords = wordsData.reduce((acc: Word[], wordData) => {
+      
+        const newWords = wordsData.reduce<Word[]>((acc, wordData) => {
           if (wordData && wordData.word) {
             const wordId = wordData.word.toLowerCase();
             if (!existingWordIds.has(wordId)) {
@@ -119,22 +119,22 @@ const useVocabularyStore = create<VocabularyState>()(
                 example_sentences: wordData.example_sentences || [],
                 verb_forms: wordData.verb_forms,
               });
-              existingWordIds.add(wordId);
+              existingWordIds.add(wordId); // Add to set to prevent duplicates within the same batch
               addedCount++;
             } else {
               skippedCount++;
             }
           } else {
-              skippedCount++; // Also count malformed entries as "skipped"
+            skippedCount++; // Also count malformed entries as "skipped"
           }
           return acc;
         }, []);
-
+      
         if (newWords.length > 0) {
-            set((state) => ({ words: [...state.words, ...newWords] }));
-            get().calculateStats();
+          set({ words: [...state.words, ...newWords] });
+          state.calculateStats();
         }
-        
+      
         return { addedCount, skippedCount };
       },
 

@@ -105,7 +105,7 @@ const stringifySynAnt = (items?: SynonymAntonym[]): string => {
 }
 
 const parseSynAntStringArray = (arr: any): SynonymAntonym[] => {
-    if (!Array.isArray(arr)) return [];
+    if (!arr || !Array.isArray(arr)) return [];
     
     return arr.map(item => {
         if (typeof item === 'string') {

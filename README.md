@@ -12,7 +12,7 @@ Follow these steps to get your application live.
     *   Open the `package.json` file.
     *   Find the `homepage` field.
     *   Replace `<your-github-username>` with your actual GitHub username.
-    *   The final URL should look like this: `"homepage": "https://yourusername.github.io/lexilearn"`
+    *   The final URL should look like this: `"homepage": "https://github.com/Ashik241/LexiLearn09672.git"`
 
 2.  **`next.config.ts`**:
     *   Open the `next.config.ts` file.

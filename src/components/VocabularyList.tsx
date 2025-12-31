@@ -94,9 +94,9 @@ export function VocabularyList() {
                 (word.synonyms && word.synonyms.some(s => s && s.word && s.word.toLowerCase().includes(lowercasedQuery))) ||
                 (word.antonyms && word.antonyms.some(a => a && a.word && a.word.toLowerCase().includes(lowercasedQuery))) ||
                 (word.verb_forms && (
-                    (word.verb_forms.present.word && word.verb_forms.present.word.toLowerCase().includes(lowercasedQuery)) ||
-                    (word.verb_forms.past.word && word.verb_forms.past.word.toLowerCase().includes(lowercasedQuery)) ||
-                    (word.verb_forms.past_participle.word && word.verb_forms.past_participle.word.toLowerCase().includes(lowercasedQuery))
+                    (word.verb_forms.v1_present.word && word.verb_forms.v1_present.word.toLowerCase().includes(lowercasedQuery)) ||
+                    (word.verb_forms.v2_past.word && word.verb_forms.v2_past.word.toLowerCase().includes(lowercasedQuery)) ||
+                    (word.verb_forms.v3_past_participle.word && word.verb_forms.v3_past_participle.word.toLowerCase().includes(lowercasedQuery))
                 ))
             );
         }
@@ -331,3 +331,5 @@ export function VocabularyList() {
         </>
     );
 }
+
+    

@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 export const SentenceCheckerInputSchema = z.object({
   word: z.string().describe('The vocabulary word that should be used.'),

@@ -13,9 +13,9 @@ export function Header() {
           </span>
         </Link>
         <nav>
-          <Button asChild variant="ghost">
-            <Link href="/vocabulary">Vocabulary</Link>
-          </Button>
+            <Button asChild variant="ghost">
+              <Link href="/vocabulary">Vocabulary</Link>
+            </Button>
         </nav>
       </div>
     </header>

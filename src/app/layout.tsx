@@ -2,13 +2,16 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PwaProvider } from '@/components/PwaProvider';
+
 
 export const metadata: Metadata = {
   title: 'LexiLearn',
   description: 'An offline-first vocabulary learning app.',
   icons: {
     icon: '/icon.svg',
+    apple: '/icons/icon-192x192.png',
   },
   manifest: '/manifest.webmanifest',
 };
@@ -35,7 +38,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased min-h-screen flex flex-col')} suppressHydrationWarning>
+        <PwaProvider>
           {children}
+        </PwaProvider>
         <Toaster />
         <SpeedInsights/>
       </body>

@@ -302,8 +302,128 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
           <TabsContent value="single" {...(isEditMode ? { forceMount: true } : {})}>
             <Form {...singleWordForm}>
               <form onSubmit={singleWordForm.handleSubmit(onSingleSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pt-4">
-                {/* All form fields here (as in your original code) */}
-                {/* ... */}
+                {/* Full form fields for word, meaning, syllables, synonyms, antonyms, verb forms */}
+                {/* Word */}
+                <FormField control={singleWordForm.control} name="word" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Word</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Meaning */}
+                <FormField control={singleWordForm.control} name="meaning" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meaning</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Meaning Explanation */}
+                <FormField control={singleWordForm.control} name="meaning_explanation" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meaning Explanation</FormLabel>
+                    <FormControl><Textarea {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Parts of Speech */}
+                <FormField control={singleWordForm.control} name="parts_of_speech" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parts of Speech</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Usage Distinction */}
+                <FormField control={singleWordForm.control} name="usage_distinction" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Usage Distinction</FormLabel>
+                    <FormControl><Textarea {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Syllables */}
+                <FormField control={singleWordForm.control} name="syllables" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Syllables</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Example Sentences */}
+                <FormField control={singleWordForm.control} name="example_sentences" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Example Sentences</FormLabel>
+                    <FormControl><Textarea {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Synonyms */}
+                <FormField control={singleWordForm.control} name="synonyms" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Synonyms</FormLabel>
+                    <FormControl><Textarea {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {/* Antonyms */}
+                <FormField control={singleWordForm.control} name="antonyms" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Antonyms</FormLabel>
+                    <FormControl><Textarea {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {/* Verb Forms Accordion */}
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="verb_forms">
+                    <AccordionTrigger>Verb Forms</AccordionTrigger>
+                    <AccordionContent className="space-y-2">
+                      {['v1', 'v2', 'v3'].map(form => (
+                        <div key={form} className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <FormField control={singleWordForm.control} name={`${form}_word` as any} render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{form.toUpperCase()} Word</FormLabel>
+                              <FormControl><Input {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={singleWordForm.control} name={`${form}_pronunciation` as any} render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Pronunciation</FormLabel>
+                              <FormControl><Input {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={singleWordForm.control} name={`${form}_bangla_meaning` as any} render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Bangla Meaning</FormLabel>
+                              <FormControl><Input {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={singleWordForm.control} name={`${form}_usage_timing` as any} render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Usage Timing</FormLabel>
+                              <FormControl><Input {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={singleWordForm.control} name={`${form}_example` as any} render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Example</FormLabel>
+                              <FormControl><Textarea {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+
                 <DialogFooter>
                   <Button type="submit" disabled={isLoading}>
                     {isLoading ? (isEditMode ? 'আপডেট করা হচ্ছে...' : 'যোগ করা হচ্ছে...') : (isEditMode ? 'শব্দ আপডেট করুন' : 'শব্দ যোগ করুন')}

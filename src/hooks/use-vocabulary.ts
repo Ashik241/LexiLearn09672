@@ -2,9 +2,9 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Word, WordDifficulty } from '@/types';
+import type { Word, WordDifficulty, VerbForms, SynonymAntonym } from '@/types';
 
-type UpdatePayload = Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>;
+type UpdatePayload = Partial<Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>>;
 
 interface VocabularyState {
   words: Word[];
@@ -111,21 +111,21 @@ const useVocabularyStore = create<VocabularyState>()(
                 times_incorrect: 0,
                 last_reviewed: now,
                 createdAt: now,
-                meaning_explanation: wordData.meaning_explanation || '',
-                usage_distinction: wordData.usage_distinction || '',
+                meaning_explanation: wordData.meaning_explanation || undefined,
+                usage_distinction: wordData.usage_distinction || undefined,
                 syllables: wordData.syllables || [],
                 synonyms: wordData.synonyms || [],
                 antonyms: wordData.antonyms || [],
                 example_sentences: wordData.example_sentences || [],
-                verb_forms: wordData.verb_forms,
+                verb_forms: wordData.verb_forms || undefined,
               });
-              existingWordIds.add(wordId); // Add to set to prevent duplicates within the same batch
+              existingWordIds.add(wordId);
               addedCount++;
             } else {
               skippedCount++;
             }
           } else {
-            skippedCount++; // Also count malformed entries as "skipped"
+            skippedCount++;
           }
           return acc;
         }, []);
@@ -140,9 +140,31 @@ const useVocabularyStore = create<VocabularyState>()(
 
       updateWord: (wordId, updates) => {
         set((state) => ({
-          words: state.words.map((word) =>
-            word.id === wordId ? { ...word, ...updates, last_reviewed: new Date().toISOString() } : word
-          ),
+          words: state.words.map((word) => {
+            if (word.id === wordId) {
+                const updatedWord = { ...word, ...updates, last_reviewed: new Date().toISOString() };
+                
+                // Ensure complex objects are fully replaced, not merged shallowly
+                if ('verb_forms' in updates) {
+                    updatedWord.verb_forms = updates.verb_forms;
+                }
+                if ('synonyms' in updates) {
+                    updatedWord.synonyms = updates.synonyms;
+                }
+                if ('antonyms' in updates) {
+                    updatedWord.antonyms = updates.antonyms;
+                }
+                if ('example_sentences' in updates) {
+                    updatedWord.example_sentences = updates.example_sentences;
+                }
+                 if ('syllables' in updates) {
+                    updatedWord.syllables = updates.syllables;
+                }
+
+                return updatedWord;
+            }
+            return word;
+          }),
         }));
         get().calculateStats();
       },

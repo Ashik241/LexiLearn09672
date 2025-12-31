@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { Word, WordDifficulty } from '@/types';
 import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search, MoreHorizontal, Pencil } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -48,13 +48,14 @@ const difficultyClass: Record<WordDifficulty, string> = {
 }
 
 export function VocabularyList() {
-    const { getAllWords, isInitialized, deleteWord } = useVocabulary();
+    const { getAllWords, isInitialized, deleteWord, deleteAllWords } = useVocabulary();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
     const [posFilter, setPosFilter] = useState('all');
     const [wordToDelete, setWordToDelete] = useState<Word | null>(null);
+    const [isDeleteAllAlertOpen, setIsDeleteAllAlertOpen] = useState(false);
     const [wordToEdit, setWordToEdit] = useState<Word | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -164,6 +165,15 @@ export function VocabularyList() {
             setWordToDelete(null);
         }
     };
+
+    const confirmDeleteAll = () => {
+        deleteAllWords();
+        toast({
+            title: "সমস্ত শব্দ মুছে ফেলা হয়েছে",
+            description: "আপনার শব্দভান্ডারের সমস্ত শব্দ সফলভাবে মুছে ফেলা হয়েছে।",
+        });
+        setIsDeleteAllAlertOpen(false);
+    };
     
     const handleEditClick = (e: MouseEvent<HTMLDivElement>, word: Word) => {
         e.stopPropagation();
@@ -207,6 +217,10 @@ export function VocabularyList() {
                                 <Button>Start Exam</Button>
                             </Link>
                         )}
+                        <Button variant="destructive" onClick={() => setIsDeleteAllAlertOpen(true)} disabled={words.length === 0}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete All
+                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -289,6 +303,22 @@ export function VocabularyList() {
                         <AlertDialogCancel onClick={() => setWordToDelete(null)}>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={confirmDelete} className={buttonVariants({ variant: "destructive" })}>
                             Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={isDeleteAllAlertOpen} onOpenChange={setIsDeleteAllAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                           This action cannot be undone. This will permanently delete all {words.length} words from your vocabulary.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDeleteAll} className={buttonVariants({ variant: "destructive" })}>
+                            Delete All
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

@@ -43,10 +43,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // This is crucial for handling dynamic routes with `output: 'export'`.
-  // It tells Next.js to show a 404 page for paths not generated at build time.
-  // Since we handle rendering on the client side, this prevents build errors.
-  dynamicParams: false,
 };
 
 module.exports = withPWA(nextConfig);

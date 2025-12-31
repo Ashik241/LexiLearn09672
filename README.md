@@ -6,22 +6,20 @@ This is a Next.js-based vocabulary learning application, designed to be deployed
 
 Follow these steps to get your application live.
 
-### Step 1: Update Configuration Files
+### Step 1: Update Configuration Files (I have already done this for you)
 
 1.  **`package.json`**:
-    *   Open the `package.json` file.
-    *   Find the `homepage` field.
-    *   Replace `<your-github-username>` with your actual GitHub username.
-    *   The final URL should look like this: `"homepage": "https://github.com/Ashik241/LexiLearn09672.git"`
+    *   The `homepage` field has been set to `https://Ashik241.github.io/LexiLearn09672`.
 
 2.  **`next.config.ts`**:
-    *   Open the `next.config.ts` file.
-    *   At the top of the file, find the constant `REPO_NAME`.
-    *   If your GitHub repository name is different from `lexilearn`, update the value of `REPO_NAME` to match your repository name.
+    *   The configuration has been updated for static export (`output: 'export'`).
+    *   `basePath` and `assetPrefix` have been set to your repository name (`/LexiLearn09672`).
 
 ### Step 2: Push Your Code to GitHub
 
-Make sure your local code is committed and pushed to the `main` (or `master`) branch of your GitHub repository.
+Make sure your local code is committed and pushed to the `main` branch of your GitHub repository.
+
+Run these commands in your terminal:
 
 ```bash
 git add .
@@ -31,25 +29,21 @@ git push origin main
 
 ### Step 3: Run the Deployment Script
 
-Once your code is on GitHub, run the following command in your local terminal:
+Once your code is on GitHub, run the following command in your local terminal. This command will build your application and push it to the `gh-pages` branch on GitHub.
 
 ```bash
 npm run deploy
 ```
 
-This command will:
-1.  Build the static version of your Next.js application into the `out` directory.
-2.  Use the `gh-pages` package to push the contents of the `out` directory to a special branch in your repository called `gh-pages`.
-
 ### Step 4: Configure GitHub Repository Settings
 
-1.  Go to your repository on GitHub.
+1.  Go to your repository on GitHub: `https://github.com/Ashik241/LexiLearn09672`
 2.  Click on the **Settings** tab.
 3.  In the left sidebar, click on **Pages**.
 4.  Under the "Build and deployment" section, for the **Source**, select **Deploy from a branch**.
 5.  Under "Branch", select `gh-pages` as the source branch and `/ (root)` for the folder.
 6.  Click **Save**.
 
-GitHub will now publish your site from the `gh-pages` branch. It might take a few minutes for the site to become live. Your site will be available at the URL you specified in the `homepage` field of your `package.json` file.
+GitHub will now publish your site from the `gh-pages` branch. It might take a few minutes for the site to become live. Your site will be available at: **https://Ashik241.github.io/LexiLearn09672**
 
 That's it! Your LexiLearn application is now live on GitHub Pages.

@@ -13,7 +13,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { Word } from '@/types';
 import { useVocabulary } from '@/hooks/use-vocabulary';
-import { SentencePractice } from '@/components/SentencePractice';
 
 type Accent = 'UK' | 'US';
 
@@ -240,8 +239,6 @@ export function WordDetailsClient({ word: initialWord }: { word: Word | null }) 
                     </div>
                 </div>
             )}
-             <Separator className="my-6" />
-             <SentencePractice word={word} />
           </CardContent>
         </Card>
       </main>

@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { Word, VerbFormDetail } from '@/types';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Accent = 'UK' | 'US';
 
@@ -33,6 +34,68 @@ const VerbFormRow = ({ formName, form, onSpeak }: { formName: string; form: Verb
 );
 
 
+function LoadingSkeleton() {
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+      <main className="flex-grow container mx-auto p-4 md:p-8">
+        <Card className="w-full max-w-4xl mx-auto">
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <Skeleton className="h-10 w-48 mb-2" />
+                <Skeleton className="h-6 w-24" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-10 w-10" />
+                <Skeleton className="h-10 w-10" />
+                <Skeleton className="h-8 w-16" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <Skeleton className="h-6 w-32 mb-2" />
+              <Skeleton className="h-5 w-full" />
+            </div>
+            <Skeleton className="h-24 w-full" />
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <Skeleton className="h-6 w-24 mb-2" />
+                    <Skeleton className="h-5 w-full" />
+                </div>
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <div className="flex flex-wrap gap-2">
+                        <Skeleton className="h-8 w-20" />
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-16" />
+                    </div>
+                </div>
+                 <div>
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <div className="flex flex-wrap gap-2">
+                        <Skeleton className="h-8 w-20" />
+                    </div>
+                </div>
+            </div>
+             <div>
+                <Skeleton className="h-6 w-32 mb-2" />
+                <ul className="list-disc list-inside space-y-2">
+                  <li><Skeleton className="h-5 w-full" /></li>
+                  <li><Skeleton className="h-5 w-full" /></li>
+                </ul>
+              </div>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  )
+}
+
+
 export function WordDetailsClient({ wordId }: { wordId: string }) {
   const { getWordById, isInitialized } = useVocabulary();
   const [rate, setRate] = useState([0.9]);
@@ -43,6 +106,7 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
   useEffect(() => {
     if (isInitialized && wordId) {
       const foundWord = getWordById(wordId);
+      // If the word isn't found, we create a placeholder to show a "not found" message.
       setWord(foundWord || { id: wordId, word: wordId, meaning: '', parts_of_speech: '' } as Word);
     }
   }, [isInitialized, wordId, getWordById]);
@@ -70,21 +134,7 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
   };
 
   if (!isInitialized || !word) {
-    return (
-        <div className="flex flex-col min-h-screen bg-background">
-          <Header />
-          <main className="flex-grow container mx-auto p-4 md:p-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>শব্দ লোড হচ্ছে...</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>অনুগ্রহ করে অপেক্ষা করুন...</p>
-              </CardContent>
-            </Card>
-          </main>
-        </div>
-      );
+    return <LoadingSkeleton />;
   }
 
   // A "real" word has a meaning. The placeholder from the logic above won't.

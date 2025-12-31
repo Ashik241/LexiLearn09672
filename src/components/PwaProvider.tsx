@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode, useEffect } from 'react';
-import { useToast } from './ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 
 export function PwaProvider({ children }: { children: ReactNode }) {

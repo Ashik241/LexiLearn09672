@@ -1,47 +1,22 @@
-import withPWAInit from '@ducanh2912/next-pwa';
+/** @type {import('next').NextConfig} */
 
-const REPO_NAME = 'LexiLearn09672';
-const isProd = process.env.NODE_ENV === 'production';
+import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
   dest: 'public',
-  disable: !isProd,
+  disable: process.env.NODE_ENV === 'development',
 });
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
-  basePath: isProd ? `/${REPO_NAME}` : '',
-  assetPrefix: isProd ? `/${REPO_NAME}/` : '',
+  // Set the basePath for GitHub Pages deployment.
+  basePath: '/LexiLearn09672',
+  // Set the assetPrefix for correct asset loading.
+  assetPrefix: '/LexiLearn09672/',
   images: {
+    // Disable image optimization for static export.
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-    ],
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 };
 

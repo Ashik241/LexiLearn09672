@@ -69,10 +69,11 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
 
     if (initialMode === 'listen') {
       const speakOnLoad = () => {
-        // Only speak if it hasn't been spoken for this word load
-        if (!hasSpokenRef.current) {
-          speak(accent);
-          hasSpokenRef.current = true;
+        if (window.speechSynthesis.getVoices().length > 0) {
+            if (!hasSpokenRef.current) {
+                speak(accent);
+                hasSpokenRef.current = true;
+            }
         }
       };
 
@@ -80,11 +81,9 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
       if (voices.length > 0) {
         speakOnLoad();
       } else {
-        // Voices may load asynchronously
         window.speechSynthesis.onvoiceschanged = speakOnLoad;
       }
       
-      // Cleanup function to prevent memory leaks
       return () => {
         window.speechSynthesis.onvoiceschanged = null;
         window.speechSynthesis.cancel();
@@ -94,7 +93,6 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
   }, [word, initialMode]);
 
   useEffect(() => {
-    // When mode is changed to 'listen' manually, speak the word
     if (mode === 'listen' && !hasSpokenRef.current) {
         speak(accent);
         hasSpokenRef.current = true;

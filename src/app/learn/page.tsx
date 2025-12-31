@@ -34,7 +34,6 @@ function FilterControls() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
-  // Combine multiple params into a single key for the Select's value
   const getCurrentFilter = () => {
     const difficulty = searchParams.get('difficulty');
     const date = searchParams.get('date');

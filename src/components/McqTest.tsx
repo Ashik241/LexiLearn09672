@@ -171,7 +171,7 @@ export default function McqTest({ word, onComplete, testType }: McqTestProps) {
             disabled={isSubmitted}
           >
             <span className="mr-4 font-bold">{String.fromCharCode(65 + index)}</span>
-            <span>{option}</span>
+            <span className='break-words'>{option}</span>
           </Button>
         ))}
       </CardContent>

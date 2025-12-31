@@ -97,31 +97,35 @@ const useVocabularyStore = create<VocabularyState>()(
         const now = new Date().toISOString();
 
         const newWords = wordsData.reduce((acc: Word[], wordData) => {
-          const wordId = wordData.word.toLowerCase();
-          if (!existingWordIds.has(wordId)) {
-            acc.push({
-              id: wordId,
-              word: wordData.word,
-              meaning: wordData.meaning,
-              parts_of_speech: wordData.parts_of_speech,
-              difficulty_level: 'New',
-              is_learned: false,
-              times_correct: 0,
-              times_incorrect: 0,
-              last_reviewed: now,
-              createdAt: now,
-              meaning_explanation: wordData.meaning_explanation || '',
-              usage_distinction: wordData.usage_distinction || '',
-              syllables: wordData.syllables || [],
-              synonyms: wordData.synonyms || [],
-              antonyms: wordData.antonyms || [],
-              example_sentences: wordData.example_sentences || [],
-              verb_forms: wordData.verb_forms,
-            });
-            existingWordIds.add(wordId);
-            addedCount++;
+          if (wordData && wordData.word) {
+            const wordId = wordData.word.toLowerCase();
+            if (!existingWordIds.has(wordId)) {
+              acc.push({
+                id: wordId,
+                word: wordData.word,
+                meaning: wordData.meaning,
+                parts_of_speech: wordData.parts_of_speech,
+                difficulty_level: 'New',
+                is_learned: false,
+                times_correct: 0,
+                times_incorrect: 0,
+                last_reviewed: now,
+                createdAt: now,
+                meaning_explanation: wordData.meaning_explanation || '',
+                usage_distinction: wordData.usage_distinction || '',
+                syllables: wordData.syllables || [],
+                synonyms: wordData.synonyms || [],
+                antonyms: wordData.antonyms || [],
+                example_sentences: wordData.example_sentences || [],
+                verb_forms: wordData.verb_forms,
+              });
+              existingWordIds.add(wordId);
+              addedCount++;
+            } else {
+              skippedCount++;
+            }
           } else {
-            skippedCount++;
+              skippedCount++; // Also count malformed entries as "skipped"
           }
           return acc;
         }, []);

@@ -218,10 +218,6 @@ export function VocabularyList() {
                                 <Link href={`/learn?${searchParams.toString()}`}>Start Exam</Link>
                             </Button>
                         )}
-                        <Button variant="destructive" onClick={() => setIsDeleteAllAlertOpen(true)} disabled={words.length === 0}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete All
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>

@@ -44,7 +44,7 @@ function AppSidebar() {
               <SidebarMenu>
                 {navItems.map(item => (
                   <SidebarMenuItem key={item.href}>
-                    <Link href={item.href} passHref legacyBehavior>
+                    <Link href={item.href}>
                       <SidebarMenuButton>
                         <item.icon />
                         {item.label}

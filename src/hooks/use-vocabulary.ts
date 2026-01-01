@@ -16,6 +16,7 @@ interface VocabularyState {
     mediumWords: number;
     hardWords: number;
     newWords: number;
+    todayWords: number;
     errorStats: {
       spelling: number;
       meaning: number;
@@ -52,6 +53,7 @@ const useVocabularyStore = create<VocabularyState>()(
         mediumWords: 0,
         hardWords: 0,
         newWords: 0,
+        todayWords: 0,
         errorStats: { spelling: 0, meaning: 0, grammar: 0 },
       },
       session: {
@@ -263,11 +265,14 @@ const useVocabularyStore = create<VocabularyState>()(
         const hardWords = words.filter(w => w.difficulty_level === 'Hard').length;
         const newWords = words.filter(w => w.difficulty_level === 'New').length;
         
+        const today = new Date().toISOString().split('T')[0];
+        const todayWords = words.filter(w => w.createdAt.startsWith(today)).length;
+        
         const spelling = words.reduce((sum, w) => sum + (w.spelling_error || 0), 0);
         const meaning = words.reduce((sum, w) => sum + (w.meaning_error || 0), 0);
         const grammar = words.reduce((sum, w) => sum + (w.grammar_error || 0), 0);
 
-        set({ stats: { wordsMastered, totalWords, accuracy, easyWords, mediumWords, hardWords, newWords, errorStats: { spelling, meaning, grammar } } });
+        set({ stats: { wordsMastered, totalWords, accuracy, easyWords, mediumWords, hardWords, newWords, todayWords, errorStats: { spelling, meaning, grammar } } });
       },
 
       getAllWords: () => {

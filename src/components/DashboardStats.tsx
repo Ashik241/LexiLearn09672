@@ -2,7 +2,7 @@
 
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookCheck, Target, Percent, HelpCircle, ShieldAlert, Check, FilePlus } from 'lucide-react';
+import { BookCheck, Target, Percent, HelpCircle, ShieldAlert, Check, FilePlus, CalendarPlus } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import Link from 'next/link';
 
@@ -56,12 +56,12 @@ export function DashboardStats() {
       link: '/vocabulary?difficulty=Easy',
     },
      {
-      title: 'New Words',
-      value: stats.newWords,
-      icon: FilePlus,
-      description: "'New' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
+      title: "Today's Words",
+      value: stats.todayWords,
+      icon: CalendarPlus,
+      description: "আজ যোগ করা নতুন শব্দের সংখ্যা।",
       className: 'text-blue-500',
-      link: '/vocabulary?difficulty=New',
+      link: `/vocabulary?date=${new Date().toISOString().split('T')[0]}`,
     },
   ];
 

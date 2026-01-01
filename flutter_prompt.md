@@ -264,13 +264,21 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
 
 ### Page 1: Dashboard (`DashboardPage.dart`)
 - **UI:** A `ListView` or `Column` with padding.
-  - **Header:** "Dashboard" title and a subtitle.
+  - **Header:** "Dashboard" title and a subtitle "আপনার শেখার অগ্রগতি এবং পরিসংখ্যান এক নজরে দেখুন।"
   - **Stats Grid:** A responsive grid (`GridView` or `Wrap`) of cards displaying key statistics. Each card should contain an icon, title, value, and a short description.
-    - Stats to show: Total Words, Learned Words, Overall Accuracy, Hard Words, Medium Words, Easy Words, Today's Words.
-    - Cards should be tappable, navigating to the `Words List` page with the corresponding filter applied.
-  - **Quick Actions Section:**
-    - "Revision" Card: Navigates to the `Exam` page to start a session with 'Hard' and 'Medium' words.
-    - "Words List" Card: Navigates to the `Words List` page.
+    - **Stats to show:** Total Words, Learned Words, Overall Accuracy, Hard Words, Medium Words, Easy Words, Today's Words.
+    - **Card Content:**
+        - **Total Words:** Icon: `Icons.inventory_2_outlined`, Title: "Total Words", Description: "The total number of words in your vocabulary."
+        - **Learned Words:** Icon: `Icons.check_circle_outline`, Title: "Learned Words", Description: "Words you've marked as 'Easy'."
+        - **Overall Accuracy:** Icon: `Icons.percent`, Title: "Overall Accuracy", Description: "Your accuracy across all sessions."
+        - **Hard Words:** Icon: `Icons.shield_alert_outlined` (Red color), Title: "Hard", Description: "Number of words in the 'Hard' category."
+        - **Medium Words:** Icon: `Icons.help_outline` (Yellow color), Title: "Medium", Description: "Number of words in the 'Medium' category."
+        - **Easy Words:** Icon: `Icons.check` (Green color), Title: "Easy", Description: "Number of words in the 'Easy' category."
+        - **Today's Words:** Icon: `Icons.today`, Title: "Today's Words", Description: "Number of new words added today."
+    - **Functionality:** All stat cards should be tappable. Tapping a card navigates to the `Words List` page with the corresponding filter applied (e.g., tapping 'Hard' filters the list to show only hard words).
+  - **Quick Actions Section:** A section with a title "Quick Actions".
+    - **"Revision" Card:** A card with a title "Revision" (`Icons.auto_stories`), a description "আপনার কঠিন এবং মাঝারি শব্দগুলো ঝালিয়ে নিন।", and a "Start Revision" button. This navigates to the `Exam` page to start a session with 'Hard' and 'Medium' words.
+    - **"Words List" Card:** A card with a title "Words List" (`Icons.list_alt`), a description "আপনার শব্দভান্ডারে থাকা সমস্ত শব্দ ব্রাউজ করুন।", and a "View List" button. This navigates to the `Words List` page.
 
 ### Page 2: Words List (`VocabularyListPage.dart`)
 - **UI:** A `Scaffold` containing a `Card` with a list of words.

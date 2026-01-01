@@ -10,10 +10,9 @@ import { cn } from '@/lib/utils';
 import type { Word, WordDifficulty, TestType } from '@/types';
 import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search, MoreHorizontal, Pencil, ChevronDown } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil, ChevronDown, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +20,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -215,15 +216,23 @@ export function VocabularyList() {
                                 className="pl-10"
                            />
                         </div>
-                        <Select value={posFilter} onValueChange={setPosFilter}>
-                            <SelectTrigger className="w-full md:w-[180px]">
-                                <SelectValue placeholder="All Parts of Speech" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Parts of Speech</SelectItem>
-                                {allPos.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    <Filter className="mr-2 h-4 w-4" />
+                                    <span>Filter by POS</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Part of Speech</DropdownMenuLabel>
+                                <DropdownMenuRadioGroup value={posFilter} onValueChange={setPosFilter}>
+                                    <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                                    {allPos.map(pos => (
+                                        <DropdownMenuRadioItem key={pos} value={pos}>{pos}</DropdownMenuRadioItem>
+                                    ))}
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                          {hasFilter && words.length > 0 && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -337,3 +346,5 @@ export function VocabularyList() {
         </>
     );
 }
+
+    

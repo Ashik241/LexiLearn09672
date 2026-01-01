@@ -7,7 +7,7 @@ You are tasked with building "LexiLearn," a modern, offline-first vocabulary lea
 
 **Core Principles:**
 - **Offline-First:** The app must be 100% functional without an internet connection.
-- **State Management:** Use a robust state management solution like **Provider**, **BLoC/Cubit**, or **Riverpod**. The examples below will use a BLoC-like approach for separation of concerns.
+- **State Management:** Use **Provider** for state management. It's a simple, flexible, and widely-used solution that is perfect for this application's needs.
 - **Local Storage:** Use **SQLite** via the `sqflite` package for storing words and notes. SQLite is a robust, serverless, transactional SQL database engine perfect for structured data.
 - **UI/UX:** A clean, modern, and responsive UI. Use Material 3 design principles.
 
@@ -210,9 +210,9 @@ class Note {
 
 ---
 
-## 3. Core Logic & Data Management (BLoC/Repository)
+## 3. Core Logic & Data Management (Provider/Repository)
 
-Create a repository and BLoC/Cubit for managing `Word` and `Note` data.
+Create a repository and `ChangeNotifier` providers for managing `Word` and `Note` data.
 
 ### `DatabaseHelper` (Singleton)
 - **Responsibilities:** Manage database connection. Create tables.
@@ -232,21 +232,22 @@ Create a repository and BLoC/Cubit for managing `Word` and `Note` data.
   - `Future<void> updateWord(String id, WordUpdates updates)`: Update an existing word. Use `db.update`.
   - `Future<void> deleteWord(String id)`: Delete a word. Use `db.delete`.
   - `Future<{int added, int skipped}> addMultipleWords(List<WordData> words)`: Bulk import words using a transaction (`db.transaction`).
-  - `void calculateStats()`: A method that computes all statistics and pushes them to a `Stream`.
-  - `Stream<Stats> get statsStream`: A stream that emits updated stats.
 
 ### `NotesRepository`
 - **Responsibilities:** Direct interaction with the SQLite database for notes.
 - **Methods:** Similar CRUD operations for `Note` objects using `sqflite`.
 
-### `VocabularyBloc` / `NotesBloc`
-- These BLoCs will use their respective repositories to manage state and business logic, exposing streams of data to the UI.
+### `VocabularyProvider` & `NotesProvider` (`ChangeNotifier`)
+- These classes will extend `ChangeNotifier`.
+- They will use their respective repositories to fetch and manage data.
+- They hold the application state (e.g., `List<Word> words`, `List<Note> notes`, loading status).
+- Methods like `fetchWords()`, `addWord()`, `deleteNote()` will perform the operation using the repository and then call `notifyListeners()` to update the UI.
 
 ---
 
 ## 4. UI Pages and Components
 
-Build the following pages and widgets.
+Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvider>()` to listen to changes and rebuild the UI.
 
 ### Main Layout (`MainScreen.dart`)
 - A `Scaffold` with a `BottomNavigationBar`.
@@ -259,6 +260,7 @@ Build the following pages and widgets.
 - An `AppBar` with the title "LexiLearn" and two action buttons:
   - **Add Word** (`Icons.add_circle_outline`): Opens the "Add Word" dialog.
   - **Add Note** (`Icons.note_add_outlined`): Opens the "Add Note" dialog.
+- The root of the app (`main.dart`) should wrap the `MaterialApp` with `MultiProvider` to make `VocabularyProvider` and `NotesProvider` available throughout the widget tree.
 
 ### Page 1: Dashboard (`DashboardPage.dart`)
 - **UI:** A `ListView` or `Column` with padding.
@@ -345,12 +347,11 @@ Build the following pages and widgets.
 - **Dependencies:**
   - `sqflite`: For SQLite database interaction.
   - `path`: For finding the correct local path to store the database file.
-  - A state management library (e.g., `flutter_bloc`)
-  - `flutter_tts` (for text-to-speech)
+  - `provider`: For state management.
+  - `flutter_tts`: For text-to-speech.
   - `json_serializable` (optional, for complex data models)
-  - `equatable` (for BLoC state/events)
-  - `fl_chart` (for charts)
+  - `fl_chart`: For charts.
 
-This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database. Good luck!
+This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database and Provider for state management. Good luck!
 
     

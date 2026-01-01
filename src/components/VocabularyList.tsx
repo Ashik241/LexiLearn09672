@@ -218,9 +218,9 @@ export function VocabularyList() {
                         </div>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline">
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    <span>Filter by POS</span>
+                                <Button variant="outline" size="icon">
+                                    <Filter className="h-4 w-4" />
+                                    <span className="sr-only">Filter by POS</span>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -346,5 +346,3 @@ export function VocabularyList() {
         </>
     );
 }
-
-    

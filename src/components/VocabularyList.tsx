@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { Word, WordDifficulty, TestType } from '@/types';
 import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search, MoreHorizontal, Pencil, ChevronDown, Filter, CalendarPlus } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil, ChevronDown, Filter, BookText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import {
@@ -237,7 +237,8 @@ export function VocabularyList() {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button>
-                                        Start Exam
+                                        <BookText />
+                                        Exam
                                         <ChevronDown className="ml-2 h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>

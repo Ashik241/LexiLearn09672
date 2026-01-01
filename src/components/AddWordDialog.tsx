@@ -302,8 +302,6 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
           <TabsContent value="single" {...(isEditMode ? { forceMount: true } : {})}>
             <Form {...singleWordForm}>
               <form onSubmit={singleWordForm.handleSubmit(onSingleSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pt-4">
-                {/* Full form fields for word, meaning, syllables, synonyms, antonyms, verb forms */}
-                {/* Word */}
                 <FormField control={singleWordForm.control} name="word" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Word</FormLabel>
@@ -311,7 +309,6 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Meaning */}
                 <FormField control={singleWordForm.control} name="meaning" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Meaning</FormLabel>
@@ -319,7 +316,6 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Meaning Explanation */}
                 <FormField control={singleWordForm.control} name="meaning_explanation" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Meaning Explanation</FormLabel>
@@ -327,7 +323,6 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Parts of Speech */}
                 <FormField control={singleWordForm.control} name="parts_of_speech" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Parts of Speech</FormLabel>
@@ -335,7 +330,6 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Usage Distinction */}
                 <FormField control={singleWordForm.control} name="usage_distinction" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Usage Distinction</FormLabel>
@@ -343,81 +337,79 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Syllables */}
                 <FormField control={singleWordForm.control} name="syllables" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Syllables</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
+                    <FormControl><Input placeholder="e.g. vo-cab-u-lar-y" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Example Sentences */}
                 <FormField control={singleWordForm.control} name="example_sentences" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Example Sentences</FormLabel>
+                    <FormLabel>Example Sentences (one per line)</FormLabel>
                     <FormControl><Textarea {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Synonyms */}
                 <FormField control={singleWordForm.control} name="synonyms" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Synonyms</FormLabel>
-                    <FormControl><Textarea {...field} /></FormControl>
+                    <FormLabel>Synonyms (comma-separated or JSON)</FormLabel>
+                    <FormControl><Textarea placeholder='e.g. word, lexicon, glossary OR [{"word":"lexicon", "meaning":"অভিধান"}]' {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                {/* Antonyms */}
                 <FormField control={singleWordForm.control} name="antonyms" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Antonyms</FormLabel>
+                    <FormLabel>Antonyms (comma-separated or JSON)</FormLabel>
                     <FormControl><Textarea {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
 
-                {/* Verb Forms Accordion */}
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="verb_forms">
-                    <AccordionTrigger>Verb Forms</AccordionTrigger>
-                    <AccordionContent className="space-y-2">
-                      {['v1', 'v2', 'v3'].map(form => (
-                        <div key={form} className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          <FormField control={singleWordForm.control} name={`${form}_word` as any} render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{form.toUpperCase()} Word</FormLabel>
-                              <FormControl><Input {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={singleWordForm.control} name={`${form}_pronunciation` as any} render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Pronunciation</FormLabel>
-                              <FormControl><Input {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={singleWordForm.control} name={`${form}_bangla_meaning` as any} render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Bangla Meaning</FormLabel>
-                              <FormControl><Input {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={singleWordForm.control} name={`${form}_usage_timing` as any} render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Usage Timing</FormLabel>
-                              <FormControl><Input {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={singleWordForm.control} name={`${form}_example` as any} render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Example</FormLabel>
-                              <FormControl><Textarea {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
+                    <AccordionTrigger>Verb Forms (if applicable)</AccordionTrigger>
+                    <AccordionContent className="space-y-4">
+                      {['v1', 'v2', 'v3'].map((form, index) => (
+                        <div key={form} className="p-4 border rounded-md space-y-4">
+                          <h4 className="font-semibold">Form {form.toUpperCase()} ({['Present', 'Past', 'Past Participle'][index]})</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField control={singleWordForm.control} name={`${form}_word` as any} render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{form.toUpperCase()} Word</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={singleWordForm.control} name={`${form}_pronunciation` as any} render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Pronunciation</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={singleWordForm.control} name={`${form}_bangla_meaning` as any} render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Bangla Meaning</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={singleWordForm.control} name={`${form}_usage_timing` as any} render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Usage Timing</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={singleWordForm.control} name={`${form}_example` as any} render={({ field }) => (
+                              <FormItem className="col-span-1 md:col-span-2">
+                                <FormLabel>Example Sentence</FormLabel>
+                                <FormControl><Textarea {...field} rows={2}/></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
                         </div>
                       ))}
                     </AccordionContent>

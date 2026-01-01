@@ -372,9 +372,16 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
 
 #### Dialogs (`AddWordDialog.dart`, `AddNoteDialog.dart`)
 - Use `showDialog` to present a modal.
-- Implement a `Tabbed` view for "Add Single" vs. "Bulk Import from JSON".
-- Use `Form` widgets with `TextFormField` and validation for input.
-- For bulk import, provide a multi-line `TextFormField` for pasting JSON data.
+- **`AddWordDialog`:**
+  - Implement a `Tabbed` view for "Add Single" vs. "Bulk Import from JSON".
+  - **Add Single Tab:** Use a `Form` with `TextFormField` widgets and validation for all `Word` properties (word, meaning, parts of speech, etc., including optional verb forms).
+  - **Bulk Import Tab:**
+    - Provide a multi-line `TextFormField` for pasting JSON data.
+    - On submit, parse the JSON. It should handle an array of word objects.
+    - Use the `VocabularyRepository`'s `addMultipleWords` method to import the data in a single transaction.
+    - Show a `SnackBar` or `Toast` with the result (e.g., "5 words added, 2 duplicates skipped.").
+- **`AddNoteDialog`:**
+  - A simpler dialog with a `Form`, a `TextFormField` for the title, and a multi-line `TextFormField` for the content.
 
 ---
 

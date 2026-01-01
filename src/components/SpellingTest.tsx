@@ -164,21 +164,12 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
                     <p className="text-sm text-muted-foreground">এই বাংলা অর্থের ইংরেজি শব্দটি লিখুন:</p>
                     <p className="text-xl font-semibold text-primary mt-1">"{word.meaning}"</p>
                 </div>
-                {(word.meaning_explanation || word.usage_distinction) && (
+                {word.meaning_explanation && (
                      <div className="p-4 rounded-lg bg-card-foreground/5 text-sm text-muted-foreground text-left space-y-3">
-                        {word.meaning_explanation && (
-                            <div>
-                                <h4 className="font-semibold text-foreground mb-1">অর্থের ব্যাখ্যা</h4>
-                                <p className="italic">"{word.meaning_explanation}"</p>
-                            </div>
-                        )}
-                        {word.meaning_explanation && word.usage_distinction && <Separator/>}
-                        {word.usage_distinction && (
-                            <div>
-                                <h4 className="font-semibold text-foreground mb-1">ব্যবহারের পার্থক্য</h4>
-                                <p className="italic">"{word.usage_distinction}"</p>
-                            </div>
-                        )}
+                        <div>
+                            <h4 className="font-semibold text-foreground mb-1">অর্থের ব্যাখ্যা</h4>
+                            <p className="italic">"{word.meaning_explanation}"</p>
+                        </div>
                     </div>
                 )}
             </div>

@@ -112,13 +112,20 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
       if (!Array.isArray(parsedJson)) throw new Error("JSON must be an array.");
       
       const notesToImport = parsedJson.map((item: any) => {
+        // Handle simple format
         if (typeof item === 'object' && item !== null && item.title && item.content) {
           return { title: item.title, content: item.content };
+        }
+        // Handle complex grammar format
+        if (typeof item === 'object' && item !== null && item.topic_name) {
+          const { topic_name, id, ...rest } = item;
+          const content = `Category: ${item.category}\nSummary: ${item.summary}\nShort Trick: ${item.short_trick}\n\nDetails:\n${JSON.stringify(item.details, null, 2)}`;
+          return { title: topic_name, content: content };
         }
         return null;
       }).filter(Boolean);
 
-      const { addedCount, skippedCount } = addMultipleNotes(notesToImport);
+      const { addedCount, skippedCount } = addMultipleNotes(notesToImport as {title: string; content: string}[]);
       toast({ title: "ইম্পোর্ট সম্পন্ন", description: `${addedCount}টি নতুন নোট যোগ করা হয়েছে। ${skippedCount}টি নোট আগে থেকেই ছিল।` });
 
       bulkImportForm.reset();

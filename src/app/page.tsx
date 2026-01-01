@@ -1,130 +1,89 @@
 'use client';
 
-import { useState } from 'react';
-import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInput } from '@/components/ui/sidebar';
-import { useGrammar } from '@/hooks/use-grammar';
-import type { GrammarTopic } from '@/types';
 import { Header } from '@/components/layout/Header';
+import { DashboardStats } from '@/components/DashboardStats';
+import { Button } from '@/components/ui/button';
+import { FilePlus, BookOpenCheck, BrainCircuit } from 'lucide-react';
+import Link from 'next/link';
+import { AddWordDialog } from '@/components/AddWordDialog';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Search } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useVocabulary } from '@/hooks/use-vocabulary';
 
-// Placeholder for the main content view
-function GrammarView({ topic }: { topic: GrammarTopic | null }) {
-  if (!topic) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8">
-        <FileText className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-bold">Welcome to the Grammar Handbook</h2>
-        <p className="text-muted-foreground mt-2">Select a topic from the sidebar to get started.</p>
-      </div>
-    );
-  }
+function QuickActions() {
+  const [isAddWordOpen, setIsAddWordOpen] = useState(false);
+  const { words } = useVocabulary();
 
   return (
-    <div className="p-4 md:p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold">{topic.topic_name}</CardTitle>
-          <CardDescription className="text-md text-muted-foreground">{topic.category}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h3 className="text-xl font-semibold mb-2">Summary</h3>
-            <p className="text-foreground/80">{topic.summary}</p>
-          </div>
-          
-          {topic.short_trick && (
-             <div className="bg-primary/10 p-4 rounded-lg">
-                <h3 className="text-xl font-semibold mb-2">Short Trick</h3>
-                <p className="text-primary font-medium">{topic.short_trick}</p>
-            </div>
-          )}
-          
-          {topic.details && topic.details.length > 0 && (
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Details</h3>
-              <Accordion type="single" collapsible className="w-full">
-                {topic.details.map((detail, index) => (
-                  <AccordionItem value={`item-${index}`} key={index}>
-                    <AccordionTrigger>{detail.title}</AccordionTrigger>
-                    <AccordionContent>
-                      <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: detail.explanation }}></div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          )}
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="hover:bg-card-foreground/5 transition-colors">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FilePlus className="text-primary" />
+              <span>নতুন শব্দ যোগ করুন</span>
+            </CardTitle>
+            <CardDescription>আপনার শব্দভান্ডারে একটি বা একাধিক নতুন শব্দ যোগ করুন।</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => setIsAddWordOpen(true)}>শব্দ যোগ করুন</Button>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:bg-card-foreground/5 transition-colors">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                <BrainCircuit className="text-primary" />
+                <span>রিভিশন শুরু করুন</span>
+                </CardTitle>
+                <CardDescription>আপনার কঠিন এবং মাঝারি শব্দগুলো ঝালিয়ে নিন।</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild disabled={words.filter(w => ['Hard', 'Medium'].includes(w.difficulty_level)).length === 0}>
+                    <Link href="/learn">রিভিশন করুন</Link>
+                </Button>
+            </CardContent>
+        </Card>
 
-          {topic.examples && topic.examples.length > 0 && (
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Examples</h3>
-              <ul className="list-disc list-inside space-y-2 text-foreground/80">
-                {topic.examples.map((example, i) => (
-                  <li key={i} className="break-words">{example}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-        </CardContent>
-      </Card>
-    </div>
+        <Card className="hover:bg-card-foreground/5 transition-colors">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpenCheck className="text-primary" />
+              <span>সম্পূর্ণ তালিকা দেখুন</span>
+            </CardTitle>
+            <CardDescription>আপনার শব্দভান্ডারে থাকা সমস্ত শব্দ ব্রাউজ করুন।</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link href="/vocabulary">শব্দভান্ডার দেখুন</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+      <AddWordDialog isOpen={isAddWordOpen} onOpenChange={setIsAddWordOpen} />
+    </>
   );
 }
 
 
-export default function Home() {
-  const { topics, isInitialized } = useGrammar();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTopic, setActiveTopic] = useState<GrammarTopic | null>(null);
-
-  const filteredTopics = topics.filter(topic =>
-    topic.topic_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    topic.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+export default function DashboardPage() {
   return (
-    <SidebarProvider>
-        <div className="flex flex-col min-h-screen bg-background">
-            <Header />
-            <div className="flex flex-1">
-                <Sidebar>
-                    <SidebarHeader>
-                         <div className="relative">
-                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                           <SidebarInput 
-                                placeholder="Filter topics..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10"
-                           />
-                        </div>
-                    </SidebarHeader>
-                    <SidebarContent>
-                        <SidebarMenu>
-                            {isInitialized ? filteredTopics.map((topic) => (
-                                <SidebarMenuItem key={topic.id}>
-                                    <SidebarMenuButton 
-                                        onClick={() => setActiveTopic(topic)}
-                                        isActive={activeTopic?.id === topic.id}
-                                    >
-                                        <FileText />
-                                        <span>{topic.topic_name}</span>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            )) : (
-                                <p className="p-2 text-sm text-muted-foreground">Loading topics...</p>
-                            )}
-                        </SidebarMenu>
-                    </SidebarContent>
-                </Sidebar>
-                <SidebarInset className="flex-1">
-                   <GrammarView topic={activeTopic} />
-                </SidebarInset>
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+      <main className="flex-grow container mx-auto p-4 md:p-8">
+        <div className="space-y-8">
+            <div className="space-y-2">
+                <h1 className="text-3xl font-bold tracking-tight font-headline">ড্যাশবোর্ড</h1>
+                <p className="text-muted-foreground">আপনার শেখার অগ্রগতি এবং পরিসংখ্যান এক নজরে দেখুন।</p>
             </div>
+            <DashboardStats />
+            <div className="space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight font-headline">দ্রুত কার্যক্রম</h2>
+                <p className="text-muted-foreground">এখান থেকে দ্রুত আপনার প্রয়োজনীয় কাজগুলো শুরু করুন।</p>
+            </div>
+            <QuickActions />
         </div>
-    </SidebarProvider>
+      </main>
+    </div>
   );
 }

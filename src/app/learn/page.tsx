@@ -79,14 +79,14 @@ function FilterControls() {
 
 export default function LearnPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <main className="flex-1 flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto p-4 md:p-8 flex flex-col items-center">
+      <div className="flex-grow container mx-auto p-4 md:p-8 flex flex-col items-center">
         <Suspense fallback={<LoadingFallback />}>
           <FilterControls />
           <LearningClient />
         </Suspense>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

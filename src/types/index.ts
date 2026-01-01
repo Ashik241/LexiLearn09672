@@ -54,3 +54,24 @@ export interface Word {
   last_reviewed: string | null;
   createdAt: string;
 }
+
+// New types for Grammar Handbook
+export interface GrammarTopic {
+  id: string;
+  topic_name: string;
+  category: string;
+  summary: string;
+  short_trick: string;
+  details: Array<{
+    title: string;
+    explanation: string;
+  }>;
+  examples: string[];
+}
+
+export interface GrammarNote {
+  id: string;
+  topicId: string;
+  content: string;
+  lastUpdated: string;
+}

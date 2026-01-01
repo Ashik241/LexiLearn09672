@@ -1,176 +1,130 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Plus, BookOpen, SpellCheck, FileQuestion, Languages, Repeat, CalendarClock, Zap, Mic, Text, Brain, Pilcrow, SquareFunction } from 'lucide-react';
+import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInput } from '@/components/ui/sidebar';
+import { useGrammar } from '@/hooks/use-grammar';
+import type { GrammarTopic } from '@/types';
 import { Header } from '@/components/layout/Header';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardStats } from '@/components/DashboardStats';
-import { AddWordDialog } from '@/components/AddWordDialog';
+import { FileText, Search } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-export default function Home() {
-  const [isAddWordOpen, setIsAddWordOpen] = useState(false);
-  const today = new Date().toISOString().split('T')[0];
+// Placeholder for the main content view
+function GrammarView({ topic }: { topic: GrammarTopic | null }) {
+  if (!topic) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center p-8">
+        <FileText className="w-16 h-16 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-bold">Welcome to the Grammar Handbook</h2>
+        <p className="text-muted-foreground mt-2">Select a topic from the sidebar to get started.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header />
-      <main className="flex-grow container mx-auto p-4 md:p-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="p-4 md:p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold">{topic.topic_name}</CardTitle>
+          <CardDescription className="text-md text-muted-foreground">{topic.category}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold font-headline text-foreground">
-              LexiLearn-এ স্বাগতম
-            </h1>
-            <p className="text-lg text-muted-foreground mt-2">
-              আপনার ব্যক্তিগত শব্দভান্ডার তৈরির সহকারী।
-            </p>
+            <h3 className="text-xl font-semibold mb-2">Summary</h3>
+            <p className="text-foreground/80">{topic.summary}</p>
           </div>
-        </div>
+          
+          {topic.short_trick && (
+             <div className="bg-primary/10 p-4 rounded-lg">
+                <h3 className="text-xl font-semibold mb-2">Short Trick</h3>
+                <p className="text-primary font-medium">{topic.short_trick}</p>
+            </div>
+          )}
+          
+          {topic.details && topic.details.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Details</h3>
+              <Accordion type="single" collapsible className="w-full">
+                {topic.details.map((detail, index) => (
+                  <AccordionItem value={`item-${index}`} key={index}>
+                    <AccordionTrigger>{detail.title}</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: detail.explanation }}></div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          )}
 
-        <DashboardStats />
+          {topic.examples && topic.examples.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Examples</h3>
+              <ul className="list-disc list-inside space-y-2 text-foreground/80">
+                {topic.examples.map((example, i) => (
+                  <li key={i} className="break-words">{example}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold font-headline mb-4">লার্নিং সেশন শুরু করুন</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/learn" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                  <BookOpen className="w-8 h-8 text-primary" />
-                  <CardTitle className="font-headline">দৈনিক রিভিশন</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>আপনার 'Hard' এবং 'Medium' শব্দগুলো রিভাইস করুন। (MCQ)</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-             <Link href="/learn?type=dynamic" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <Zap className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">ডাইনামিক রিভিশন</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>বিভিন্ন ধরণের প্রশ্ন (বানান, MCQ) দিয়ে 'Hard' ও 'Medium' শব্দ রিভাইস করুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-             <Link href="/learn?type=mcq" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <FileQuestion className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">MCQ (Eng to Ban)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>সম্পূর্ণ শব্দভান্ডার থেকে ইংরেজি শব্দের সঠিক বাংলা অর্থ বাছাই করুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/learn?type=bengali-to-english" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <Languages className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">MCQ (Ban to Eng)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>সম্পূর্ণ শব্দভান্ডার থেকে বাংলা অর্থের সঠিক ইংরেজি শব্দ বাছাই করুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/learn?type=spelling_meaning" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <Text className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">বানান পরীক্ষা (অর্থ দেখে)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>বাংলা অর্থ দেখে সঠিক ইংরেজি বানান লিখুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-             <Link href="/learn?type=spelling_listen" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <Mic className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">বানান পরীক্ষা (শুনে)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>ইংরেজি উচ্চারণ শুনে সঠিক বানানটি লিখুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/learn?type=synonym-antonym" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <Repeat className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">Synonym/Antonym Test</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>সমার্থক ও বিপরীতার্থক শব্দ পরীক্ষা করুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/learn?type=fill_blank_word" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <Brain className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">Fill in the Blanks (Word)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>অসম্পূর্ণ শব্দটি পূরণ করুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/learn?type=fill_blank_sentence" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <Pilcrow className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">Fill in the Blanks (Sentence)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>বাক্যের শূন্যস্থান সঠিক শব্দ দিয়ে পূরণ করুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/learn?type=verb_form" passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <SquareFunction className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">Verb Form Test</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>ক্রিয়ার সঠিক V2 এবং V3 ফর্ম লিখুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href={`/vocabulary?date=${today}`} passHref>
-              <Card className="hover:bg-card-foreground/5 transition-colors h-full">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <CalendarClock className="w-8 h-8 text-primary" />
-                    <CardTitle className="font-headline">আজকের শব্দ</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>আজ যোগ করা শব্দগুলোর তালিকা দেখুন।</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-        </div>
-        
-      </main>
-
-      <div className="fixed bottom-8 right-8 z-20">
-        <Button
-          size="icon"
-          className="rounded-full w-16 h-16 shadow-lg"
-          onClick={() => setIsAddWordOpen(true)}
-          aria-label="নতুন শব্দ যোগ করুন"
-        >
-          <Plus className="w-8 h-8" />
-        </Button>
-      </div>
-
-      <AddWordDialog isOpen={isAddWordOpen} onOpenChange={setIsAddWordOpen} />
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+
+export default function Home() {
+  const { topics, isInitialized } = useGrammar();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTopic, setActiveTopic] = useState<GrammarTopic | null>(null);
+
+  const filteredTopics = topics.filter(topic =>
+    topic.topic_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    topic.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <SidebarProvider>
+        <div className="flex flex-col min-h-screen bg-background">
+            <Header />
+            <div className="flex flex-1">
+                <Sidebar>
+                    <SidebarHeader>
+                         <div className="relative">
+                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                           <SidebarInput 
+                                placeholder="Filter topics..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10"
+                           />
+                        </div>
+                    </SidebarHeader>
+                    <SidebarContent>
+                        <SidebarMenu>
+                            {isInitialized ? filteredTopics.map((topic) => (
+                                <SidebarMenuItem key={topic.id}>
+                                    <SidebarMenuButton 
+                                        onClick={() => setActiveTopic(topic)}
+                                        isActive={activeTopic?.id === topic.id}
+                                    >
+                                        <FileText />
+                                        <span>{topic.topic_name}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            )) : (
+                                <p className="p-2 text-sm text-muted-foreground">Loading topics...</p>
+                            )}
+                        </SidebarMenu>
+                    </SidebarContent>
+                </Sidebar>
+                <SidebarInset className="flex-1">
+                   <GrammarView topic={activeTopic} />
+                </SidebarInset>
+            </div>
+        </div>
+    </SidebarProvider>
   );
 }

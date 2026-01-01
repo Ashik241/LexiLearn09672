@@ -2,22 +2,17 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaProvider } from '@/components/PwaProvider';
-
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
-  title: 'LexiLearn',
-  description: 'An offline-first vocabulary learning app.',
-  icons: {
-    icon: '/icon.svg',
-    apple: '/icons/icon-192x192.png',
-  },
+  title: 'Grammar Handbook',
+  description: 'Your personal guide to English grammar.',
   manifest: '/manifest.webmanifest',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#43a08d',
+  themeColor: '#FFFFFF',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -35,14 +30,15 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased min-h-screen flex flex-col')} suppressHydrationWarning>
         <PwaProvider>
-          {children}
+          <SidebarProvider>
+            {children}
+          </SidebarProvider>
         </PwaProvider>
         <Toaster />
-        <SpeedInsights/>
       </body>
     </html>
   );

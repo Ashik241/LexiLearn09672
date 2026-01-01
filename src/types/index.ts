@@ -54,3 +54,10 @@ export interface Word {
   last_reviewed: string | null;
   createdAt: string;
 }
+
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+}

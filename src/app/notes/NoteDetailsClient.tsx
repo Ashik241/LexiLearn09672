@@ -79,7 +79,7 @@ export function NoteDetailsClient({ noteId }: { noteId: string }) {
             </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-            <div className="prose dark:prose-invert max-w-none text-base text-foreground/90 whitespace-pre-wrap break-words">
+            <div className="max-w-none text-base text-foreground/90 whitespace-pre-wrap break-words">
                 {note.content}
             </div>
         </CardContent>

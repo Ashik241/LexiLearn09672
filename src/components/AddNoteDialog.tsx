@@ -121,22 +121,22 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
         if (typeof item === 'object' && item !== null && item.topic_name) {
           const { topic_name, category, summary, short_trick, details } = item;
           let content = `Category: ${category}\n\n`;
-          content += `Summary:\n${summary}\n\n`;
-          content += `Short Trick:\n${short_trick}\n\n`;
+          content += `📝 *Summary:*\n${summary}\n\n`;
+          content += `✨ *Short Trick:*\n${short_trick}\n\n`;
           
           if(details && Array.isArray(details)) {
               content += '--------------------\n\n';
-              content += 'Details:\n\n';
+              content += '📖 *Details:*\n\n';
               details.forEach((detail: any) => {
-                  content += `### ${detail.title} ###\n`;
-                  content += `${detail.description}\n`;
-                  if(detail.formula) content += `Formula: ${detail.formula}\n`;
+                  content += `  *${detail.title}*\n`;
+                  content += `  ${detail.description}\n`;
+                  if(detail.formula) content += `  *Formula:* ${detail.formula}\n`;
                   
                   if(detail.examples && Array.isArray(detail.examples)) {
-                      content += '\nExamples:\n';
+                      content += '\n  *Examples:*\n';
                       detail.examples.forEach((ex: any) => {
-                          content += `  • ${ex.s}\n`;
-                          content += `    └─ Explanation: ${ex.n}\n`;
+                          content += `    • ${ex.s}\n`;
+                          content += `      *Explanation:* ${ex.n}\n`;
                       });
                   }
                   content += '\n';

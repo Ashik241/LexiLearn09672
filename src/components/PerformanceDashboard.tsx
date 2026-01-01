@@ -211,7 +211,7 @@ export function PerformanceDashboard() {
       </Link>
       <Card className="flex flex-col w-full">
           <CardHeader>
-              <CardTitle>Top 3 Hardest Words</CardTitle>
+              <CardTitle>Hardest Words</CardTitle>
               <CardDescription>সবচেয়ে বেশি ভুল করা শব্দগুলো।</CardDescription>
           </CardHeader>
           <Link href="/vocabulary?difficulty=Hard" className="flex flex-col flex-grow">

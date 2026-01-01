@@ -212,36 +212,93 @@ class Note {
 
 ## 3. Core Logic & Data Management (Provider/Repository)
 
-Create a repository and `ChangeNotifier` providers for managing `Word` and `Note` data.
+Create a robust data layer by separating database logic (`Repository`) from the application's state (`Provider`). This ensures a clean and maintainable architecture.
 
-### `DatabaseHelper` (Singleton)
-- **Responsibilities:** Manage database connection. Create tables.
-- **Methods:**
-  - `Future<Database> get database`: Get the singleton database instance.
-  - `Future<void> _initDB()`: Initialize the database and create tables if they don't exist.
-- **Table Schemas:**
-  - **words_table:** `id TEXT PRIMARY KEY`, `word TEXT`, `meaning TEXT`, `partsOfSpeech TEXT`, `difficultyLevel TEXT`, `isLearned INTEGER`, `timesCorrect INTEGER`, `timesIncorrect INTEGER`, `lastReviewed TEXT`, `createdAt TEXT`, `meaningExplanation TEXT`, `usageDistinction TEXT`, `syllables TEXT`, `synonyms TEXT`, `antonyms TEXT`, `exampleSentences TEXT`, `verbForms TEXT`, `spellingError INTEGER`, `meaningError INTEGER`, `grammarError INTEGER`
-  - **notes_table:** `id TEXT PRIMARY KEY`, `title TEXT`, `content TEXT`, `createdAt TEXT`
+### `DatabaseHelper` (Singleton Class)
+This class is responsible for managing the connection to the SQLite database. Using a singleton pattern ensures that only one database connection is open at any time across the entire application, preventing resource leaks and conflicts.
+- **Responsibilities:**
+  - Initialize the database connection.
+  - Create the necessary tables (`words`, `notes`) if they do not already exist.
+  - Provide a global access point to the database instance.
+- **Implementation Details:**
+  - Create a private constructor and a static `instance` field.
+  - A static `get database` getter will check if the database is already initialized. If not, it will call an internal `_initDB` method.
+  - `_initDB` will use the `path` provider to find the correct directory and then use `openDatabase` from `sqflite` to create/open `lexilearn.db`.
+  - The `onCreate` callback of `openDatabase` will execute the `CREATE TABLE` SQL commands.
+
+- **Table Schemas (SQL):**
+  - **`words` table:**
+    ```sql
+    CREATE TABLE words(
+      id TEXT PRIMARY KEY,
+      word TEXT NOT NULL,
+      meaning TEXT NOT NULL,
+      partsOfSpeech TEXT,
+      difficultyLevel TEXT,
+      isLearned INTEGER NOT NULL DEFAULT 0,
+      timesCorrect INTEGER NOT NULL DEFAULT 0,
+      timesIncorrect INTEGER NOT NULL DEFAULT 0,
+      lastReviewed TEXT,
+      createdAt TEXT,
+      meaningExplanation TEXT,
+      usageDistinction TEXT,
+      syllables TEXT,
+      synonyms TEXT,
+      antonyms TEXT,
+      exampleSentences TEXT,
+      verbForms TEXT,
+      spellingError INTEGER NOT NULL DEFAULT 0,
+      meaningError INTEGER NOT NULL DEFAULT 0,
+      grammarError INTEGER NOT NULL DEFAULT 0
+    );
+    ```
+  - **`notes` table:**
+    ```sql
+    CREATE TABLE notes(
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT,
+      createdAt TEXT
+    );
+    ```
 
 ### `VocabularyRepository`
-- **Responsibilities:** Direct interaction with the SQLite database for words.
+This class acts as an abstraction layer over the database for all word-related operations. It contains all the SQL queries needed to manage the `words` table.
+- **Responsibilities:**
+  - Perform all CRUD (Create, Read, Update, Delete) operations for words.
+  - Encapsulate all direct database interactions, so the rest of the app doesn't need to know about SQL.
 - **Methods:**
-  - `Future<List<Word>> getAllWords()`: Get all words, sorted alphabetically.
-  - `Future<Word?> getWordById(String id)`: Get a single word.
-  - `Future<bool> addWord(WordData data)`: Add a new word. Return `false` if it already exists. Use `db.insert` with `conflictAlgorithm: ConflictAlgorithm.ignore`.
-  - `Future<void> updateWord(String id, WordUpdates updates)`: Update an existing word. Use `db.update`.
-  - `Future<void> deleteWord(String id)`: Delete a word. Use `db.delete`.
-  - `Future<{int added, int skipped}> addMultipleWords(List<WordData> words)`: Bulk import words using a transaction (`db.transaction`).
+  - `Future<List<Word>> getAllWords()`: Fetches all words from the `words` table, ordered alphabetically by the `word` column. Use `db.query('words', orderBy: 'word ASC')`.
+  - `Future<Word?> getWordById(String id)`: Fetches a single word by its `id`. Use `db.query('words', where: 'id = ?', whereArgs: [id])`.
+  - `Future<bool> addWord(Word word)`: Adds a new word. Use `db.insert('words', word.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore)`. The `ignore` algorithm ensures that if a word with the same `id` already exists, the operation is skipped, preventing duplicates. Returns `true` if the insertion was successful.
+  - `Future<void> updateWord(String id, Map<String, dynamic> updates)`: Updates an existing word's data. Use `db.update('words', updates, where: 'id = ?', whereArgs: [id])`.
+  - `Future<void> deleteWord(String id)`: Deletes a word. Use `db.delete('words', where: 'id = ?', whereArgs: [id])`.
+  - `Future<{int added, int skipped}> addMultipleWords(List<Word> words)`: Bulk imports a list of words. This must be done inside a database transaction (`db.batch()` or `db.transaction()`) for performance and data integrity. For each word, attempt to insert it and track how many were successfully added versus how many were skipped (duplicates).
 
 ### `NotesRepository`
-- **Responsibilities:** Direct interaction with the SQLite database for notes.
-- **Methods:** Similar CRUD operations for `Note` objects using `sqflite`.
+Similar to the `VocabularyRepository`, this class handles all database operations for notes.
+- **Responsibilities:**
+  - Perform all CRUD operations for notes on the `notes` table.
+- **Methods:**
+  - `Future<List<Note>> getAllNotes()`: Fetches all notes, sorted by `createdAt` descending.
+  - `Future<void> addNote(Note note)`: Adds a new note.
+  - `Future<void> updateNote(String id, Map<String, dynamic> updates)`: Updates an existing note.
+  - `Future<void> deleteNote(String id)`: Deletes a note.
 
 ### `VocabularyProvider` & `NotesProvider` (`ChangeNotifier`)
-- These classes will extend `ChangeNotifier`.
-- They will use their respective repositories to fetch and manage data.
-- They hold the application state (e.g., `List<Word> words`, `List<Note> notes`, loading status).
-- Methods like `fetchWords()`, `addWord()`, `deleteNote()` will perform the operation using the repository and then call `notifyListeners()` to update the UI.
+These classes manage the application's state and business logic. They use the repositories to interact with the database and then notify the UI of any changes.
+- **Responsibilities:**
+  - Hold the application's state (e.g., `List<Word> words`, `bool isLoading`).
+  - Expose methods for the UI to call (e.g., `fetchWords()`, `addNewWord()`).
+  - Call the appropriate repository methods to perform data operations.
+  - Call `notifyListeners()` after data changes to trigger UI updates.
+- **Example Flow (`VocabularyProvider`):**
+  1. UI calls `provider.addNewWord(wordData)`.
+  2. The `addNewWord` method creates a `Word` object and calls `_repository.addWord(word)`.
+  3. After the word is added to the database, the provider re-fetches the entire word list by calling `_repository.getAllWords()`.
+  4. The local `_words` list is updated with the new data.
+  5. `notifyListeners()` is called.
+  6. All widgets listening to this provider rebuild to show the updated state.
 
 ---
 
@@ -397,3 +454,5 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
   - `fl_chart`: For charts.
 
 This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database and Provider for state management. Good luck!
+
+    

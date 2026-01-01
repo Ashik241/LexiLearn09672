@@ -353,5 +353,3 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
   - `fl_chart`: For charts.
 
 This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database and Provider for state management. Good luck!
-
-    

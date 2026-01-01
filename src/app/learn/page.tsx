@@ -16,7 +16,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 function LoadingFallback() {
   return (
-    <Card className="w-full max-w-2xl mx-auto mt-8">
+    <Card className="w-full mx-auto mt-8">
       <CardContent className="p-8">
         <Skeleton className="h-8 w-3/4 mb-6" />
         <Skeleton className="h-12 w-full mb-4" />
@@ -59,7 +59,7 @@ function FilterControls() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mb-4">
+    <div className="w-full mx-auto mb-4">
       <Select onValueChange={handleFilterChange} value={currentFilter}>
         <SelectTrigger className="w-full md:w-[280px]">
           <SelectValue placeholder="Filter words by difficulty..." />

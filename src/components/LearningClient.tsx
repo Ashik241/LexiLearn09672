@@ -214,7 +214,7 @@ function LearningClientInternal() {
 
   if (!isInitialized) {
     return (
-      <Card className="w-full max-w-2xl text-center">
+      <Card className="w-full text-center">
         <CardHeader>
           <CardTitle>শব্দভান্ডার লোড হচ্ছে...</CardTitle>
         </CardHeader>
@@ -227,7 +227,7 @@ function LearningClientInternal() {
   
   if (sessionState === 'finished') {
     return (
-       <Card className="w-full max-w-2xl text-center">
+       <Card className="w-full text-center">
         <CardHeader>
           <CardTitle>সেশন সম্পন্ন!</CardTitle>
         </CardHeader>
@@ -246,7 +246,7 @@ function LearningClientInternal() {
 
   if (sessionState === 'loading' && !currentWord) {
      return (
-       <Card className="w-full max-w-2xl text-center">
+       <Card className="w-full text-center">
         <CardHeader>
           <CardTitle>সেশন সম্পন্ন!</CardTitle>
         </CardHeader>
@@ -263,10 +263,10 @@ function LearningClientInternal() {
   }
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full">
       {sessionState === 'testing' && TestComponent}
       {sessionState === 'loading' && ( 
-        <Card className="w-full max-w-2xl text-center">
+        <Card className="w-full text-center">
             <CardHeader>
                 <CardTitle>পরবর্তী শব্দের জন্য প্রস্তুত হচ্ছে...</CardTitle>
             </CardHeader>

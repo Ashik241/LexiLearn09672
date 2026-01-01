@@ -81,7 +81,7 @@ export default function LearnPage() {
   return (
     <main className="flex-1 flex flex-col">
       <Header />
-      <div className="flex-grow container mx-auto p-4 md:p-8 flex flex-col items-center">
+      <div className="flex-grow p-4 md:p-8 flex flex-col items-center">
         <Suspense fallback={<LoadingFallback />}>
           <FilterControls />
           <LearningClient />

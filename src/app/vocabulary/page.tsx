@@ -29,7 +29,7 @@ export default function VocabularyPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      <main className="flex-grow container mx-auto p-4 md:p-8">
+      <main className="flex-grow p-4 md:p-8">
         <Suspense fallback={<Loading />}>
           <VocabularyPageContent />
         </Suspense>

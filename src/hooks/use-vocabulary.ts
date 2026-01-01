@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Word, WordDifficulty, VerbForms, SynonymAntonym } from '@/types';
+import { useEffect } from 'react';
 
 type UpdatePayload = Partial<Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt' | 'spelling_error' | 'meaning_error' | 'grammar_error'>>;
 
@@ -332,9 +333,12 @@ const useVocabularyStore = create<VocabularyState>()(
 export const useVocabulary = () => {
   const store = useVocabularyStore();
   
-  if (typeof window !== 'undefined' && !store.isInitialized) {
-      store.init();
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !store.isInitialized) {
+        store.init();
+    }
+  }, [store.isInitialized, store.init]);
+
 
   return store;
 };

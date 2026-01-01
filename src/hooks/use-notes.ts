@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Note } from '@/types';
+import { useEffect } from 'react';
 
 interface NotesState {
   notes: Note[];
@@ -118,9 +119,11 @@ const useNotesStore = create<NotesState>()(
 export const useNotes = () => {
   const store = useNotesStore();
   
-  if (typeof window !== 'undefined' && !store.isInitialized) {
-      store.init();
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !store.isInitialized) {
+        store.init();
+    }
+  }, [store.isInitialized, store.init]);
 
   // update the return to provide sorted notes
   return {

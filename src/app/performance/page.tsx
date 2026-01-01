@@ -10,7 +10,7 @@ export default function PerformancePage() {
       <main className="flex-grow p-4 md:p-8">
         <div className="space-y-8">
             <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight font-headline">পারফরম্যান্স ড্যাশবোর্ড</h1>
+                <h1 className="text-3xl font-bold tracking-tight font-headline">Performance Dashboard</h1>
                 <p className="text-muted-foreground">আপনার ভুলের ধরন বিশ্লেষণ করুন এবং দুর্বলতা খুঁজে বের করুন।</p>
             </div>
             <PerformanceDashboard />

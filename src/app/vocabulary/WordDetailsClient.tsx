@@ -143,10 +143,10 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
     return (
         <Card>
             <CardHeader>
-            <CardTitle>শব্দ পাওয়া যায়নি</CardTitle>
+            <CardTitle>Word Not Found</CardTitle>
             </CardHeader>
             <CardContent>
-            <p>দুঃখিত, এই শব্দটি ("{word?.word}") আপনার শব্দভান্ডারে পাওয়া যায়নি।</p>
+            <p>Sorry, the word "{word?.word}" was not found in your vocabulary.</p>
             </CardContent>
         </Card>
     );
@@ -173,8 +173,8 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
                 <PopoverContent className="w-60">
                     <div className="grid gap-4">
                     <div className="space-y-2">
-                        <h4 className="font-medium leading-none">উচ্চারণ নিয়ন্ত্রণ</h4>
-                        <p className="text-sm text-muted-foreground">অ্যাক্সেন্ট, গতি এবং ভলিউম সামঞ্জস্য করুন।</p>
+                        <h4 className="font-medium leading-none">Pronunciation Control</h4>
+                        <p className="text-sm text-muted-foreground">Adjust accent, speed, and volume.</p>
                     </div>
                     <div className="grid gap-2">
                         <RadioGroup value={accent} onValueChange={(value: Accent) => setAccent(value)} className="flex gap-4 pt-2">
@@ -189,11 +189,11 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
                         </RadioGroup>
                         <Separator className="my-2" />
                         <div>
-                            <Label htmlFor="rate-slider">গতি</Label>
+                            <Label htmlFor="rate-slider">Speed</Label>
                             <Slider id="rate-slider" min={0.5} max={2} step={0.1} value={rate} onValueChange={setRate} />
                         </div>
                         <div>
-                            <Label htmlFor="volume-slider">ভলিউম</Label>
+                            <Label htmlFor="volume-slider">Volume</Label>
                             <Slider id="volume-slider" min={0} max={1} step={0.1} value={volume} onValueChange={setVolume} />
                         </div>
                     </div>
@@ -206,27 +206,27 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
         </CardHeader>
         <CardContent className="space-y-6">
         <div>
-            <h3 className="text-xl font-semibold mb-2">অর্থ (বাংলা)</h3>
+            <h3 className="text-xl font-semibold mb-2">Meaning (Bangla)</h3>
             <p className="text-muted-foreground break-words">{word.meaning}</p>
         </div>
         
         {word.meaning_explanation && (
             <div className="bg-card-foreground/5 p-4 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">অর্থের ব্যাখ্যা</h3>
+            <h3 className="text-xl font-semibold mb-2">Meaning Explanation</h3>
             <p className="text-muted-foreground italic break-words">"{word.meaning_explanation}"</p>
             </div>
         )}
         
         {word.usage_distinction && (
             <div className="bg-card-foreground/5 p-4 rounded-lg">
-                <h3 className="text-xl font-semibold mb-2">ব্যবহারের পার্থক্য</h3>
+                <h3 className="text-xl font-semibold mb-2">Usage Distinction</h3>
                 <p className="text-muted-foreground italic break-words">"{word.usage_distinction}"</p>
             </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <h3 className="text-xl font-semibold mb-2">সিলেবল</h3>
+                <h3 className="text-xl font-semibold mb-2">Syllables</h3>
                 <p className="text-muted-foreground font-code break-words">{word.syllables?.join(' · ')}</p>
             </div>
         </div>
@@ -236,7 +236,7 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {word.synonyms && word.synonyms.length > 0 &&
                     <div>
-                        <h3 className="text-xl font-semibold mb-2">Synonyms (সমার্থক শব্দ)</h3>
+                        <h3 className="text-xl font-semibold mb-2">Synonyms</h3>
                         <div className="flex flex-wrap gap-2">
                             {word.synonyms.map((s, i) => (
                             <Badge key={`${s.word}-${i}`} variant="secondary" className="cursor-pointer flex-col items-start h-auto p-2" onClick={() => speak(s.word)}>
@@ -249,7 +249,7 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
                 }
                 {word.antonyms && word.antonyms.length > 0 &&
                     <div>
-                        <h3 className="text-xl font-semibold mb-2">Antonyms (বিপরীতার্থক শব্দ)</h3>
+                        <h3 className="text-xl font-semibold mb-2">Antonyms</h3>
                         <div className="flex flex-wrap gap-2">
                             {word.antonyms.map((a, i) => (
                             <Badge key={`${a.word}-${i}`} variant="outline" className="cursor-pointer flex-col items-start h-auto p-2" onClick={() => speak(a.word)}>
@@ -265,7 +265,7 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
 
         {word.example_sentences && word.example_sentences.length > 0 && (
             <div>
-            <h3 className="text-xl font-semibold mb-2">সাধারণ উদাহরণ</h3>
+            <h3 className="text-xl font-semibold mb-2">Example Sentences</h3>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                 {word.example_sentences.map((sentence, i) => (
                 <li key={i} className="break-words">"{sentence}"</li>
@@ -277,7 +277,7 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
         {isVerb && word.verb_forms && (
             <div>
                 <Separator className="my-6" />
-                <h3 className="text-2xl font-bold font-headline mb-4">Verb Forms (ক্রিয়ার রূপ)</h3>
+                <h3 className="text-2xl font-bold font-headline mb-4">Verb Forms</h3>
                 <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>

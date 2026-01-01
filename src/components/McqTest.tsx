@@ -156,7 +156,7 @@ export default function McqTest({ word, onComplete, testType }: McqTestProps) {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">{quiz.question}</CardTitle>
-        <CardDescription>সঠিক উত্তরটি নির্বাচন করুন।</CardDescription>
+        <CardDescription>Select the correct answer.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {quiz.options.map((option, index) => (
@@ -178,7 +178,7 @@ export default function McqTest({ word, onComplete, testType }: McqTestProps) {
       </CardContent>
       <CardFooter>
         <Button onClick={handleSubmit} disabled={selectedOption === null || isSubmitted} className="ml-auto">
-          জমা দিন
+          Submit
         </Button>
       </CardFooter>
     </Card>

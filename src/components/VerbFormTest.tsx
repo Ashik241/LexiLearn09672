@@ -57,7 +57,7 @@ export default function VerbFormTest({ word, onComplete }: VerbFormTestProps) {
         <div className="flex justify-between items-center">
             <div>
                 <CardTitle className="font-headline text-2xl">Verb Form Test</CardTitle>
-                <CardDescription>"{word.word}" ক্রিয়ার সঠিক Past (V2) এবং Past Participle (V3) ফর্ম লিখুন।</CardDescription>
+                <CardDescription>Write the correct Past (V2) and Past Participle (V3) forms of "{word.word}".</CardDescription>
             </div>
             <SquareFunction className="w-8 h-8 text-primary" />
         </div>
@@ -104,7 +104,7 @@ export default function VerbFormTest({ word, onComplete }: VerbFormTestProps) {
             </CardContent>
             <CardFooter>
             <Button type="submit" disabled={isSubmitted} className="ml-auto">
-                জমা দিন
+                Submit
             </Button>
             </CardFooter>
         </form>

@@ -33,22 +33,22 @@ export function Header() {
                     <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" onClick={() => setIsAddWordOpen(true)}>
                             <FilePlus className="h-5 w-5" />
-                            <span className="sr-only">নতুন শব্দ যোগ করুন</span>
+                            <span className="sr-only">Add New Word</span>
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>নতুন শব্দ যোগ করুন</p>
+                        <p>Add New Word</p>
                     </TooltipContent>
                 </Tooltip>
                  <Tooltip>
                     <TooltipTrigger asChild>
                        <Button variant="ghost" size="icon" onClick={() => setIsAddNoteOpen(true)}>
                             <NotebookPen className="h-5 w-5" />
-                            <span className="sr-only">নতুন নোট যোগ করুন</span>
+                            <span className="sr-only">Add New Note</span>
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>নতুন নোট যোগ করুন</p>
+                        <p>Add New Note</p>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>

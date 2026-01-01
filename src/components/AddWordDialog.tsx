@@ -227,13 +227,13 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
 
       if (isEditMode && wordToEdit) {
         updateWord(wordToEdit.id, wordPayload);
-        toast({ title: 'শব্দ আপডেট হয়েছে', description: `"${values.word}" শব্দটি আপডেট করা হয়েছে।` });
+        toast({ title: 'Word Updated', description: `"${values.word}" has been updated.` });
       } else {
         const success = addWord(wordPayload);
         if (success) {
-          toast({ title: 'শব্দ যোগ করা হয়েছে', description: `"${values.word}" আপনার শব্দভান্ডারে যোগ করা হয়েছে।` });
+          toast({ title: 'Word Added', description: `"${values.word}" has been added to your vocabulary.` });
         } else {
-          toast({ variant: 'destructive', title: 'ত্রুটি', description: `"${values.word}" শব্দটি ইতিমধ্যে বিদ্যমান।` });
+          toast({ variant: 'destructive', title: 'Error', description: `The word "${values.word}" already exists.` });
         }
       }
 
@@ -241,7 +241,7 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: 'ত্রুটি', description: isEditMode ? 'শব্দটি আপডেট করা যায়নি।' : 'শব্দটি যোগ করা যায়নি।' });
+      toast({ variant: 'destructive', title: 'Error', description: isEditMode ? 'Failed to update word.' : 'Failed to add word.' });
     } finally { setIsLoading(false); }
   };
 
@@ -264,13 +264,13 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
       }));
 
       const { addedCount, skippedCount } = addMultipleWords(wordsToImport);
-      toast({ title: "ইম্পোর্ট সম্পন্ন", description: `${addedCount}টি নতুন শব্দ যোগ করা হয়েছে। ${skippedCount}টি শব্দ আগে থেকেই ছিল।` });
+      toast({ title: "Import Complete", description: `${addedCount} new words added. ${skippedCount} words were duplicates and skipped.` });
 
       bulkImportForm.reset();
       onOpenChange(false);
     } catch (error: any) {
       console.error(error);
-      toast({ variant: "destructive", title: "JSON ইম্পোর্ট ত্রুটি", description: error.message || "অনুগ্রহ করে সঠিক JSON ফরম্যাট চেক করুন।" });
+      toast({ variant: "destructive", title: "JSON Import Error", description: error.message || "Please check the JSON format." });
     } finally { setIsLoading(false); }
   };
 
@@ -287,15 +287,15 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md md:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'শব্দ সম্পাদনা করুন' : 'নতুন শব্দ যোগ করুন'}</DialogTitle>
-          {!isEditMode && <DialogDescription>একটি নতুন শব্দ যোগ করুন অথবা JSON ব্যবহার করে একসাথে অনেক শব্দ ইম্পোর্ট করুন।</DialogDescription>}
+          <DialogTitle>{isEditMode ? 'Edit Word' : 'Add New Word'}</DialogTitle>
+          {!isEditMode && <DialogDescription>Add a single word or bulk import from JSON.</DialogDescription>}
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {!isEditMode && (
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="single">একটি শব্দ যোগ করুন</TabsTrigger>
-              <TabsTrigger value="bulk">JSON থেকে ইম্পোর্ট</TabsTrigger>
+              <TabsTrigger value="single">Add Single Word</TabsTrigger>
+              <TabsTrigger value="bulk">Import from JSON</TabsTrigger>
             </TabsList>
           )}
 
@@ -426,7 +426,7 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
 
                 <DialogFooter>
                   <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (isEditMode ? 'আপডেট করা হচ্ছে...' : 'যোগ করা হচ্ছে...') : (isEditMode ? 'শব্দ আপডেট করুন' : 'শব্দ যোগ করুন')}
+                    {isLoading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Word' : 'Add Word')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -441,7 +441,7 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                   name="json"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>JSON ডেটা</FormLabel>
+                      <FormLabel>JSON Data</FormLabel>
                       <FormControl>
                         <Textarea placeholder='[{"word": "example", "meaning": "উদাহরণ", ...}]' className="min-h-[250px] font-code text-xs" {...field} />
                       </FormControl>
@@ -450,7 +450,7 @@ export function AddWordDialog({ isOpen, onOpenChange, wordToEdit }: AddWordDialo
                   )}
                 />
                 <DialogFooter>
-                  <Button type="submit" disabled={isLoading}>{isLoading ? 'ইম্পোর্ট করা হচ্ছে...' : 'শব্দগুলো যোগ করুন'}</Button>
+                  <Button type="submit" disabled={isLoading}>{isLoading ? 'Importing...' : 'Add Words'}</Button>
                 </DialogFooter>
               </form>
             </Form>

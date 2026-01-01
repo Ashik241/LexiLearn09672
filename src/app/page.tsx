@@ -24,7 +24,7 @@ function QuickActions() {
             </CardHeader>
             <CardContent>
                 <Button asChild disabled={words.filter(w => ['Hard', 'Medium'].includes(w.difficulty_level)).length === 0}>
-                    <Link href="/learn">রিভিশন করুন</Link>
+                    <Link href="/learn">Revision</Link>
                 </Button>
             </CardContent>
         </Card>
@@ -39,7 +39,7 @@ function QuickActions() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline">
-              <Link href="/vocabulary">শব্দভান্ডার দেখুন</Link>
+              <Link href="/vocabulary">Words list</Link>
             </Button>
           </CardContent>
         </Card>
@@ -56,12 +56,12 @@ export default function DashboardPage() {
       <main className="flex-grow p-4 md:p-8">
         <div className="space-y-8">
             <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight font-headline">ড্যাশবোর্ড</h1>
+                <h1 className="text-3xl font-bold tracking-tight font-headline">Dashboard</h1>
                 <p className="text-muted-foreground">আপনার শেখার অগ্রগতি এবং পরিসংখ্যান এক নজরে দেখুন।</p>
             </div>
             <DashboardStats />
             <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight font-headline">দ্রুত কার্যক্রম</h2>
+                <h2 className="text-2xl font-bold tracking-tight font-headline">Quick Actions</h2>
                 <p className="text-muted-foreground">এখান থেকে দ্রুত আপনার প্রয়োজনীয় কাজগুলো শুরু করুন।</p>
             </div>
             <QuickActions />

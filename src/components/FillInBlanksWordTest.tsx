@@ -59,8 +59,8 @@ export default function FillInBlanksWordTest({ word, onComplete }: FillInBlanksW
       <CardHeader>
         <div className="flex justify-between items-center">
             <div>
-                <CardTitle className="font-headline text-2xl">শব্দটি সম্পূর্ণ করুন</CardTitle>
-                <CardDescription>খালি স্থান পূরণ করে সঠিক শব্দটি লিখুন।</CardDescription>
+                <CardTitle className="font-headline text-2xl">Complete the Word</CardTitle>
+                <CardDescription>Fill in the blanks to write the correct word.</CardDescription>
             </div>
             <BrainCircuit className="w-8 h-8 text-primary" />
         </div>
@@ -70,12 +70,12 @@ export default function FillInBlanksWordTest({ word, onComplete }: FillInBlanksW
             <div className="p-8 rounded-lg bg-card-foreground/10 text-center">
                 <p className="text-3xl font-bold font-code tracking-widest text-primary">{blankedWord}</p>
             </div>
-            <p className="text-center text-muted-foreground">উপরের অসম্পূর্ণ শব্দটি সম্পূর্ণ করুন।</p>
+            <p className="text-center text-muted-foreground">Complete the word above.</p>
           <div>
             <Input
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              placeholder="এখানে শব্দটি টাইপ করুন..."
+              placeholder="Type the word here..."
               className="text-center text-lg h-14"
               disabled={isSubmitted}
               aria-label="Your answer"
@@ -84,7 +84,7 @@ export default function FillInBlanksWordTest({ word, onComplete }: FillInBlanksW
         </CardContent>
         <CardFooter>
           <Button type="submit" disabled={!answer.trim() || isSubmitted} className="ml-auto">
-            জমা দিন
+            Submit
           </Button>
         </CardFooter>
       </form>

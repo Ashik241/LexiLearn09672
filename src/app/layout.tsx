@@ -24,11 +24,11 @@ export const viewport: Viewport = {
 
 
 const navItems = [
-  { href: '/', label: 'ড্যাশবোর্ড', icon: Home },
-  { href: '/vocabulary', label: 'শব্দভান্ডার', icon: List },
-  { href: '/learn', label: 'শিখুন', icon: BarChart3 },
-  { href: '/performance', label: 'পারফরম্যান্স', icon: Activity },
-  { href: '/notes', label: 'নোট', icon: Notebook },
+  { href: '/', label: 'Dashboard', icon: Home },
+  { href: '/vocabulary', label: 'Words List', icon: List },
+  { href: '/learn', label: 'Exam', icon: BarChart3 },
+  { href: '/performance', label: 'Performance', icon: Activity },
+  { href: '/notes', label: 'Notes', icon: Notebook },
 ];
 
 function AppSidebar() {

@@ -46,10 +46,10 @@ export function NoteDetailsClient({ noteId }: { noteId: string }) {
         return (
              <Card>
                 <CardHeader>
-                    <CardTitle>নোট পাওয়া যায়নি</CardTitle>
+                    <CardTitle>Note Not Found</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p>দুঃখিত, এই নোটটি ("{decodedNoteId}") আপনার তালিকায় পাওয়া যায়নি।</p>
+                    <p>Sorry, the note "{decodedNoteId}" was not found in your list.</p>
                      <Button onClick={() => router.back()} className="mt-4">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Go Back

@@ -52,10 +52,10 @@ export default function FillInBlanksSentenceTest({ word, onComplete }: FillInBla
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>ত্রুটি</CardTitle>
+                <CardTitle>Error</CardTitle>
             </CardHeader>
             <CardContent>
-                <p>এই শব্দের জন্য কোনো উপযুক্ত উদাহরণ বাক্য পাওয়া যায়নি।</p>
+                <p>No suitable example sentence found for this word.</p>
             </CardContent>
         </Card>
     )
@@ -66,8 +66,8 @@ export default function FillInBlanksSentenceTest({ word, onComplete }: FillInBla
       <CardHeader>
         <div className="flex justify-between items-center">
             <div>
-                <CardTitle className="font-headline text-2xl">শূন্যস্থান পূরণ করুন</CardTitle>
-                <CardDescription>সঠিক শব্দটি দিয়ে নিচের বাক্যটি সম্পূর্ণ করুন।</CardDescription>
+                <CardTitle className="font-headline text-2xl">Fill in the Blank</CardTitle>
+                <CardDescription>Complete the sentence with the correct word.</CardDescription>
             </div>
             <Pilcrow className="w-8 h-8 text-primary" />
         </div>
@@ -79,12 +79,12 @@ export default function FillInBlanksSentenceTest({ word, onComplete }: FillInBla
                     "{quizSentence.sentence}"
                 </p>
             </div>
-            <p className="text-center text-muted-foreground">বাক্যের শূন্যস্থানটি সঠিক ইংরেজি শব্দ দিয়ে পূরণ করুন।</p>
+            <p className="text-center text-muted-foreground">Fill in the blank with the correct English word.</p>
           <div>
             <Input
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              placeholder="এখানে শব্দটি টাইপ করুন..."
+              placeholder="Type the word here..."
               className="text-center text-lg h-14"
               disabled={isSubmitted}
               aria-label="Your answer"
@@ -93,7 +93,7 @@ export default function FillInBlanksSentenceTest({ word, onComplete }: FillInBla
         </CardContent>
         <CardFooter>
           <Button type="submit" disabled={!answer.trim() || isSubmitted} className="ml-auto">
-            জমা দিন
+            Submit
           </Button>
         </CardFooter>
       </form>

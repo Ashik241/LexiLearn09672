@@ -95,8 +95,8 @@ function NotesList() {
         if(noteToDelete) {
             deleteNote(noteToDelete.id);
             toast({
-                title: "নোট মুছে ফেলা হয়েছে",
-                description: `"${noteToDelete.title}" আপনার তালিকা থেকে মুছে ফেলা হয়েছে।`,
+                title: "Note Deleted",
+                description: `"${noteToDelete.title}" has been deleted from your list.`,
             });
             setNoteToDelete(null);
         }
@@ -108,15 +108,15 @@ function NotesList() {
         <>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight font-headline">নোট</h1>
-                    <p className="text-muted-foreground">আপনার ব্যক্তিগত নোট এখানে পরিচালনা করুন।</p>
+                    <h1 className="text-3xl font-bold tracking-tight font-headline">Notes</h1>
+                    <p className="text-muted-foreground">Manage your personal notes here.</p>
                 </div>
             </div>
             
             <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                    placeholder="নোট খুঁজুন..."
+                    placeholder="Search notes..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -158,12 +158,12 @@ function NotesList() {
                             <Notebook className="w-10 h-10 text-primary" />
                         </div>
                         <CardTitle className="mt-4">
-                            {searchQuery ? "কোনো নোট পাওয়া যায়নি" : "এখনও কোনো নোট নেই"}
+                            {searchQuery ? "No Notes Found" : "No Notes Yet"}
                         </CardTitle>
                         <CardDescription>
                             {searchQuery 
-                                ? "আপনার সার্চের সাথে মেলে এমন কোনো নোট পাওয়া যায়নি।" 
-                                : "নতুন নোট যোগ করে শুরু করুন।"}
+                                ? "Your search did not match any notes." 
+                                : "Get started by adding a new note."}
                         </CardDescription>
                     </CardHeader>
                 </Card>

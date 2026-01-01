@@ -84,13 +84,13 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
     try {
       if (isEditMode && noteToEdit) {
         updateNote(noteToEdit.id, values);
-        toast({ title: 'নোট আপডেট হয়েছে', description: `"${values.title}" নোটটি আপডেট করা হয়েছে।` });
+        toast({ title: 'Note Updated', description: `"${values.title}" has been updated.` });
       } else {
         const success = addNote(values);
         if (success) {
-          toast({ title: 'নোট যোগ করা হয়েছে', description: `"${values.title}" আপনার তালিকায় যোগ করা হয়েছে।` });
+          toast({ title: 'Note Added', description: `"${values.title}" has been added to your list.` });
         } else {
-          toast({ variant: 'destructive', title: 'ত্রুটি', description: `এই শিরোনামের একটি নোট ইতিমধ্যে বিদ্যমান।` });
+          toast({ variant: 'destructive', title: 'Error', description: `A note with this title already exists.` });
         }
       }
 
@@ -98,7 +98,7 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: 'ত্রুটি', description: isEditMode ? 'নোটটি আপডেট করা যায়নি।' : 'নোটটি যোগ করা যায়নি।' });
+      toast({ variant: 'destructive', title: 'Error', description: isEditMode ? 'Failed to update note.' : 'Failed to add note.' });
     } finally { setIsLoading(false); }
   };
 
@@ -148,13 +148,13 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
       }).filter(Boolean);
 
       const { addedCount, skippedCount } = addMultipleNotes(notesToImport as {title: string; content: string}[]);
-      toast({ title: "ইম্পোর্ট সম্পন্ন", description: `${addedCount}টি নতুন নোট যোগ করা হয়েছে। ${skippedCount}টি নোট আগে থেকেই ছিল।` });
+      toast({ title: "Import Complete", description: `${addedCount} new notes added. ${skippedCount} notes were duplicates and skipped.` });
 
       bulkImportForm.reset();
       onOpenChange(false);
     } catch (error: any) {
       console.error(error);
-      toast({ variant: "destructive", title: "JSON ইম্পোর্ট ত্রুটি", description: error.message || "অনুগ্রহ করে সঠিক JSON ফরম্যাট চেক করুন।" });
+      toast({ variant: "destructive", title: "JSON Import Error", description: error.message || "Please check the JSON format." });
     } finally { setIsLoading(false); }
   };
 
@@ -171,15 +171,15 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md md:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'নোট সম্পাদনা করুন' : 'নতুন নোট যোগ করুন'}</DialogTitle>
-          {!isEditMode && <DialogDescription>একটি নতুন নোট যোগ করুন অথবা JSON ব্যবহার করে একসাথে অনেক নোট ইম্পোর্ট করুন।</DialogDescription>}
+          <DialogTitle>{isEditMode ? 'Edit Note' : 'Add New Note'}</DialogTitle>
+          {!isEditMode && <DialogDescription>Add a single note or bulk import from JSON.</DialogDescription>}
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {!isEditMode && (
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="single">একটি নোট যোগ করুন</TabsTrigger>
-              <TabsTrigger value="bulk">JSON থেকে ইম্পোর্ট</TabsTrigger>
+              <TabsTrigger value="single">Add Single Note</TabsTrigger>
+              <TabsTrigger value="bulk">Import from JSON</TabsTrigger>
             </TabsList>
           )}
 
@@ -202,7 +202,7 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
                 )} />
                 <DialogFooter>
                   <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (isEditMode ? 'আপডেট করা হচ্ছে...' : 'যোগ করা হচ্ছে...') : (isEditMode ? 'নোট আপডেট করুন' : 'নোট যোগ করুন')}
+                    {isLoading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Note' : 'Add Note')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -217,7 +217,7 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
                   name="json"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>JSON ডেটা</FormLabel>
+                      <FormLabel>JSON Data</FormLabel>
                       <FormControl>
                         <Textarea placeholder='[{"title": "My Note", "content": "Details here..."}, ...]' className="min-h-[250px] font-code text-xs" {...field} />
                       </FormControl>
@@ -226,7 +226,7 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
                   )}
                 />
                 <DialogFooter>
-                  <Button type="submit" disabled={isLoading}>{isLoading ? 'ইম্পোর্ট করা হচ্ছে...' : 'নোটগুলো যোগ করুন'}</Button>
+                  <Button type="submit" disabled={isLoading}>{isLoading ? 'Importing...' : 'Add Notes'}</Button>
                 </DialogFooter>
               </form>
             </Form>

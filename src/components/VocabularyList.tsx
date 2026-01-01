@@ -136,7 +136,7 @@ export function VocabularyList() {
         if (learnedFilter === 'true') {
             return 'Learned Words';
         }
-        return 'শব্দভান্ডার';
+        return 'Words List';
     }, [difficultyFilter, dateFilter, learnedFilter]);
     
     if (!isInitialized) {
@@ -146,7 +146,7 @@ export function VocabularyList() {
                     <CardTitle className="font-headline">{title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p>লোড হচ্ছে...</p>
+                    <p>Loading...</p>
                 </CardContent>
             </Card>
         );
@@ -160,7 +160,7 @@ export function VocabularyList() {
                 </CardHeader>
                 <CardContent className="text-center py-12">
                     <p className="text-muted-foreground mb-4">
-                        এখনও কোনো শব্দ যোগ করা হয়নি।
+                        No words added yet.
                     </p>
                 </CardContent>
             </Card>
@@ -175,8 +175,8 @@ export function VocabularyList() {
         if (wordToDelete) {
             deleteWord(wordToDelete.id);
             toast({
-                title: "শব্দ মুছে ফেলা হয়েছে",
-                description: `"${wordToDelete.word}" আপনার তালিকা থেকে মুছে ফেলা হয়েছে।`,
+                title: "Word Deleted",
+                description: `"${wordToDelete.word}" has been deleted from your vocabulary.`,
             });
             setWordToDelete(null);
         }
@@ -258,7 +258,7 @@ export function VocabularyList() {
                 <CardContent>
                     {words.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-muted-foreground">আপনার সার্চ বা ফিল্টারের সাথে মেলে এমন কোনো শব্দ পাওয়া যায়নি।</p>
+                            <p className="text-muted-foreground">No words found matching your search or filter.</p>
                             { (difficultyFilter || dateFilter || learnedFilter || searchQuery || posFilter !== 'all') && (
                                  <Button asChild variant="outline" className="mt-4">
                                     <Link href="/vocabulary" onClick={() => { setSearchQuery(''); setPosFilter('all'); }}>Clear Filters & Search</Link>
@@ -270,11 +270,11 @@ export function VocabularyList() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>শব্দ</TableHead>
-                                        <TableHead>অর্থ</TableHead>
-                                        <TableHead>পদ</TableHead>
-                                        <TableHead className="text-center">স্তর</TableHead>
-                                        <TableHead className="text-right w-[80px]">সম্পাদনা</TableHead>
+                                        <TableHead>Word</TableHead>
+                                        <TableHead>Meaning</TableHead>
+                                        <TableHead>Part of Speech</TableHead>
+                                        <TableHead className="text-center">Level</TableHead>
+                                        <TableHead className="text-right w-[80px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>

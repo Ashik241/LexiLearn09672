@@ -156,7 +156,7 @@ function LearningClientInternal() {
        setCurrentWord(null);
        setTestType(null);
        setSessionState('finished'); 
-       toast({ title: "সেশন সম্পন্ন!", description: "এই তালিকার সব শব্দ পর্যালোচনা করা হয়েছে।" });
+       toast({ title: "Session Complete!", description: "All words in this list have been reviewed." });
     }
     setIsLoadingNext(false);
   }, [getWordForSession, difficultyFilter, forcedTestType, dateFilter, toast, getSessionFilter]);
@@ -191,7 +191,7 @@ function LearningClientInternal() {
       const errorType = getErrorTypeForTest(testType);
       if (errorType === 'spelling_error' && currentWord.spelling_error > 0) {
         updates.spelling_error = 0; // Reset spelling error count on correct spelling
-        toast({ title: "বানান সঠিক!", description: `"${currentWord.word}" শব্দের জন্য ভুলের সংখ্যা রিসেট করা হয়েছে।` });
+        toast({ title: "Spelling Corrected!", description: `Error count for "${currentWord.word}" has been reset.` });
       }
 
     } else {
@@ -249,10 +249,10 @@ function LearningClientInternal() {
     return (
       <Card className="w-full text-center">
         <CardHeader>
-          <CardTitle>শব্দভান্ডার লোড হচ্ছে...</CardTitle>
+          <CardTitle>Loading Vocabulary...</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>আপনার শেখার সেশন প্রস্তুত করার সময় দয়া করে অপেক্ষা করুন।</p>
+          <p>Please wait while we prepare your learning session.</p>
         </CardContent>
       </Card>
     );
@@ -262,14 +262,14 @@ function LearningClientInternal() {
     return (
        <Card className="w-full text-center">
         <CardHeader>
-          <CardTitle>সেশন সম্পন্ন!</CardTitle>
+          <CardTitle>Session Complete!</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">আপনি এই তালিকার সমস্ত শব্দ পর্যালোচনা করেছেন। চালিয়ে যেতে চান?</p>
+          <p className="mb-4">You have reviewed all words in this list. Want to go again?</p>
           <div className="flex gap-4 justify-center">
-            <Button onClick={handleRestart}>আবার শুরু করুন</Button>
+            <Button onClick={handleRestart}>Start Over</Button>
             <Link href="/" passHref>
-              <Button variant="outline">ড্যাশবোর্ডে ফিরে যান</Button>
+              <Button variant="outline">Back to Dashboard</Button>
             </Link>
           </div>
         </CardContent>
@@ -281,13 +281,13 @@ function LearningClientInternal() {
      return (
        <Card className="w-full text-center">
         <CardHeader>
-          <CardTitle>সেশন সম্পন্ন!</CardTitle>
+          <CardTitle>Session Complete!</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">এই ফিল্টারে কোনো শব্দ পাওয়া যায়নি।</p>
+          <p className="mb-4">No words found for this filter.</p>
           <div className="flex gap-4 justify-center">
             <Link href="/" passHref>
-              <Button variant="outline">ড্যাশবোর্ডে ফিরে যান</Button>
+              <Button variant="outline">Back to Dashboard</Button>
             </Link>
           </div>
         </CardContent>
@@ -301,10 +301,10 @@ function LearningClientInternal() {
       {sessionState === 'loading' && ( 
         <Card className="w-full text-center">
             <CardHeader>
-                <CardTitle>পরবর্তী শব্দের জন্য প্রস্তুত হচ্ছে...</CardTitle>
+                <CardTitle>Preparing Next Word...</CardTitle>
             </CardHeader>
             <CardContent>
-                <p>অনুগ্রহ করে অপেক্ষা করুন...</p>
+                <p>Please wait...</p>
                 <div className="flex justify-center items-center p-8">
                     <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
@@ -331,5 +331,3 @@ export function LearningClient() {
     </Suspense>
   )
 }
-
-    

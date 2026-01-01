@@ -37,8 +37,8 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
     if (typeof window.speechSynthesis === 'undefined') {
       toast({
         variant: 'destructive',
-        title: 'TTS সমর্থিত নয়',
-        description: 'আপনার ব্রাউজার টেক্সট-টু-স্পিচ সমর্থন করে না।',
+        title: 'TTS Not Supported',
+        description: 'Your browser does not support text-to-speech.',
       });
       return;
     }
@@ -114,8 +114,8 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
       <CardHeader>
         <div className="flex justify-between items-center">
             <div>
-                <CardTitle className="font-headline text-2xl">বানান পরীক্ষা</CardTitle>
-                <CardDescription>আপনার পছন্দের মোড নির্বাচন করুন এবং উত্তর দিন।</CardDescription>
+                <CardTitle className="font-headline text-2xl">Spelling Test</CardTitle>
+                <CardDescription>Select your preferred mode and provide the answer.</CardDescription>
             </div>
             <BrainCircuit className="w-8 h-8 text-primary" />
         </div>
@@ -128,11 +128,11 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
             }} className="flex justify-center gap-4 p-4 rounded-lg bg-card-foreground/5">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="meaning" id="mode-meaning" />
-                <Label htmlFor="mode-meaning">অর্থ দেখে লিখুন</Label>
+                <Label htmlFor="mode-meaning">Write from Meaning</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="listen" id="mode-listen" />
-                <Label htmlFor="mode-listen">শুনে লিখুন</Label>
+                <Label htmlFor="mode-listen">Write from Listening</Label>
               </div>
             </RadioGroup>
 
@@ -153,7 +153,7 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
                     variant="outline"
                     size="icon"
                     onClick={() => speak(accent)}
-                    aria-label="শব্দটি শুনুন"
+                    aria-label="Listen to the word"
                     >
                     <Volume2 className="h-6 w-6" />
                 </Button>
@@ -161,13 +161,13 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
           ) : (
             <div className="space-y-4">
                 <div className="p-4 rounded-lg bg-card-foreground/10 text-center">
-                    <p className="text-sm text-muted-foreground">এই বাংলা অর্থের ইংরেজি শব্দটি লিখুন:</p>
+                    <p className="text-sm text-muted-foreground">Write the English word for this meaning:</p>
                     <p className="text-xl font-semibold text-primary mt-1">"{word.meaning}"</p>
                 </div>
                 {word.meaning_explanation && (
                      <div className="p-4 rounded-lg bg-card-foreground/5 text-sm text-muted-foreground text-left space-y-3">
                         <div>
-                            <h4 className="font-semibold text-foreground mb-1">অর্থের ব্যাখ্যা</h4>
+                            <h4 className="font-semibold text-foreground mb-1">Meaning Explanation</h4>
                             <p className="italic">"{word.meaning_explanation}"</p>
                         </div>
                     </div>
@@ -180,7 +180,7 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
               ref={inputRef}
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              placeholder="এখানে শব্দটি টাইপ করুন..."
+              placeholder="Type the word here..."
               className="text-center text-lg h-14"
               disabled={isSubmitted}
               aria-label="Your answer"
@@ -189,7 +189,7 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
         </CardContent>
         <CardFooter>
           <Button type="submit" disabled={!answer.trim() || isSubmitted} className="ml-auto">
-            জমা দিন
+            Submit
           </Button>
         </CardFooter>
       </form>

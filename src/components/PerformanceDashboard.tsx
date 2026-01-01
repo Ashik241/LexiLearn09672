@@ -214,13 +214,13 @@ export function PerformanceDashboard() {
               <CardTitle>Hardest Words</CardTitle>
               <CardDescription>সবচেয়ে বেশি ভুল করা শব্দগুলো।</CardDescription>
           </CardHeader>
-          <Link href="/vocabulary?difficulty=Hard" className="flex flex-col flex-grow">
+          <Link href="/performance/hardest-words" className="flex flex-col flex-grow">
             <CardContent className="flex-grow hover:bg-card-foreground/5 transition-colors rounded-md">
                 <HardestWordsList />
             </CardContent>
           </Link>
           <CardFooter>
-                <Button asChild className="w-full">
+              <Button asChild className="w-full">
                   <Link href="/learn?difficulty=Hard">
                       <BookCheck className="mr-2 h-4 w-4" />
                       Exam

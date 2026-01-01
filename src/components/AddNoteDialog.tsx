@@ -113,14 +113,36 @@ export function AddNoteDialog({ isOpen, onOpenChange, noteToEdit }: AddNoteDialo
       
       const notesToImport = parsedJson.map((item: any) => {
         // Handle simple format
-        if (typeof item === 'object' && item !== null && item.title && item.content) {
+        if (typeof item === 'object' && item !== null && item.title && item.content && !item.topic_name) {
           return { title: item.title, content: item.content };
         }
-        // Handle complex grammar format
+        
+        // Handle complex grammar format with rich text formatting
         if (typeof item === 'object' && item !== null && item.topic_name) {
-          const { topic_name, id, ...rest } = item;
-          const content = `Category: ${item.category}\nSummary: ${item.summary}\nShort Trick: ${item.short_trick}\n\nDetails:\n${JSON.stringify(item.details, null, 2)}`;
-          return { title: topic_name, content: content };
+          const { topic_name, category, summary, short_trick, details } = item;
+          let content = `Category: ${category}\n\n`;
+          content += `Summary:\n${summary}\n\n`;
+          content += `Short Trick:\n${short_trick}\n\n`;
+          
+          if(details && Array.isArray(details)) {
+              content += '--------------------\n\n';
+              content += 'Details:\n\n';
+              details.forEach((detail: any) => {
+                  content += `### ${detail.title} ###\n`;
+                  content += `${detail.description}\n`;
+                  if(detail.formula) content += `Formula: ${detail.formula}\n`;
+                  
+                  if(detail.examples && Array.isArray(detail.examples)) {
+                      content += '\nExamples:\n';
+                      detail.examples.forEach((ex: any) => {
+                          content += `  • ${ex.s}\n`;
+                          content += `    └─ Explanation: ${ex.n}\n`;
+                      });
+                  }
+                  content += '\n';
+              });
+          }
+          return { title: topic_name, content: content.trim() };
         }
         return null;
       }).filter(Boolean);

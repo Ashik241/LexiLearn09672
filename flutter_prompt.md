@@ -8,156 +8,203 @@ You are tasked with building "LexiLearn," a modern, offline-first vocabulary lea
 **Core Principles:**
 - **Offline-First:** The app must be 100% functional without an internet connection.
 - **State Management:** Use a robust state management solution like **Provider**, **BLoC/Cubit**, or **Riverpod**. The examples below will use a BLoC-like approach for separation of concerns.
-- **Local Storage:** Use a reliable local database like **Hive** or **Drift (Moor)** for storing words and notes. Hive is preferred for its speed and simplicity with Dart objects.
+- **Local Storage:** Use **SQLite** via the `sqflite` package for storing words and notes. SQLite is a robust, serverless, transactional SQL database engine perfect for structured data.
 - **UI/UX:** A clean, modern, and responsive UI. Use Material 3 design principles.
 
 ---
 
 ## 2. Data Models (Dart)
 
-Define the following Dart classes to represent the application's data structure. Use a code generation library like `json_serializable` and `hive_generator` for type safety and database integration.
+Define the following Dart classes to represent the application's data structure. These classes should include `toMap()` and `fromMap()` methods to facilitate conversion between Dart objects and SQLite records. Complex nested objects (like lists or custom classes) should be stored as JSON strings in the database.
 
 ```dart
 // file: lib/models/word.dart
-import 'package:hive/hive.dart';
+import 'dart:convert';
 
-part 'word.g.dart';
-
-@HiveType(typeId: 0)
-class Word extends HiveObject {
-  @HiveField(0)
+class Word {
   String id; // Lowercase word as a unique ID
-
-  @HiveField(1)
   String word;
-
-  @HiveField(2)
   String meaning; // Bengali Meaning
-
-  @HiveField(3)
   String partsOfSpeech;
-
-  @HiveField(4)
   String difficultyLevel; // 'New', 'Hard', 'Medium', 'Easy'
-
-  @HiveField(5)
   bool isLearned;
-
-  @HiveField(6)
   int timesCorrect;
-
-  @HiveField(7)
   int timesIncorrect;
-
-  @HiveField(8)
   DateTime lastReviewed;
-
-  @HiveField(9)
   DateTime createdAt;
-
-  @HiveField(10)
   String? meaningExplanation;
-
-  @HiveField(11)
   String? usageDistinction;
-
-  @HiveField(12)
   List<String>? syllables;
-
-  @HiveField(13)
   List<SynonymAntonym>? synonyms;
-
-  @HiveField(14)
   List<SynonymAntonym>? antonyms;
-
-  @HiveField(15)
   List<String>? exampleSentences;
-
-  @HiveField(16)
   VerbForms? verbForms;
-
-  @HiveField(17)
   int spellingError;
-
-  @HiveField(18)
   int meaningError;
-  
-  @HiveField(19)
   int grammarError;
 
-  Word({/* ... constructor ... */});
+  Word({
+    required this.id,
+    required this.word,
+    required this.meaning,
+    required this.partsOfSpeech,
+    required this.difficultyLevel,
+    required this.isLearned,
+    required this.timesCorrect,
+    required this.timesIncorrect,
+    required this.lastReviewed,
+    required this.createdAt,
+    this.meaningExplanation,
+    this.usageDistinction,
+    this.syllables,
+    this.synonyms,
+    this.antonyms,
+    this.exampleSentences,
+    this.verbForms,
+    this.spellingError = 0,
+    this.meaningError = 0,
+    this.grammarError = 0,
+  });
+  
+  // Convert a Word object into a Map. The keys must correspond to the names of the
+  // columns in the database.
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'word': word,
+      'meaning': meaning,
+      'partsOfSpeech': partsOfSpeech,
+      'difficultyLevel': difficultyLevel,
+      'isLearned': isLearned ? 1 : 0,
+      'timesCorrect': timesCorrect,
+      'timesIncorrect': timesIncorrect,
+      'lastReviewed': lastReviewed.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'meaningExplanation': meaningExplanation,
+      'usageDistinction': usageDistinction,
+      'syllables': syllables != null ? jsonEncode(syllables) : null,
+      'synonyms': synonyms != null ? jsonEncode(synonyms?.map((s) => s.toMap()).toList()) : null,
+      'antonyms': antonyms != null ? jsonEncode(antonyms?.map((a) => a.toMap()).toList()) : null,
+      'exampleSentences': exampleSentences != null ? jsonEncode(exampleSentences) : null,
+      'verbForms': verbForms?.toJson(),
+      'spellingError': spellingError,
+      'meaningError': meaningError,
+      'grammarError': grammarError,
+    };
+  }
+
+  // Implement a factory constructor for creating a new Word instance from a map.
+  factory Word.fromMap(Map<String, dynamic> map) {
+    return Word(
+      id: map['id'],
+      word: map['word'],
+      meaning: map['meaning'],
+      partsOfSpeech: map['partsOfSpeech'],
+      difficultyLevel: map['difficultyLevel'],
+      isLearned: map['isLearned'] == 1,
+      timesCorrect: map['timesCorrect'],
+      timesIncorrect: map['timesIncorrect'],
+      lastReviewed: DateTime.parse(map['lastReviewed']),
+      createdAt: DateTime.parse(map['createdAt']),
+      meaningExplanation: map['meaningExplanation'],
+      usageDistinction: map['usageDistinction'],
+      syllables: map['syllables'] != null ? List<String>.from(jsonDecode(map['syllables'])) : null,
+      synonyms: map['synonyms'] != null ? (jsonDecode(map['synonyms']) as List).map((s) => SynonymAntonym.fromMap(s)).toList() : null,
+      antonyms: map['antonyms'] != null ? (jsonDecode(map['antonyms']) as List).map((a) => SynonymAntonym.fromMap(a)).toList() : null,
+      exampleSentences: map['exampleSentences'] != null ? List<String>.from(jsonDecode(map['exampleSentences'])) : null,
+      verbForms: map['verbForms'] != null ? VerbForms.fromJson(map['verbForms']) : null,
+      spellingError: map['spellingError'] ?? 0,
+      meaningError: map['meaningError'] ?? 0,
+      grammarError: map['grammarError'] ?? 0,
+    );
+  }
 }
 
-@HiveType(typeId: 1)
-class SynonymAntonym extends HiveObject {
-  @HiveField(0)
+class SynonymAntonym {
   String word;
-  @HiveField(1)
   String meaning;
 
   SynonymAntonym({required this.word, required this.meaning});
+  
+  Map<String, dynamic> toMap() => {'word': word, 'meaning': meaning};
+  factory SynonymAntonym.fromMap(Map<String, dynamic> map) => SynonymAntonym(word: map['word'], meaning: map['meaning']);
 }
 
-@HiveType(typeId: 2)
-class VerbForms extends HiveObject {
-  @HiveField(0)
+class VerbForms {
   VerbFormDetail v1Present;
-  @HiveField(1)
   VerbFormDetail v2Past;
-  @HiveField(2)
   VerbFormDetail v3PastParticiple;
-  @HiveField(3)
   FormExamples formExamples;
   
-  VerbForms({/* ... constructor ... */});
+  VerbForms({required this.v1Present, required this.v2Past, required this.v3PastParticiple, required this.formExamples});
+  
+  String toJson() => jsonEncode({
+    'v1_present': v1Present.toMap(),
+    'v2_past': v2Past.toMap(),
+    'v3_past_participle': v3PastParticiple.toMap(),
+    'form_examples': formExamples.toMap(),
+  });
+  
+  factory VerbForms.fromJson(String source) {
+    final map = jsonDecode(source);
+    return VerbForms(
+      v1Present: VerbFormDetail.fromMap(map['v1_present']),
+      v2Past: VerbFormDetail.fromMap(map['v2_past']),
+      v3PastParticiple: VerbFormDetail.fromMap(map['v3_past_participle']),
+      formExamples: FormExamples.fromMap(map['form_examples']),
+    );
+  }
 }
 
-@HiveType(typeId: 3)
-class VerbFormDetail extends HiveObject {
-  @HiveField(0)
+class VerbFormDetail {
   String word;
-  @HiveField(1)
   String pronunciation;
-  @HiveField(2)
   String banglaMeaning;
-  @HiveField(3)
   String usageTiming;
 
-  VerbFormDetail({/* ... constructor ... */});
+  VerbFormDetail({required this.word, required this.pronunciation, required this.banglaMeaning, required this.usageTiming});
+  
+  Map<String, dynamic> toMap() => {'word': word, 'pronunciation': pronunciation, 'bangla_meaning': banglaMeaning, 'usage_timing': usageTiming};
+  factory VerbFormDetail.fromMap(Map<String, dynamic> map) => VerbFormDetail(word: map['word'], pronunciation: map['pronunciation'], banglaMeaning: map['bangla_meaning'], usageTiming: map['usage_timing']);
 }
 
-@HiveType(typeId: 4)
-class FormExamples extends HiveObject {
-  @HiveField(0)
+class FormExamples {
   String v1;
-  @HiveField(1)
   String v2;
-  @HiveField(2)
   String v3;
 
-  FormExamples({/* ... constructor ... */});
+  FormExamples({required this.v1, required this.v2, required this.v3});
+  
+  Map<String, dynamic> toMap() => {'v1': v1, 'v2': v2, 'v3': v3};
+  factory FormExamples.fromMap(Map<String, dynamic> map) => FormExamples(v1: map['v1'], v2: map['v2'], v3: map['v3']);
 }
 
 // file: lib/models/note.dart
-import 'package:hive/hive.dart';
-
-part 'note.g.dart';
-
-@HiveType(typeId: 5)
-class Note extends HiveObject {
-  @HiveField(0)
+class Note {
   String id; // Lowercase title with dashes as unique ID
-
-  @HiveField(1)
   String title;
-
-  @HiveField(2)
   String content;
-
-  @HiveField(3)
   DateTime createdAt;
 
-  Note({/* ... constructor ... */});
+  Note({required this.id, required this.title, required this.content, required this.createdAt});
+  
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory Note.fromMap(Map<String, dynamic> map) {
+    return Note(
+      id: map['id'],
+      title: map['title'],
+      content: map['content'],
+      createdAt: DateTime.parse(map['createdAt']),
+    );
+  }
 }
 ```
 
@@ -167,23 +214,30 @@ class Note extends HiveObject {
 
 Create a repository and BLoC/Cubit for managing `Word` and `Note` data.
 
-### `VocabularyRepository`
-- **Responsibilities:** Direct interaction with the Hive database.
+### `DatabaseHelper` (Singleton)
+- **Responsibilities:** Manage database connection. Create tables.
 - **Methods:**
-  - `Future<void> init()`: Initialize Hive and open boxes.
-  - `List<Word> getAllWords()`: Get all words, sorted alphabetically.
-  - `Word? getWordById(String id)`: Get a single word.
-  - `Future<bool> addWord(WordData data)`: Add a new word. Return `false` if it already exists.
-  - `Future<void> updateWord(String id, WordUpdates updates)`: Update an existing word.
-  - `Future<void> deleteWord(String id)`: Delete a word.
-  - `Future<{int added, int skipped}> addMultipleWords(List<WordData> words)`: Bulk import words.
+  - `Future<Database> get database`: Get the singleton database instance.
+  - `Future<void> _initDB()`: Initialize the database and create tables if they don't exist.
+- **Table Schemas:**
+  - **words_table:** `id TEXT PRIMARY KEY`, `word TEXT`, `meaning TEXT`, `partsOfSpeech TEXT`, `difficultyLevel TEXT`, `isLearned INTEGER`, `timesCorrect INTEGER`, `timesIncorrect INTEGER`, `lastReviewed TEXT`, `createdAt TEXT`, `meaningExplanation TEXT`, `usageDistinction TEXT`, `syllables TEXT`, `synonyms TEXT`, `antonyms TEXT`, `exampleSentences TEXT`, `verbForms TEXT`, `spellingError INTEGER`, `meaningError INTEGER`, `grammarError INTEGER`
+  - **notes_table:** `id TEXT PRIMARY KEY`, `title TEXT`, `content TEXT`, `createdAt TEXT`
+
+### `VocabularyRepository`
+- **Responsibilities:** Direct interaction with the SQLite database for words.
+- **Methods:**
+  - `Future<List<Word>> getAllWords()`: Get all words, sorted alphabetically.
+  - `Future<Word?> getWordById(String id)`: Get a single word.
+  - `Future<bool> addWord(WordData data)`: Add a new word. Return `false` if it already exists. Use `db.insert` with `conflictAlgorithm: ConflictAlgorithm.ignore`.
+  - `Future<void> updateWord(String id, WordUpdates updates)`: Update an existing word. Use `db.update`.
+  - `Future<void> deleteWord(String id)`: Delete a word. Use `db.delete`.
+  - `Future<{int added, int skipped}> addMultipleWords(List<WordData> words)`: Bulk import words using a transaction (`db.transaction`).
   - `void calculateStats()`: A method that computes all statistics and pushes them to a `Stream`.
   - `Stream<Stats> get statsStream`: A stream that emits updated stats.
-- **Statistics Logic:** `calculateStats` should compute total words, learned words, accuracy, word counts by difficulty, and error type counts.
 
 ### `NotesRepository`
-- **Responsibilities:** Direct interaction with the Hive database for notes.
-- **Methods:** Similar CRUD operations for `Note` objects.
+- **Responsibilities:** Direct interaction with the SQLite database for notes.
+- **Methods:** Similar CRUD operations for `Note` objects using `sqflite`.
 
 ### `VocabularyBloc` / `NotesBloc`
 - These BLoCs will use their respective repositories to manage state and business logic, exposing streams of data to the UI.
@@ -287,14 +341,16 @@ Build the following pages and widgets.
 
 ## 5. PWA & Offline Support
 
-- **Service Worker:** While Flutter Web supports PWA, the primary focus is on mobile. For mobile, the offline-first architecture with Hive is sufficient.
+- **Service Worker:** While Flutter Web supports PWA, the primary focus is on mobile. The offline-first architecture with SQLite is sufficient for mobile.
 - **Dependencies:**
-  - `hive`, `hive_flutter`, `hive_generator`
+  - `sqflite`: For SQLite database interaction.
+  - `path`: For finding the correct local path to store the database file.
   - A state management library (e.g., `flutter_bloc`)
-  - `path_provider` (for Hive initialization)
   - `flutter_tts` (for text-to-speech)
-  - `json_serializable`
+  - `json_serializable` (optional, for complex data models)
   - `equatable` (for BLoC state/events)
   - `fl_chart` (for charts)
 
-This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version. Good luck!
+This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database. Good luck!
+
+    

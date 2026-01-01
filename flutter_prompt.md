@@ -442,15 +442,13 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
 
 ---
 
-## 5. PWA & Offline Support
+## 5. Dependencies
 
-- **Service Worker:** While Flutter Web supports PWA, the primary focus is on mobile. The offline-first architecture with SQLite is sufficient for mobile.
-- **Dependencies:**
-  - `sqflite`: For SQLite database interaction.
-  - `path`: For finding the correct local path to store the database file.
-  - `provider`: For state management.
-  - `flutter_tts`: For text-to-speech.
-  - `json_serializable` (optional, for complex data models)
-  - `fl_chart`: For charts.
+- **`sqflite`**: For SQLite database interaction.
+- **`path`**: For finding the correct local path to store the database file.
+- **`provider`**: For state management.
+- **`flutter_tts`**: For text-to-speech.
+- **`json_serializable`** (optional, for complex data models)
+- **`fl_chart`**: For charts.
 
 This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database and Provider for state management. Good luck!

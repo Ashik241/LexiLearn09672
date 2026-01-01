@@ -116,10 +116,6 @@ export default function NotesPage() {
                 <h1 className="text-3xl font-bold tracking-tight font-headline">নোট</h1>
                 <p className="text-muted-foreground">আপনার ব্যক্তিগত নোট এখানে পরিচালনা করুন।</p>
             </div>
-            <Button onClick={() => setIsAddNoteOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                নতুন নোট যোগ করুন
-            </Button>
           </div>
           
            <div className="relative mb-6">

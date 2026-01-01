@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { PlusCircle, Notebook, Trash2, Pencil, Search, MoreHorizontal } from 'lucide-react';
 import { useNotes } from '@/hooks/use-notes';
 import type { Note } from '@/types';
@@ -19,7 +20,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -27,35 +27,32 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NoteDetailsClient } from './NoteDetailsClient';
+import { Skeleton } from '@/components/ui/skeleton';
 
-function NoteCard({ note, onEdit, onDelete }: { note: Note; onEdit: (note: Note) => void; onDelete: (note: Note) => void; }) {
+function Loading() {
     return (
-        <Card className="flex flex-col">
+        <div className="flex justify-center items-center p-8">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    );
+}
+
+function NoteCard({ note }: { note: Note; }) {
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const handleNoteClick = () => {
+        router.push(`${pathname}?id=${encodeURIComponent(note.id)}`);
+    };
+
+    return (
+        <Card className="flex flex-col cursor-pointer hover:bg-card-foreground/5 transition-colors" onClick={handleNoteClick}>
             <CardHeader>
-                <div className="flex justify-between items-start">
-                    <CardTitle className="break-words">{note.title}</CardTitle>
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onEdit(note)}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onDelete(note)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                <CardTitle className="break-words">{note.title}</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">
-                <p className="text-muted-foreground whitespace-pre-wrap break-words">{note.content}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap break-words line-clamp-4">{note.content}</p>
             </CardContent>
             <CardFooter>
                  <p className="text-xs text-muted-foreground">
@@ -66,8 +63,7 @@ function NoteCard({ note, onEdit, onDelete }: { note: Note; onEdit: (note: Note)
     )
 }
 
-
-export default function NotesPage() {
+function NotesList() {
     const { notes, isInitialized, deleteNote } = useNotes();
     const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
     const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
@@ -106,75 +102,119 @@ export default function NotesPage() {
         }
     }
 
+    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
+    return (
+        <>
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight font-headline">নোট</h1>
+                    <p className="text-muted-foreground">আপনার ব্যক্তিগত নোট এখানে পরিচালনা করুন।</p>
+                </div>
+            </div>
+            
+            <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="নোট খুঁজুন..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                />
+            </div>
+
+            {isInitialized && filteredNotes.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredNotes.map(note => (
+                         <div key={note.id} className="relative group/note-card">
+                            <NoteCard note={note} />
+                            <div className="absolute top-2 right-2" onClick={stopPropagation}>
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Open menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleEdit(note)}>
+                                            <Pencil className="mr-2 h-4 w-4" />
+                                            <span>Edit</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setNoteToDelete(note)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>Delete</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <Card className="w-full text-center">
+                    <CardHeader>
+                        <div className="mx-auto bg-primary/10 rounded-full p-4 w-20 h-20 flex items-center justify-center">
+                            <Notebook className="w-10 h-10 text-primary" />
+                        </div>
+                        <CardTitle className="mt-4">
+                            {searchQuery ? "কোনো নোট পাওয়া যায়নি" : "এখনও কোনো নোট নেই"}
+                        </CardTitle>
+                        <CardDescription>
+                            {searchQuery 
+                                ? "আপনার সার্চের সাথে মেলে এমন কোনো নোট পাওয়া যায়নি।" 
+                                : "নতুন নোট যোগ করে শুরু করুন।"}
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            )}
+             <AddNoteDialog 
+                isOpen={isAddNoteOpen}
+                onOpenChange={handleAddOrEditDialogChange}
+                noteToEdit={noteToEdit}
+            />
+            <AlertDialog open={!!noteToDelete} onOpenChange={(open) => !open && setNoteToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the note "{noteToDelete?.title}".
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setNoteToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className={buttonVariants({ variant: "destructive" })}>
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
+    );
+}
+
+function NotesPageContent() {
+  const searchParams = useSearchParams();
+  const noteId = searchParams.get('id');
+
+  if (noteId) {
+    return <NoteDetailsClient noteId={noteId} />;
+  }
+
+  return <NotesList />;
+}
+
+export default function NotesPage() {
   return (
     <>
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
         <main className="flex-grow p-4 md:p-8">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight font-headline">নোট</h1>
-                <p className="text-muted-foreground">আপনার ব্যক্তিগত নোট এখানে পরিচালনা করুন।</p>
-            </div>
-          </div>
-          
-           <div className="relative mb-6">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-               <Input 
-                    placeholder="নোট খুঁজুন..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-               />
-            </div>
-
-          {isInitialized && filteredNotes.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredNotes.map(note => (
-                    <NoteCard key={note.id} note={note} onEdit={handleEdit} onDelete={setNoteToDelete} />
-                ))}
-            </div>
-          ) : (
-             <Card className="w-full text-center">
-                <CardHeader>
-                    <div className="mx-auto bg-primary/10 rounded-full p-4 w-20 h-20 flex items-center justify-center">
-                        <Notebook className="w-10 h-10 text-primary" />
-                    </div>
-                    <CardTitle className="mt-4">
-                        {searchQuery ? "কোনো নোট পাওয়া যায়নি" : "এখনও কোনো নোট নেই"}
-                    </CardTitle>
-                    <CardDescription>
-                         {searchQuery 
-                            ? "আপনার সার্চের সাথে মেলে এমন কোনো নোট পাওয়া যায়নি।" 
-                            : "নতুন নোট যোগ করে শুরু করুন।"}
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-          )}
-
+            <Suspense fallback={<Loading />}>
+                <NotesPageContent />
+            </Suspense>
         </main>
       </div>
-       <AddNoteDialog 
-            isOpen={isAddNoteOpen}
-            onOpenChange={handleAddOrEditDialogChange}
-            noteToEdit={noteToEdit}
-        />
-        <AlertDialog open={!!noteToDelete} onOpenChange={(open) => !open && setNoteToDelete(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the note "{noteToDelete?.title}".
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setNoteToDelete(null)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete} className={buttonVariants({ variant: "destructive" })}>
-                        Delete
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </>
   );
 }

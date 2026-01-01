@@ -18,7 +18,7 @@ function QuickActions() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                 <BrainCircuit className="text-primary" />
-                <span>রিভিশন শুরু করুন</span>
+                <span>Revision</span>
                 </CardTitle>
                 <CardDescription>আপনার কঠিন এবং মাঝারি শব্দগুলো ঝালিয়ে নিন।</CardDescription>
             </CardHeader>
@@ -33,7 +33,7 @@ function QuickActions() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpenCheck className="text-primary" />
-              <span>সম্পূর্ণ তালিকা দেখুন</span>
+              <span>Words list</span>
             </CardTitle>
             <CardDescription>আপনার শব্দভান্ডারে থাকা সমস্ত শব্দ ব্রাউজ করুন।</CardDescription>
           </CardHeader>

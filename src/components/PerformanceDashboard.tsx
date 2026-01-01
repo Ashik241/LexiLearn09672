@@ -1,14 +1,16 @@
 'use client';
 
 import { useVocabulary } from '@/hooks/use-vocabulary';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { BarChart, FileWarning, TrendingDown, TrendingUp } from 'lucide-react';
+import { BarChart, FileWarning, TrendingDown, TrendingUp, BookCheck } from 'lucide-react';
 import { useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { useRouter } from 'next/navigation';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
+import { Button } from './ui/button';
+import Link from 'next/link';
 
 const COLORS = ['#FF8042', '#00C49F', '#0088FE']; // Orange (Spelling), Green (Meaning), Blue (Grammar)
 
@@ -205,14 +207,22 @@ export function PerformanceDashboard() {
                 <ErrorDistributionChart />
             </CardContent>
         </Card>
-        <Card>
+        <Card className="flex flex-col">
             <CardHeader>
                 <CardTitle>Top 5 Hardest Words</CardTitle>
                 <CardDescription>সবচেয়ে বেশি ভুল করা শব্দগুলো।</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
                 <HardestWordsList />
             </CardContent>
+            <CardFooter>
+                 <Button asChild className="w-full">
+                    <Link href="/learn?difficulty=Hard">
+                        <BookCheck className="mr-2 h-4 w-4" />
+                        Exam
+                    </Link>
+                </Button>
+            </CardFooter>
         </Card>
         <Card>
             <CardHeader>
@@ -226,5 +236,3 @@ export function PerformanceDashboard() {
     </div>
   );
 }
-
-    

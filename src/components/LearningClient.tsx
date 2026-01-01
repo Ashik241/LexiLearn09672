@@ -125,31 +125,28 @@ function LearningClientInternal() {
 
     if (word) {
       let effectiveTestType: Exclude<TestType, 'dynamic'>;
-      if (forcedTestType === 'dynamic' || dateFilter || (!forcedTestType && !difficultyFilter) ) {
-          effectiveTestType = getRandomTestTypeForWord(word);
+      if (forcedTestType && forcedTestType !== 'dynamic') {
+          effectiveTestType = forcedTestType;
       } else {
-          effectiveTestType = forcedTestType || 'mcq';
+          effectiveTestType = getRandomTestTypeForWord(word);
       }
 
-      // Fallback logic
+      // Fallback logic for specific test types if the word doesn't support it
       if (effectiveTestType === 'synonym-antonym' && (!word.synonyms || word.synonyms.length === 0) && (!word.antonyms || word.antonyms.length === 0)) {
            effectiveTestType = 'mcq';
+           toast({ variant: 'destructive', title: "Fallback Activated", description: `"${word.word}" has no synonyms/antonyms. Using MCQ.`})
       }
       if (effectiveTestType === 'verb_form' && !word.verb_forms) {
           effectiveTestType = 'mcq';
+          toast({ variant: 'destructive', title: "Fallback Activated", description: `"${word.word}" is not a verb. Using MCQ.`})
       }
       if (effectiveTestType === 'fill_blank_sentence' && (!word.example_sentences || word.example_sentences.length === 0 || !createSentenceWithBlank(word.example_sentences, word.word))) {
           effectiveTestType = 'mcq';
+          toast({ variant: 'destructive', title: "Fallback Activated", description: `"${word.word}" has no suitable sentences. Using MCQ.`})
       }
       if (effectiveTestType === 'fill_blank_word' && word.word.length <= 3) {
           effectiveTestType = 'spelling_meaning';
-      }
-
-      // If user has many spelling errors, force a spelling test
-      if (word.spelling_error >= 3) {
-          const spellingTests: Extract<TestType, 'spelling_listen' | 'spelling_meaning' | 'fill_blank_word'>[] = ['spelling_listen', 'spelling_meaning'];
-          if(word.word.length > 3) spellingTests.push('fill_blank_word');
-          effectiveTestType = spellingTests[Math.floor(Math.random() * spellingTests.length)];
+          toast({ variant: 'destructive', title: "Fallback Activated", description: `"${word.word}" is too short. Using spelling test.`})
       }
 
       setCurrentWord(word);

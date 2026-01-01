@@ -136,7 +136,7 @@ export function VocabularyList() {
         if (learnedFilter === 'true') {
             return 'Learned Words';
         }
-        return 'আপনার শব্দভান্ডার';
+        return 'শব্দভান্ডার';
     }, [difficultyFilter, dateFilter, learnedFilter]);
     
     if (!isInitialized) {

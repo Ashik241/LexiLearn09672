@@ -433,12 +433,12 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
   - Implement a `Tabbed` view for "Add Single" vs. "Bulk Import from JSON".
   - **Add Single Tab:** Use a `Form` with `TextFormField` widgets and validation for all `Word` properties (word, meaning, parts of speech, etc., including optional verb forms).
   - **Bulk Import Tab:**
-    - Provide a multi-line `TextFormField` for pasting JSON data.
+    - Provide a multi-line `TextFormField` for pasting JSON data. For example: `[{"word": "example", "meaning": "উদাহরণ", ...}]`
     - On submit, parse the JSON. It should handle an array of word objects.
     - Use the `VocabularyRepository`'s `addMultipleWords` method to import the data in a single transaction.
     - Show a `SnackBar` or `Toast` with the result (e.g., "5 words added, 2 duplicates skipped.").
 - **`AddNoteDialog`:**
-  - A simpler dialog with a `Form`, a `TextFormField` for the title, and a multi-line `TextFormField` for the content.
+  - A simpler dialog with a `Form`, a `TextFormField` for the title, and a multi-line `TextFormField` for the content. It should also support bulk JSON import via a tab, similar to the word dialog. For example: `[{"title": "My Note", "content": "Details here..."}, ...]`
 
 ---
 

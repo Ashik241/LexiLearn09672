@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { PwaProvider } from '@/components/PwaProvider';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { Home, List, BarChart3, Notebook } from 'lucide-react';
+import { Home, List, BarChart3, Notebook, Activity } from 'lucide-react';
 import { Logo } from '@/components/icons/Logo';
 
 export const metadata: Metadata = {
@@ -27,6 +27,7 @@ const navItems = [
   { href: '/', label: 'ড্যাশবোর্ড', icon: Home },
   { href: '/vocabulary', label: 'শব্দভান্ডার', icon: List },
   { href: '/learn', label: 'শিখুন', icon: BarChart3 },
+  { href: '/performance', label: 'পারফরম্যান্স', icon: Activity },
   { href: '/notes', label: 'নোট', icon: Notebook },
 ];
 

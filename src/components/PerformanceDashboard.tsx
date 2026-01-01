@@ -107,7 +107,7 @@ function HardestWordsList() {
             .map(w => ({...w, totalErrors: (w.spelling_error || 0) + (w.meaning_error || 0) + (w.grammar_error || 0) }))
             .filter(w => w.totalErrors > 0)
             .sort((a, b) => b.totalErrors - a.totalErrors)
-            .slice(0, 5);
+            .slice(0, 3);
     }, [getAllWords]);
 
     if (hardestWords.length === 0) {
@@ -211,7 +211,7 @@ export function PerformanceDashboard() {
       </Link>
       <Card className="flex flex-col w-full">
           <CardHeader>
-              <CardTitle>Top 5 Hardest Words</CardTitle>
+              <CardTitle>Top 3 Hardest Words</CardTitle>
               <CardDescription>সবচেয়ে বেশি ভুল করা শব্দগুলো।</CardDescription>
           </CardHeader>
           <Link href="/vocabulary?difficulty=Hard" className="flex flex-col flex-grow">

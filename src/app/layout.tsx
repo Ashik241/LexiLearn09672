@@ -72,7 +72,9 @@ export default function RootLayout({
         <SidebarProvider>
             <div className="flex flex-1">
                 <AppSidebar />
-                <PwaProvider>{children}</PwaProvider>
+                <div className="flex-1 flex flex-col">
+                  <PwaProvider>{children}</PwaProvider>
+                </div>
             </div>
         </SidebarProvider>
         <Toaster />

@@ -3,13 +3,17 @@
 import Link from 'next/link';
 import { Logo } from '@/components/icons/Logo';
 import { Button } from '@/components/ui/button';
-import { FilePlus } from 'lucide-react';
+import { FilePlus, NotebookPen } from 'lucide-react';
 import { AddNoteDialog } from '../AddNoteDialog';
+import { AddWordDialog } from '../AddWordDialog';
 import { useState } from 'react';
 import { SidebarTrigger } from '../ui/sidebar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function Header() {
   const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
+  const [isAddWordOpen, setIsAddWordOpen] = useState(false);
+  
   return (
     <>
       <header className="py-4 px-4 md:px-8 border-b border-border/40 bg-card">
@@ -23,15 +27,36 @@ export function Header() {
               </span>
             </Link>
           </div>
-          <div className="flex items-center gap-4">
-            <Button onClick={() => setIsAddNoteOpen(true)}>
-              <FilePlus className="mr-2 h-4 w-4" />
-              নতুন নোট
-            </Button>
+          <div className="flex items-center gap-2">
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setIsAddWordOpen(true)}>
+                            <FilePlus className="h-5 w-5" />
+                            <span className="sr-only">নতুন শব্দ যোগ করুন</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>নতুন শব্দ যোগ করুন</p>
+                    </TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild>
+                       <Button variant="ghost" size="icon" onClick={() => setIsAddNoteOpen(true)}>
+                            <NotebookPen className="h-5 w-5" />
+                            <span className="sr-only">নতুন নোট যোগ করুন</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>নতুন নোট যোগ করুন</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </header>
       <AddNoteDialog isOpen={isAddNoteOpen} onOpenChange={setIsAddNoteOpen} />
+      <AddWordDialog isOpen={isAddWordOpen} onOpenChange={setIsAddWordOpen} />
     </>
   );
 }

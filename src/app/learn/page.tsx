@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import type { TestType } from '@/types';
 
 function LoadingFallback() {
   return (
@@ -29,21 +30,34 @@ function LoadingFallback() {
   );
 }
 
+const examTypes: { value: TestType; label: string }[] = [
+    { value: 'dynamic', label: 'Dynamic Revision' },
+    { value: 'mcq', label: 'MCQ (Eng to Ban)' },
+    { value: 'bengali-to-english', label: 'MCQ (Ban to Eng)' },
+    { value: 'spelling_meaning', label: 'Spelling (from Meaning)' },
+    { value: 'spelling_listen', label: 'Spelling (from Listening)' },
+    { value: 'fill_blank_word', label: 'Fill in the Blanks (Word)' },
+    { value: 'fill_blank_sentence', label: 'Fill in the Blanks (Sentence)' },
+    { value: 'verb_form', label: 'Verb Form Test' },
+    { value: 'synonym-antonym', label: 'Synonym/Antonym Test' },
+];
+
 function FilterControls() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
-  const getCurrentFilter = () => {
+  const getCurrentDifficultyFilter = () => {
     const difficulty = searchParams.get('difficulty');
     const date = searchParams.get('date');
     if (difficulty) return difficulty;
     if (date === new Date().toISOString().split('T')[0]) return 'today';
     return 'all';
   };
-  const currentFilter = getCurrentFilter();
+  const currentDifficultyFilter = getCurrentDifficultyFilter();
+  const currentTestTypeFilter = searchParams.get('type') || 'dynamic';
 
-  const handleFilterChange = (value: string) => {
+  const handleDifficultyFilterChange = (value: string) => {
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.delete('difficulty');
     newParams.delete('date');
@@ -58,9 +72,19 @@ function FilterControls() {
     router.replace(`${pathname}?${newParams.toString()}`);
   };
 
+  const handleTestTypeFilterChange = (value: string) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    if (value === 'dynamic') {
+      newParams.delete('type');
+    } else {
+      newParams.set('type', value);
+    }
+    router.replace(`${pathname}?${newParams.toString()}`);
+  };
+
   return (
-    <div className="w-full mx-auto mb-4">
-      <Select onValueChange={handleFilterChange} value={currentFilter}>
+    <div className="w-full mx-auto mb-4 flex flex-col md:flex-row gap-2">
+      <Select onValueChange={handleDifficultyFilterChange} value={currentDifficultyFilter}>
         <SelectTrigger className="w-full md:w-[280px]">
           <SelectValue placeholder="Filter words by difficulty..." />
         </SelectTrigger>
@@ -70,6 +94,18 @@ function FilterControls() {
           <SelectItem value="Hard">Hard Words</SelectItem>
           <SelectItem value="Medium">Medium Words</SelectItem>
           <SelectItem value="Easy">Easy Words</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select onValueChange={handleTestTypeFilterChange} value={currentTestTypeFilter}>
+        <SelectTrigger className="w-full md:w-[280px]">
+          <SelectValue placeholder="Select Exam Type..." />
+        </SelectTrigger>
+        <SelectContent>
+            {examTypes.map((exam) => (
+                <SelectItem key={exam.value} value={exam.value}>
+                    {exam.label}
+                </SelectItem>
+            ))}
         </SelectContent>
       </Select>
     </div>

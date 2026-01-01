@@ -191,9 +191,10 @@ function LearningClientInternal() {
       }
       updates.times_correct = currentWord.times_correct + 1;
       
-      // If user had spelling errors, and gets it right, reset the error count
-      if(currentWord.spelling_error >= 3) {
-          updates.spelling_error = 0;
+      const errorType = getErrorTypeForTest(testType);
+      if (errorType === 'spelling_error' && currentWord.spelling_error > 0) {
+        updates.spelling_error = 0; // Reset spelling error count on correct spelling
+        toast({ title: "বানান সঠিক!", description: `"${currentWord.word}" শব্দের জন্য ভুলের সংখ্যা রিসেট করা হয়েছে।` });
       }
 
     } else {
@@ -333,3 +334,5 @@ export function LearningClient() {
     </Suspense>
   )
 }
+
+    

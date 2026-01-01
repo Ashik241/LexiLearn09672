@@ -198,16 +198,19 @@ export function PerformanceDashboard() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
+      <Link href="/performance" className="lg:col-span-1 flex">
+        <Card className="w-full flex flex-col hover:bg-card-foreground/5 transition-colors">
             <CardHeader>
                 <CardTitle>Error Distribution</CardTitle>
                 <CardDescription>আপনার ভুলের ধরন অনুযায়ী বিতরণ।</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow flex items-center justify-center">
                 <ErrorDistributionChart />
             </CardContent>
         </Card>
-        <Card className="flex flex-col">
+      </Link>
+      <Link href="/vocabulary?difficulty=Hard" className="flex">
+        <Card className="flex flex-col w-full hover:bg-card-foreground/5 transition-colors">
             <CardHeader>
                 <CardTitle>Top 5 Hardest Words</CardTitle>
                 <CardDescription>সবচেয়ে বেশি ভুল করা শব্দগুলো।</CardDescription>
@@ -224,15 +227,16 @@ export function PerformanceDashboard() {
                 </Button>
             </CardFooter>
         </Card>
-        <Card>
-            <CardHeader>
-                <CardTitle>7-Day Progress</CardTitle>
-                <CardDescription>বিগত ৭ দিনে আপনার ভুলের প্রবণতা।</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ProgressGraph />
-            </CardContent>
-        </Card>
+      </Link>
+      <Card>
+          <CardHeader>
+              <CardTitle>7-Day Progress</CardTitle>
+              <CardDescription>বিগত ৭ দিনে আপনার ভুলের প্রবণতা।</CardDescription>
+          </CardHeader>
+          <CardContent>
+              <ProgressGraph />
+          </CardContent>
+      </Card>
     </div>
   );
 }

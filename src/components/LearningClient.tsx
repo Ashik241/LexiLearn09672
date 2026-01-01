@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useVocabulary } from '@/hooks/use-vocabulary';
-import type { Word, WordDifficulty, TestType } from '@/types';
+import type { Word, WordDifficulty, TestType, ErrorType } from '@/types';
 import McqTest from '@/components/McqTest';
 import SpellingTest from '@/components/SpellingTest';
 import FillInBlanksWordTest from '@/components/FillInBlanksWordTest';
@@ -17,7 +17,32 @@ import { useToast } from '@/hooks/use-toast';
 
 type SessionState = 'loading' | 'testing' | 'feedback' | 'finished';
 
+const getErrorTypeForTest = (testType: Exclude<TestType, 'dynamic'>): ErrorType => {
+    switch (testType) {
+        case 'spelling_listen':
+        case 'spelling_meaning':
+        case 'fill_blank_word':
+            return 'spelling_error';
+        case 'mcq':
+        case 'bengali-to-english':
+        case 'synonym-antonym':
+            return 'meaning_error';
+        case 'verb_form':
+        case 'fill_blank_sentence':
+            return 'grammar_error';
+        default:
+            return 'meaning_error';
+    }
+}
+
 const getRandomTestTypeForWord = (word: Word): Exclude<TestType, 'dynamic'> => {
+    // Weighted Practice Algorithm - prioritize spelling test for words with high spelling error count
+    if (word.spelling_error >= 3) {
+      const spellingTests: Extract<TestType, 'spelling_listen' | 'spelling_meaning' | 'fill_blank_word'>[] = ['spelling_listen', 'spelling_meaning'];
+      if(word.word.length > 3) spellingTests.push('fill_blank_word');
+      return spellingTests[Math.floor(Math.random() * spellingTests.length)];
+    }
+
     const types: Exclude<TestType, 'dynamic' | 'synonym-antonym'>[] = ['mcq', 'spelling_meaning', 'spelling_listen', 'bengali-to-english'];
     
     if ((word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0)) {
@@ -120,6 +145,12 @@ function LearningClientInternal() {
           effectiveTestType = 'spelling_meaning';
       }
 
+      // If user has many spelling errors, force a spelling test
+      if (word.spelling_error >= 3) {
+          const spellingTests: Extract<TestType, 'spelling_listen' | 'spelling_meaning' | 'fill_blank_word'>[] = ['spelling_listen', 'spelling_meaning'];
+          if(word.word.length > 3) spellingTests.push('fill_blank_word');
+          effectiveTestType = spellingTests[Math.floor(Math.random() * spellingTests.length)];
+      }
 
       setCurrentWord(word);
       setTestType(effectiveTestType);
@@ -142,13 +173,14 @@ function LearningClientInternal() {
   }, [isInitialized, searchParams]); // Re-run when searchParams change
 
   const handleTestComplete = async (correct: boolean, answer: string) => {
-    if (!currentWord) return;
+    if (!currentWord || !testType) return;
 
     setIsCorrect(correct);
     setUserAnswer(answer);
     setSessionState('feedback');
 
     let newDifficulty: WordDifficulty;
+    let updates: Partial<Word> = {};
 
     if (correct) {
       switch (currentWord.difficulty_level) {
@@ -157,26 +189,29 @@ function LearningClientInternal() {
         case 'New': newDifficulty = 'Medium'; break;
         default: newDifficulty = 'Easy'; break;
       }
+      updates.times_correct = currentWord.times_correct + 1;
+      
+      // If user had spelling errors, and gets it right, reset the error count
+      if(currentWord.spelling_error >= 3) {
+          updates.spelling_error = 0;
+      }
+
     } else {
       newDifficulty = 'Hard';
+      updates.times_incorrect = currentWord.times_incorrect + 1;
+      const errorType = getErrorTypeForTest(testType);
+      updates[errorType] = (currentWord[errorType] || 0) + 1;
     }
-
-    const newTimesCorrect = currentWord.times_correct + (correct ? 1 : 0);
-    const newTimesIncorrect = currentWord.times_incorrect + (correct ? 0 : 1);
     
-    let isLearned = currentWord.is_learned;
+    updates.difficulty_level = newDifficulty;
+    
     if (correct && newDifficulty === 'Easy') {
-      isLearned = true;
+      updates.is_learned = true;
     } else if (!correct) {
-      isLearned = false;
+      updates.is_learned = false;
     }
 
-    updateWord(currentWord.id, {
-      difficulty_level: newDifficulty,
-      is_learned: isLearned,
-      times_correct: newTimesCorrect,
-      times_incorrect: newTimesIncorrect,
-    });
+    updateWord(currentWord.id, updates);
   };
 
   const handleRestart = () => {

@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Word, WordDifficulty, VerbForms, SynonymAntonym } from '@/types';
 
-type UpdatePayload = Partial<Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>>;
+type UpdatePayload = Partial<Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt' | 'spelling_error' | 'meaning_error' | 'grammar_error'>>;
 
 interface VocabularyState {
   words: Word[];
@@ -16,14 +16,19 @@ interface VocabularyState {
     mediumWords: number;
     hardWords: number;
     newWords: number;
+    errorStats: {
+      spelling: number;
+      meaning: number;
+      grammar: number;
+    }
   };
   session: {
     reviewedIds: Set<string>;
   };
   isInitialized: boolean;
   init: () => void;
-  addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>) => boolean;
-  addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt'>[]) => { addedCount: number; skippedCount: number };
+  addWord: (wordData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt' | 'spelling_error' | 'meaning_error' | 'grammar_error'>) => boolean;
+  addMultipleWords: (wordsData: Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt' | 'spelling_error' | 'meaning_error' | 'grammar_error'>[]) => { addedCount: number; skippedCount: number };
   updateWord: (wordId: string, updates: Partial<Word> | UpdatePayload) => void;
   deleteWord: (wordId: string) => void;
   deleteAllWords: () => void;
@@ -47,6 +52,7 @@ const useVocabularyStore = create<VocabularyState>()(
         mediumWords: 0,
         hardWords: 0,
         newWords: 0,
+        errorStats: { spelling: 0, meaning: 0, grammar: 0 },
       },
       session: {
         reviewedIds: new Set(),
@@ -74,6 +80,9 @@ const useVocabularyStore = create<VocabularyState>()(
           is_learned: false,
           times_correct: 0,
           times_incorrect: 0,
+          spelling_error: 0,
+          meaning_error: 0,
+          grammar_error: 0,
           last_reviewed: now,
           createdAt: now,
           meaning_explanation: wordData.meaning_explanation || '',
@@ -109,6 +118,9 @@ const useVocabularyStore = create<VocabularyState>()(
                 is_learned: false,
                 times_correct: 0,
                 times_incorrect: 0,
+                spelling_error: 0,
+                meaning_error: 0,
+                grammar_error: 0,
                 last_reviewed: now,
                 createdAt: now,
                 meaning_explanation: wordData.meaning_explanation || undefined,
@@ -188,17 +200,29 @@ const useVocabularyStore = create<VocabularyState>()(
         if (filter) {
             potentialWords = potentialWords.filter(filter);
         }
-
+        
+        let difficultyFilteredWords = potentialWords;
         if (difficulties && difficulties.length > 0) {
-            potentialWords = potentialWords.filter(w => difficulties.includes(w.difficulty_level));
+            difficultyFilteredWords = potentialWords.filter(w => difficulties.includes(w.difficulty_level));
         }
+
+        // Weighted Practice Algorithm
+        const spellingErrorWords = difficultyFilteredWords.filter(w => w.spelling_error >= 3);
+        if(spellingErrorWords.length > 0){
+             spellingErrorWords.sort((a,b) => b.spelling_error - a.spelling_error);
+             const selectedWord = spellingErrorWords[0];
+             session.reviewedIds.add(selectedWord.id);
+             set({ session: { reviewedIds: new Set(session.reviewedIds) } });
+             return selectedWord;
+        }
+
 
         if (potentialWords.length === 0) return null;
 
         const priorityOrder: WordDifficulty[] = ['Hard', 'Medium', 'New', 'Easy'];
         
         for (const difficulty of priorityOrder) {
-            const priorityWords = potentialWords.filter(w => w.difficulty_level === difficulty);
+            const priorityWords = difficultyFilteredWords.filter(w => w.difficulty_level === difficulty);
             if (priorityWords.length > 0) {
                 priorityWords.sort((a, b) => {
                     if (!a.last_reviewed) return -1;
@@ -212,7 +236,11 @@ const useVocabularyStore = create<VocabularyState>()(
             }
         }
         
-        const fallbackWord = potentialWords[Math.floor(Math.random() * potentialWords.length)];
+        // Fallback to any word if difficulty filtering yields nothing but potential words exist
+        const fallbackWords = potentialWords.length > 0 ? potentialWords : get().words;
+        if(fallbackWords.length === 0) return null;
+
+        const fallbackWord = fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
         if (fallbackWord) {
              session.reviewedIds.add(fallbackWord.id);
              set({ session: { reviewedIds: new Set(session.reviewedIds) } });
@@ -234,8 +262,12 @@ const useVocabularyStore = create<VocabularyState>()(
         const mediumWords = words.filter(w => w.difficulty_level === 'Medium').length;
         const hardWords = words.filter(w => w.difficulty_level === 'Hard').length;
         const newWords = words.filter(w => w.difficulty_level === 'New').length;
+        
+        const spelling = words.reduce((sum, w) => sum + (w.spelling_error || 0), 0);
+        const meaning = words.reduce((sum, w) => sum + (w.meaning_error || 0), 0);
+        const grammar = words.reduce((sum, w) => sum + (w.grammar_error || 0), 0);
 
-        set({ stats: { wordsMastered, totalWords, accuracy, easyWords, mediumWords, hardWords, newWords } });
+        set({ stats: { wordsMastered, totalWords, accuracy, easyWords, mediumWords, hardWords, newWords, errorStats: { spelling, meaning, grammar } } });
       },
 
       getAllWords: () => {
@@ -278,7 +310,14 @@ const useVocabularyStore = create<VocabularyState>()(
             }
         }
       },
-      partialize: (state) => ({ words: state.words }),
+      partialize: (state) => ({ 
+          words: state.words.map(w => ({
+              ...w,
+              spelling_error: w.spelling_error || 0,
+              meaning_error: w.meaning_error || 0,
+              grammar_error: w.grammar_error || 0,
+          })) 
+      }),
     }
   )
 );

@@ -9,6 +9,7 @@ import { AddWordDialog } from '@/components/AddWordDialog';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVocabulary } from '@/hooks/use-vocabulary';
+import { PerformanceDashboard } from '@/components/PerformanceDashboard';
 
 function QuickActions() {
   const [isAddWordOpen, setIsAddWordOpen] = useState(false);
@@ -77,6 +78,11 @@ export default function DashboardPage() {
                 <p className="text-muted-foreground">আপনার শেখার অগ্রগতি এবং পরিসংখ্যান এক নজরে দেখুন।</p>
             </div>
             <DashboardStats />
+            <div className="space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight font-headline">পারফরম্যান্স ড্যাশবোর্ড</h2>
+                <p className="text-muted-foreground">আপনার ভুলের ধরন বিশ্লেষণ করুন এবং দুর্বলতা খুঁজে বের করুন।</p>
+            </div>
+            <PerformanceDashboard />
             <div className="space-y-2">
                 <h2 className="text-2xl font-bold tracking-tight font-headline">দ্রুত কার্যক্রম</h2>
                 <p className="text-muted-foreground">এখান থেকে দ্রুত আপনার প্রয়োজনীয় কাজগুলো শুরু করুন।</p>

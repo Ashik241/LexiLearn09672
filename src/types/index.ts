@@ -35,6 +35,8 @@ export interface VerbForms {
   };
 }
 
+export type ErrorType = 'spelling_error' | 'meaning_error' | 'grammar_error';
+
 export interface Word {
   id: string;
   word: string;
@@ -51,6 +53,9 @@ export interface Word {
   is_learned: boolean;
   times_correct: number;
   times_incorrect: number;
+  spelling_error: number;
+  meaning_error: number;
+  grammar_error: number;
   last_reviewed: string | null;
   createdAt: string;
 }

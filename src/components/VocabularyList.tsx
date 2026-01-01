@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { Word, WordDifficulty } from '@/types';
+import type { Word, WordDifficulty, TestType } from '@/types';
 import { Button, buttonVariants } from './ui/button';
 import Link from 'next/link';
-import { Trash2, Search, MoreHorizontal, Pencil } from 'lucide-react';
+import { Trash2, Search, MoreHorizontal, Pencil, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -19,6 +19,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -47,8 +49,21 @@ const difficultyClass: Record<WordDifficulty, string> = {
     'New': 'bg-gray-500/20 text-gray-300 border-gray-500/50',
 }
 
+const examTypes: { value: TestType; label: string }[] = [
+    { value: 'dynamic', label: 'Dynamic Revision' },
+    { value: 'mcq', label: 'MCQ (Eng to Ban)' },
+    { value: 'bengali-to-english', label: 'MCQ (Ban to Eng)' },
+    { value: 'spelling_meaning', label: 'Spelling (from Meaning)' },
+    { value: 'spelling_listen', label: 'Spelling (from Listening)' },
+    { value: 'fill_blank_word', label: 'Fill in the Blanks (Word)' },
+    { value: 'fill_blank_sentence', label: 'Fill in the Blanks (Sentence)' },
+    { value: 'verb_form', label: 'Verb Form Test' },
+    { value: 'synonym-antonym', label: 'Synonym/Antonym Test' },
+];
+
+
 export function VocabularyList() {
-    const { getAllWords, isInitialized, deleteWord, deleteAllWords } = useVocabulary();
+    const { getAllWords, isInitialized, deleteWord } = useVocabulary();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -56,7 +71,6 @@ export function VocabularyList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [posFilter, setPosFilter] = useState('all');
     const [wordToDelete, setWordToDelete] = useState<Word | null>(null);
-    const [isDeleteAllAlertOpen, setIsDeleteAllAlertOpen] = useState(false);
     const [wordToEdit, setWordToEdit] = useState<Word | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -166,15 +180,6 @@ export function VocabularyList() {
             setWordToDelete(null);
         }
     };
-
-    const confirmDeleteAll = () => {
-        deleteAllWords();
-        toast({
-            title: "সমস্ত শব্দ মুছে ফেলা হয়েছে",
-            description: "আপনার শব্দভান্ডারের সমস্ত শব্দ সফলভাবে মুছে ফেলা হয়েছে।",
-        });
-        setIsDeleteAllAlertOpen(false);
-    };
     
     const handleEditClick = (e: MouseEvent<HTMLDivElement>, word: Word) => {
         e.stopPropagation();
@@ -187,6 +192,12 @@ export function VocabularyList() {
         if (!open) {
             setWordToEdit(null);
         }
+    }
+    
+    const handleStartExam = (type: TestType) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('type', type);
+        router.push(`/learn?${params.toString()}`);
     }
 
     return (
@@ -213,10 +224,24 @@ export function VocabularyList() {
                                 {allPos.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
                             </SelectContent>
                         </Select>
-                         {hasFilter && (
-                            <Button asChild>
-                                <Link href={`/learn?${searchParams.toString()}`}>Start Exam</Link>
-                            </Button>
+                         {hasFilter && words.length > 0 && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button>
+                                        Start Exam
+                                        <ChevronDown className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Select Exam Type</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {examTypes.map((exam) => (
+                                        <DropdownMenuItem key={exam.value} onClick={() => handleStartExam(exam.value)}>
+                                            {exam.label}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         )}
                     </div>
                 </CardHeader>
@@ -300,22 +325,6 @@ export function VocabularyList() {
                         <AlertDialogCancel onClick={() => setWordToDelete(null)}>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={confirmDelete} className={buttonVariants({ variant: "destructive" })}>
                             Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            <AlertDialog open={isDeleteAllAlertOpen} onOpenChange={setIsDeleteAllAlertOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                           This action cannot be undone. This will permanently delete all {words.length} words from your vocabulary.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDeleteAll} className={buttonVariants({ variant: "destructive" })}>
-                            Delete All
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

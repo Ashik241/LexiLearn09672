@@ -5,9 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookCheck, Target, Percent, HelpCircle, ShieldAlert, Check, FilePlus, CalendarPlus } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export function DashboardStats() {
   const { stats, isInitialized } = useVocabulary();
+  const [todayDate, setTodayDate] = useState('');
+
+  useEffect(() => {
+    setTodayDate(new Date().toISOString().split('T')[0]);
+  }, []);
 
   const statItems = [
     {
@@ -61,7 +67,7 @@ export function DashboardStats() {
       icon: CalendarPlus,
       description: "Number of new words added today.",
       className: 'text-blue-500',
-      link: `/vocabulary?date=${new Date().toISOString().split('T')[0]}`,
+      link: `/vocabulary?date=${todayDate}`,
     },
   ];
 
@@ -79,7 +85,7 @@ export function DashboardStats() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
       {statItems.map((item) => (
         <Link
-          href={item.link || '#'}
+          href={item.link && (item.title === "Today's Words" ? (todayDate ? item.link : '#') : item.link) || '#'}
           key={item.title}
           className="flex"
         >

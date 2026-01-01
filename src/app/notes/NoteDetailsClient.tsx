@@ -31,6 +31,7 @@ function LoadingSkeleton() {
 export function NoteDetailsClient({ noteId }: { noteId: string }) {
   const { notes, isInitialized } = useNotes();
   const [note, setNote] = useState<Note | null>(null);
+  const [formattedDate, setFormattedDate] = useState('');
   const router = useRouter();
   const decodedNoteId = decodeURIComponent(noteId);
 
@@ -38,6 +39,9 @@ export function NoteDetailsClient({ noteId }: { noteId: string }) {
     if (isInitialized) {
       const foundNote = notes.find(n => n.id === decodedNoteId);
       setNote(foundNote || null);
+      if (foundNote) {
+        setFormattedDate(new Date(foundNote.createdAt).toLocaleDateString());
+      }
     }
   }, [isInitialized, decodedNoteId, notes]);
 
@@ -75,7 +79,7 @@ export function NoteDetailsClient({ noteId }: { noteId: string }) {
                 </CardTitle>
             </div>
             <CardDescription className="pt-2 pl-14">
-                 Created on {new Date(note.createdAt).toLocaleDateString()}
+                 {formattedDate ? `Created on ${formattedDate}` : 'Loading date...'}
             </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

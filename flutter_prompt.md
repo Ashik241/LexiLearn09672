@@ -333,13 +333,42 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
 ### Other Important UI Components:
 
 #### `WordDetailsPage.dart`
-- **UI:** A detailed view of a single word, shown when a user taps a word in the list.
-  - Word, Part of Speech, Difficulty Badge.
-  - Pronunciation controls (US/UK accent, speed, volume) using `flutter_tts`.
-  - Bengali meaning, meaning explanation.
-  - Synonyms and Antonyms displayed as tappable chips.
-  - Example sentences.
-  - Verb forms table (if applicable).
+- **UI:** A `Scaffold` wrapping a `SingleChildScrollView` that contains a `Card` widget for the main content. The card will have padding and display all details of a single word.
+- **`CardHeader`:**
+  - A `Row` containing a `Column` for text and a `Row` for controls.
+  - **Left Column:**
+    - The `word` in a large, bold font (`headlineMedium` style), colored with the primary theme color.
+    - The `parts_of_speech` below the word in a smaller, muted color.
+  - **Right Controls:**
+    - An `IconButton` (`Icons.volume_up_outlined`) to pronounce the word.
+    - An `IconButton` (`Icons.settings_outlined`) that opens a small pop-up/modal to control pronunciation settings.
+      - **Pronunciation Pop-up:** Contains a `RadioListTile` for US/UK accent, and `Slider` widgets for speed and volume.
+    - A `Chip` widget to display the `difficultyLevel` with appropriate background colors (e.g., Hard: red, Medium: yellow, Easy: green).
+- **`CardContent`:** Use a `Column` with `SizedBox` for spacing between sections.
+  - **Meaning Section:**
+    - "Meaning (Bangla)" title.
+    - The `meaning` in a slightly larger font.
+  - **Meaning Explanation Section (if exists):**
+    - A `Card` with a light background color (e.g., `Colors.blue.shade50`).
+    - "Meaning Explanation" title.
+    - The `meaningExplanation` text, formatted as an italic quote.
+  - **Usage Distinction Section (if exists):** Similar to the meaning explanation section.
+  - **Syllables Section:**
+    - "Syllables" title.
+    - `syllables` list joined with a ' · ' separator, displayed in a code-style font.
+  - **Synonyms & Antonyms Section:**
+    - A `Row` or `Wrap` widget.
+    - **Synonyms (if exist):** "Synonyms" title. Display synonyms as `ActionChip` widgets. Each chip is tappable to pronounce the synonym. The chip should show the `word` and optionally the `meaning` below it.
+    - **Antonyms (if exist):** "Antonyms" title. Similar UI to synonyms but with a different chip style (e.g., `outlined`).
+  - **Example Sentences Section (if exists):**
+    - "Example Sentences" title.
+    - A `Column` of `ListTile` widgets, each with a leading bullet point icon and the sentence text.
+  - **Verb Forms Section (if it's a verb):**
+    - A `Divider` followed by a "Verb Forms" title.
+    - A `DataTable` or a custom `Table` to display the verb forms (V1, V2, V3).
+    - **Table Columns:** "Form", "Word & Pronunciation", "Bengali Meaning", "Usage Timing".
+    - **Table Rows:** Each row will represent a verb form (Present, Past, Past Participle). The "Word & Pronunciation" cell should contain the verb form and a small `IconButton` to pronounce it.
+    - Below the table, display the `form_examples` for V1, V2, and V3.
 
 #### Dialogs (`AddWordDialog.dart`, `AddNoteDialog.dart`)
 - Use `showDialog` to present a modal.

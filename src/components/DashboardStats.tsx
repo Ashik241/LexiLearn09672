@@ -2,7 +2,7 @@
 
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookCheck, Target, Percent, HelpCircle, ShieldAlert, Check } from 'lucide-react';
+import { BookCheck, Target, Percent, HelpCircle, ShieldAlert, Check, FilePlus } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import Link from 'next/link';
 
@@ -55,12 +55,20 @@ export function DashboardStats() {
       className: 'text-green-500',
       link: '/vocabulary?difficulty=Easy',
     },
+     {
+      title: 'New Words',
+      value: stats.newWords,
+      icon: FilePlus,
+      description: "'New' ক্যাটেগরিতে থাকা শব্দের সংখ্যা।",
+      className: 'text-blue-500',
+      link: '/vocabulary?difficulty=New',
+    },
   ];
 
   if (!isInitialized) {
     return (
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            {Array.from({ length: 7 }).map((_, i) => (
               <Skeleton key={i} className="h-36" />
             ))}
         </div>
@@ -68,7 +76,7 @@ export function DashboardStats() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
       {statItems.map((item) => (
         <Link
           href={item.link || '#'}

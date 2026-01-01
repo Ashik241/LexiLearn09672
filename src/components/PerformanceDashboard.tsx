@@ -209,25 +209,25 @@ export function PerformanceDashboard() {
             </CardContent>
         </Card>
       </Link>
-      <Link href="/vocabulary?difficulty=Hard" className="flex">
-        <Card className="flex flex-col w-full hover:bg-card-foreground/5 transition-colors">
-            <CardHeader>
-                <CardTitle>Top 5 Hardest Words</CardTitle>
-                <CardDescription>সবচেয়ে বেশি ভুল করা শব্দগুলো।</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
+      <Card className="flex flex-col w-full">
+          <CardHeader>
+              <CardTitle>Top 5 Hardest Words</CardTitle>
+              <CardDescription>সবচেয়ে বেশি ভুল করা শব্দগুলো।</CardDescription>
+          </CardHeader>
+          <Link href="/vocabulary?difficulty=Hard" className="flex flex-col flex-grow">
+            <CardContent className="flex-grow hover:bg-card-foreground/5 transition-colors rounded-md">
                 <HardestWordsList />
             </CardContent>
-            <CardFooter>
-                 <Button asChild className="w-full">
-                    <Link href="/learn?difficulty=Hard">
-                        <BookCheck className="mr-2 h-4 w-4" />
-                        Exam
-                    </Link>
-                </Button>
-            </CardFooter>
-        </Card>
-      </Link>
+          </Link>
+          <CardFooter>
+                <Button asChild className="w-full">
+                  <Link href="/learn?difficulty=Hard">
+                      <BookCheck className="mr-2 h-4 w-4" />
+                      Exam
+                  </Link>
+              </Button>
+          </CardFooter>
+      </Card>
       <Card>
           <CardHeader>
               <CardTitle>7-Day Progress</CardTitle>

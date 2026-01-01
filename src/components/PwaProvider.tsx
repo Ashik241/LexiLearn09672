@@ -9,10 +9,12 @@ export function PwaProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (
-      typeof window !== 'undefined' &&
-      'serviceWorker' in navigator &&
-      window.workbox !== undefined
+      typeof window === 'undefined' ||
+      !('serviceWorker' in navigator) ||
+      !window.workbox
     ) {
+      return;
+    }
       const wb = window.workbox;
 
       // A common UX pattern for progressive web applications is to show a banner when a service worker has updated and waiting to install.
@@ -34,7 +36,6 @@ export function PwaProvider({ children }: { children: ReactNode }) {
       
       // Never forget to call register as automatic registration is removed in next-pwa > 4.0.0
       wb.register();
-    }
   }, [toast]);
 
   return <>{children}</>;

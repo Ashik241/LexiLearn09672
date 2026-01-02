@@ -433,7 +433,46 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
   - Implement a `Tabbed` view for "Add Single" vs. "Bulk Import from JSON".
   - **Add Single Tab:** Use a `Form` with `TextFormField` widgets and validation for all `Word` properties (word, meaning, parts of speech, etc., including optional verb forms).
   - **Bulk Import Tab:**
-    - Provide a multi-line `TextFormField` for pasting JSON data. For example: `[{"word": "example", "meaning": "উদাহরণ", ...}]`
+    - Provide a multi-line `TextFormField` for pasting JSON data. For example: `[
+  {
+    "word": "active",
+    "meaning": "সক্রিয় বা কর্মঠ",
+    "meaning_explanation": "শারীরিকভাবে সচল, কাজে লিপ্ত অথবা বর্তমানে কার্যকর এমন অবস্থা।",
+    "parts_of_speech": "Adjective",
+    "syllables": ["ac", "tive"],
+    "usage_distinction": "ব্যক্তির ক্ষেত্রে এটি 'পরিশ্রমী' বোঝায়, আর কোনো যন্ত্র বা সিস্টেমের ক্ষেত্রে এটি 'সচল' বা 'চালু' বোঝায়। এর বিপরীত অবস্থা বোঝাতে 'Passive' ব্যবহৃত হয়।",
+    "example_sentences": [
+      "He takes an active part in school sports.",
+      "Keep your account active by logging in regularly."
+    ],
+    "synonyms": [
+      { "word": "energetic", "bangla": "কর্মঠ" },
+      { "word": "busy", "bangla": "ব্যস্ত" }
+    ],
+    "antonyms": [
+      { "word": "lazy", "bangla": "অলস" },
+      { "word": "passive", "bangla": "নিষ্ক্রিয়" }
+    ],
+    "verb_forms": null
+  }, {
+    "word": "do",
+    "meaning": "করা",
+    "meaning_explanation": "কোনো কাজ, দায়িত্ব বা কর্মকাণ্ড সম্পাদন করা।",
+    "parts_of_speech": "Verb",
+    "syllables": ["do"],
+    "usage_distinction": "'Do' সাধারণত কোনো কাজ বা অ্যাকশন বোঝাতে ব্যবহৃত হয় (যেমন: Do homework)। অন্যদিকে 'Make' ব্যবহৃত হয় নতুন কিছু সৃষ্টি বা তৈরি করার ক্ষেত্রে (যেমন: Make tea)।",
+    "example_sentences": [
+      "I do my laundry on Sundays.",
+      "What do you do for a living?"
+    ],
+    "verb_forms": {
+      "v1_present": { "word": "do", "pronunciation": "ডু", "bangla_meaning": "করি", "usage_timing": "বর্তমানে সাধারণ কাজ বোঝাতে। সাবজেক্ট অনুযায়ী 'does' ব্যবহৃত হয়।" },
+      "v2_past": { "word": "did", "pronunciation": "ডিড", "bangla_meaning": "করেছিল", "usage_timing": "অতীতে কোনো কাজ সম্পন্ন করেছিল বোঝাতে।" },
+      "v3_past_participle": { "word": "done", "pronunciation": "ডান", "bangla_meaning": "করা হয়েছে এমন", "usage_timing": "পারফেক্ট টেন্স বা প্যাসিভ ভয়েস এর ক্ষেত্রে ব্যবহৃত হয়।" },
+      "form_examples": { "v1": "They do their best in every task.", "v2": "She did an amazing job yesterday.", "v3": "The work has been done already." }
+    }
+  },
+]`
     - On submit, parse the JSON. It should handle an array of word objects.
     - Use the `VocabularyRepository`'s `addMultipleWords` method to import the data in a single transaction.
     - Show a `SnackBar` or `Toast` with the result (e.g., "5 words added, 2 duplicates skipped.").
@@ -450,5 +489,50 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
 - **`flutter_tts`**: For text-to-speech.
 - **`json_serializable`** (optional, for complex data models)
 - **`fl_chart`**: For charts.
+
+---
+
+## 6. Project File Structure
+
+Here is a recommended file structure for the Flutter project to keep it organized and maintainable.
+
+**Main File:**
+*   `lib/main.dart` - The entry point of the application.
+
+**Data Layer:**
+*   `lib/models/word.dart` - Contains the `Word` data model.
+*   `lib/models/note.dart` - Contains the `Note` data model.
+*   `lib/database/database_helper.dart` - Singleton class for managing the SQLite database connection.
+*   `lib/repositories/vocabulary_repository.dart` - Handles all database operations for words.
+*   `lib/repositories/notes_repository.dart` - Handles all database operations for notes.
+
+**State Management (Providers):**
+*   `lib/providers/vocabulary_provider.dart` - Manages the state for vocabulary.
+*   `lib/providers/notes_provider.dart` - Manages the state for notes.
+
+**UI Layer (Screens/Pages):**
+*   `lib/screens/main_screen.dart` - The main screen with the bottom navigation bar.
+*   `lib/screens/dashboard_page.dart` - The dashboard UI.
+*   `lib/screens/vocabulary_list_page.dart` - The screen for displaying the list of all words.
+*   `lib/screens/learn_page.dart` - The main screen for all exam/learning activities.
+*   `lib/screens/performance_page.dart` - The screen for displaying user statistics and performance.
+*   `lib/screens/notes_page.dart` - The screen for displaying all user notes.
+*   `lib/screens/word_details_page.dart` - The screen to show all details of a single word.
+*   `lib/screens/note_details_page.dart` - The screen to show the full content of a single note.
+
+**Reusable UI Components (Widgets):**
+*   `lib/widgets/add_word_dialog.dart` - Dialog for adding/editing words.
+*   `lib/widgets/add_note_dialog.dart` - Dialog for adding/editing notes.
+*   `lib/widgets/word_list_item.dart` - A widget for a single item in the `VocabularyListPage`.
+*   `lib/widgets/note_card.dart` - A widget for a single note card in the `NotesPage` grid.
+*   `lib/widgets/feedback_screen.dart` - A widget to show feedback after a test answer.
+
+**Exam-Specific Widgets:**
+*   `lib/widgets/exam/mcq_test.dart` - Widget for the Multiple Choice Question test.
+*   `lib/widgets/exam/spelling_test.dart` - Widget for the Spelling test.
+*   `lib/widgets/exam/verb_form_test.dart` - Widget for the Verb Form test.
+*   `lib/widgets/exam/fill_in_blanks_test.dart` - Widget for the Fill in the Blanks test.
+
+---
 
 This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database and Provider for state management. Good luck!

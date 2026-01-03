@@ -190,9 +190,9 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
   return (
     <Card className="w-full mx-auto">
         <CardHeader>
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start flex-wrap gap-4">
             <div>
-            <CardTitle className="text-4xl font-bold font-code text-primary flex items-center gap-4 break-words">
+            <CardTitle className="text-4xl font-bold font-code text-primary break-words">
                 {word.word}
             </CardTitle>
             <CardDescription className="text-lg mt-2">{word.parts_of_speech}</CardDescription>
@@ -257,13 +257,14 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
             </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h3 className="text-xl font-semibold mb-2">Syllables</h3>
-                <p className="text-muted-foreground font-code break-words">{word.syllables?.join(' · ')}</p>
+        {word.syllables && word.syllables.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 className="text-xl font-semibold mb-2">Syllables</h3>
+                    <p className="text-muted-foreground font-code break-words">{word.syllables?.join(' · ')}</p>
+                </div>
             </div>
-        </div>
-
+        )}
         
         {!isVerb && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -272,19 +272,19 @@ export function VocabularyList() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Word</TableHead>
-                                        <TableHead>Meaning</TableHead>
-                                        <TableHead>Part of Speech</TableHead>
-                                        <TableHead className="text-center">Level</TableHead>
-                                        <TableHead className="text-right w-[80px]">Actions</TableHead>
+                                        <TableHead className="whitespace-nowrap">Word</TableHead>
+                                        <TableHead className="whitespace-nowrap">Meaning</TableHead>
+                                        <TableHead className="whitespace-nowrap">Part of Speech</TableHead>
+                                        <TableHead className="text-center whitespace-nowrap w-[100px]">Level</TableHead>
+                                        <TableHead className="text-right w-[50px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {words.map((word) => (
                                         <TableRow key={word.id} onClick={() => handleRowClick(word.id)} className="cursor-pointer">
-                                            <TableCell className="font-medium font-code break-words">{word.word}</TableCell>
-                                            <TableCell className="break-words">{word.meaning}</TableCell>
-                                            <TableCell className="break-words">{word.parts_of_speech}</TableCell>
+                                            <TableCell className="font-medium font-code whitespace-nowrap">{word.word}</TableCell>
+                                            <TableCell>{word.meaning}</TableCell>
+                                            <TableCell>{word.parts_of_speech}</TableCell>
                                             <TableCell className="text-center">
                                                 <Badge 
                                                     variant={difficultyVariant[word.difficulty_level]}

@@ -7,6 +7,14 @@ import { useEffect } from 'react';
 
 type UpdatePayload = Partial<Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt' | 'spelling_error' | 'meaning_error' | 'grammar_error'>>;
 
+interface Filters {
+    difficulty: string | null;
+    date: string | null;
+    learned: string | null;
+    pos: string | null;
+    search: string | null;
+}
+
 interface VocabularyState {
   words: Word[];
   stats: {
@@ -40,6 +48,9 @@ interface VocabularyState {
   getWordById: (id: string) => Word | undefined;
   resetSession: () => void;
   getSessionProgress: (difficulties: WordDifficulty[], filter?: (word: Word) => boolean) => { reviewed: number, total: number };
+  applyFilters: (filters: Filters) => Word[];
+  getNextWordId: (currentId: string, wordList: Word[]) => string | null;
+  getPreviousWordId: (currentId: string, wordList: Word[]) => string | null;
 }
 
 const useVocabularyStore = create<VocabularyState>()(
@@ -302,6 +313,50 @@ const useVocabularyStore = create<VocabularyState>()(
             reviewed: session.reviewedIds.size,
             total: potentialWords.length,
         }
+      },
+      applyFilters: (filters) => {
+        let allWords = get().getAllWords();
+        if (filters.difficulty) {
+            allWords = allWords.filter(word => word.difficulty_level === filters.difficulty);
+        }
+        if (filters.date) {
+            allWords = allWords.filter(word => word.createdAt && word.createdAt.startsWith(filters.date as string));
+        }
+        if (filters.learned === 'true') {
+            allWords = allWords.filter(word => word.is_learned);
+        }
+        if (filters.pos && filters.pos !== 'all') {
+            allWords = allWords.filter(word => word.parts_of_speech === filters.pos);
+        }
+        if (filters.search) {
+            const lowercasedQuery = (filters.search as string).toLowerCase();
+            allWords = allWords.filter(word => 
+                word.word.toLowerCase().includes(lowercasedQuery) ||
+                word.meaning.toLowerCase().includes(lowercasedQuery) ||
+                (word.synonyms && word.synonyms.some(s => s && s.word && s.word.toLowerCase().includes(lowercasedQuery))) ||
+                (word.antonyms && word.antonyms.some(a => a && a.word && a.word.toLowerCase().includes(lowercasedQuery))) ||
+                (word.verb_forms && (
+                    (word.verb_forms.v1_present.word && word.verb_forms.v1_present.word.toLowerCase().includes(lowercasedQuery)) ||
+                    (word.verb_forms.v2_past.word && word.verb_forms.v2_past.word.toLowerCase().includes(lowercasedQuery)) ||
+                    (word.verb_forms.v3_past_participle.word && word.verb_forms.v3_past_participle.word.toLowerCase().includes(lowercasedQuery))
+                ))
+            );
+        }
+        return allWords;
+      },
+      getPreviousWordId: (currentId: string, wordList: Word[]) => {
+        const currentIndex = wordList.findIndex(w => w.id === currentId);
+        if (currentIndex > 0) {
+            return wordList[currentIndex - 1].id;
+        }
+        return null;
+      },
+      getNextWordId: (currentId: string, wordList: Word[]) => {
+          const currentIndex = wordList.findIndex(w => w.id === currentId);
+          if (currentIndex !== -1 && currentIndex < wordList.length - 1) {
+              return wordList[currentIndex + 1].id;
+          }
+          return null;
       }
     }),
     {

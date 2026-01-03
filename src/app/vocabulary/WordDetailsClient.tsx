@@ -1,9 +1,9 @@
 'use client';
 
 import { Header } from '@/components/layout/Header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Volume2, Settings } from 'lucide-react';
+import { Volume2, Settings, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
@@ -15,6 +15,7 @@ import type { Word, VerbFormDetail } from '@/types';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 type Accent = 'UK' | 'US';
 
@@ -89,6 +90,12 @@ function LoadingSkeleton() {
                 </ul>
               </div>
           </CardContent>
+            <CardFooter>
+                 <div className="flex justify-between w-full">
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+            </CardFooter>
         </Card>
       </main>
     </div>
@@ -97,20 +104,39 @@ function LoadingSkeleton() {
 
 
 export function WordDetailsClient({ wordId }: { wordId: string }) {
-  const { getWordById, isInitialized } = useVocabulary();
+  const { getWordById, isInitialized, getNextWordId, getPreviousWordId, applyFilters } = useVocabulary();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [rate, setRate] = useState([0.9]);
   const [volume, setVolume] = useState([1]);
   const [accent, setAccent] = useState<Accent>('US');
   const [word, setWord] = useState<Word | null>(null);
+  const [previousWordId, setPreviousWordId] = useState<string | null>(null);
+  const [nextWordId, setNextWordId] = useState<string | null>(null);
+
   const decodedWordId = decodeURIComponent(wordId);
 
   useEffect(() => {
     if (isInitialized && decodedWordId) {
       const foundWord = getWordById(decodedWordId);
-      // If the word isn't found, we create a placeholder to show a "not found" message.
       setWord(foundWord || { id: decodedWordId, word: decodedWordId, meaning: '', parts_of_speech: '' } as Word);
+      
+      const filters = {
+          difficulty: searchParams.get('difficulty'),
+          date: searchParams.get('date'),
+          learned: searchParams.get('learned'),
+          pos: searchParams.get('pos'),
+          search: searchParams.get('search'),
+      };
+
+      const wordList = applyFilters(filters);
+
+      setPreviousWordId(getPreviousWordId(decodedWordId, wordList));
+      setNextWordId(getNextWordId(decodedWordId, wordList));
     }
-  }, [isInitialized, decodedWordId, getWordById]);
+  }, [isInitialized, decodedWordId, getWordById, getNextWordId, getPreviousWordId, applyFilters, searchParams]);
 
 
   const speak = (text: string, selectedAccent: Accent = accent) => {
@@ -133,6 +159,13 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
     utterance.volume = volume[0];
     window.speechSynthesis.speak(utterance);
   };
+  
+  const navigateToWord = (id: string | null) => {
+      if (!id) return;
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.set('word', id);
+      router.push(`${pathname}?${newParams.toString()}`);
+  }
 
   if (!isInitialized || !word) {
     return <LoadingSkeleton />;
@@ -307,6 +340,18 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
             </div>
         )}
         </CardContent>
+        <CardFooter>
+            <div className="flex justify-between w-full">
+                <Button onClick={() => navigateToWord(previousWordId)} disabled={!previousWordId}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Previous Word
+                </Button>
+                <Button onClick={() => navigateToWord(nextWordId)} disabled={!nextWordId}>
+                    Next Word
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+        </CardFooter>
     </Card>
   );
 }

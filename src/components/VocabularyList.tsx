@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, MouseEvent, useState } from 'react';
+import { useMemo, MouseEvent, useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,60 +64,60 @@ const examTypes: { value: TestType; label: string }[] = [
 
 
 export function VocabularyList() {
-    const { getAllWords, isInitialized, deleteWord } = useVocabulary();
+    const { applyFilters, isInitialized, deleteWord } = useVocabulary();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [posFilter, setPosFilter] = useState('all');
+    
     const [wordToDelete, setWordToDelete] = useState<Word | null>(null);
     const [wordToEdit, setWordToEdit] = useState<Word | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-
-    const difficultyFilter = searchParams.get('difficulty') as WordDifficulty | null;
+    const difficultyFilter = searchParams.get('difficulty');
     const dateFilter = searchParams.get('date');
     const learnedFilter = searchParams.get('learned');
+    const posFilter = searchParams.get('pos') || 'all';
+    const searchQuery = searchParams.get('search') || '';
+    
     const hasFilter = difficultyFilter || dateFilter || learnedFilter;
     
     const allPos = useMemo(() => {
         if (!isInitialized) return [];
-        const words = getAllWords();
+        const words = applyFilters({ difficulty: null, date: null, learned: null, pos: null, search: null });
         const posSet = new Set(words.map(w => w.parts_of_speech).filter(Boolean));
         return Array.from(posSet);
-    }, [isInitialized, getAllWords]);
+    }, [isInitialized, applyFilters]);
 
     const words = useMemo(() => {
-        let allWords = getAllWords();
-        if (difficultyFilter) {
-            allWords = allWords.filter(word => word.difficulty_level === difficultyFilter);
+        return applyFilters({
+            difficulty: difficultyFilter,
+            date: dateFilter,
+            learned: learnedFilter,
+            pos: posFilter,
+            search: searchQuery
+        });
+    }, [applyFilters, difficultyFilter, dateFilter, learnedFilter, posFilter, searchQuery]);
+    
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newParams = new URLSearchParams(searchParams.toString());
+        if (e.target.value) {
+            newParams.set('search', e.target.value);
+        } else {
+            newParams.delete('search');
         }
-        if (dateFilter) {
-            allWords = allWords.filter(word => word.createdAt && word.createdAt.startsWith(dateFilter));
+        router.replace(`${pathname}?${newParams.toString()}`);
+    }
+    
+    const handlePosFilterChange = (value: string) => {
+        const newParams = new URLSearchParams(searchParams.toString());
+        if (value && value !== 'all') {
+            newParams.set('pos', value);
+        } else {
+            newParams.delete('pos');
         }
-        if (learnedFilter === 'true') {
-            allWords = allWords.filter(word => word.is_learned);
-        }
-        if (posFilter && posFilter !== 'all') {
-            allWords = allWords.filter(word => word.parts_of_speech === posFilter);
-        }
-        if (searchQuery) {
-            const lowercasedQuery = searchQuery.toLowerCase();
-            allWords = allWords.filter(word => 
-                word.word.toLowerCase().includes(lowercasedQuery) ||
-                word.meaning.toLowerCase().includes(lowercasedQuery) ||
-                (word.synonyms && word.synonyms.some(s => s && s.word && s.word.toLowerCase().includes(lowercasedQuery))) ||
-                (word.antonyms && word.antonyms.some(a => a && a.word && a.word.toLowerCase().includes(lowercasedQuery))) ||
-                (word.verb_forms && (
-                    (word.verb_forms.v1_present.word && word.verb_forms.v1_present.word.toLowerCase().includes(lowercasedQuery)) ||
-                    (word.verb_forms.v2_past.word && word.verb_forms.v2_past.word.toLowerCase().includes(lowercasedQuery)) ||
-                    (word.verb_forms.v3_past_participle.word && word.verb_forms.v3_past_participle.word.toLowerCase().includes(lowercasedQuery))
-                ))
-            );
-        }
-        return allWords;
-    }, [getAllWords, difficultyFilter, dateFilter, learnedFilter, posFilter, searchQuery]);
+        router.replace(`${pathname}?${newParams.toString()}`);
+    }
 
     const title = useMemo(() => {
         if (difficultyFilter) return `${difficultyFilter} Words`;
@@ -168,7 +168,9 @@ export function VocabularyList() {
     }
 
     const handleRowClick = (wordId: string) => {
-        router.push(`${pathname}?word=${encodeURIComponent(wordId)}`);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('word', wordId);
+        router.push(`${pathname}?${params.toString()}`);
     };
 
     const confirmDelete = () => {
@@ -212,7 +214,7 @@ export function VocabularyList() {
                            <Input 
                                 placeholder="Search words..."
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={handleSearchChange}
                                 className="pl-10"
                            />
                         </div>
@@ -225,7 +227,7 @@ export function VocabularyList() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Part of Speech</DropdownMenuLabel>
-                                <DropdownMenuRadioGroup value={posFilter} onValueChange={setPosFilter}>
+                                <DropdownMenuRadioGroup value={posFilter} onValueChange={handlePosFilterChange}>
                                     <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
                                     {allPos.map(pos => (
                                         <DropdownMenuRadioItem key={pos} value={pos}>{pos}</DropdownMenuRadioItem>
@@ -261,7 +263,7 @@ export function VocabularyList() {
                             <p className="text-muted-foreground">No words found matching your search or filter.</p>
                             { (difficultyFilter || dateFilter || learnedFilter || searchQuery || posFilter !== 'all') && (
                                  <Button asChild variant="outline" className="mt-4">
-                                    <Link href="/vocabulary" onClick={() => { setSearchQuery(''); setPosFilter('all'); }}>Clear Filters & Search</Link>
+                                    <Link href="/vocabulary">Clear Filters & Search</Link>
                                 </Button>
                             )}
                         </div>

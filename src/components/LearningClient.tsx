@@ -78,48 +78,51 @@ function LearningClientInternal() {
   const [userAnswer, setUserAnswer] = useState('');
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   
-  const getDifficultyFromFilter = (): WordDifficulty[] | undefined => {
+  const getDifficultyFromFilter = (): WordDifficulty[] => {
     if (difficultyFilter) return [difficultyFilter];
-    return undefined;
+    return ['New', 'Hard', 'Medium', 'Easy'];
   }
 
   const getSessionFilter = useCallback((): ((word: Word) => boolean) => {
-    let filter: ((word: Word) => boolean);
+    const filters: ((word: Word) => boolean)[] = [];
     
+    if (difficultyFilter) {
+      filters.push((word: Word) => word.difficulty_level === difficultyFilter);
+    }
     if (dateFilter) {
       const today = new Date().toISOString().split('T')[0];
       if (dateFilter === today) {
-        filter = (word: Word) => word.createdAt.split('T')[0] === today;
+        filters.push((word: Word) => word.createdAt.split('T')[0] === today);
       } else {
-        filter = (word: Word) => word.createdAt.split('T')[0] === dateFilter;
+        filters.push((word: Word) => word.createdAt.split('T')[0] === dateFilter);
       }
-    } else if (learnedFilter) {
-      filter = (word: Word) => word.is_learned;
-    } else if (forcedTestType === 'synonym-antonym') {
-      filter = (word: Word) => !!((word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0));
-    } else if (forcedTestType === 'verb_form') {
-        filter = (word: Word) => !!word.verb_forms;
-    } else if (forcedTestType === 'fill_blank_sentence') {
-        filter = (word: Word) => !!word.example_sentences && word.example_sentences.length > 0 && !!createSentenceWithBlank(word.example_sentences, word.word);
-    } else {
-      filter = () => true; // Default filter that includes all words
+    } 
+    if (learnedFilter) {
+      filters.push((word: Word) => word.is_learned);
     }
-    return filter;
-  }, [dateFilter, learnedFilter, forcedTestType]);
+    if (forcedTestType === 'synonym-antonym') {
+        filters.push((word: Word) => !!((word.synonyms && word.synonyms.length > 0) || (word.antonyms && word.antonyms.length > 0)));
+    }
+    if (forcedTestType === 'verb_form') {
+        filters.push((word: Word) => !!word.verb_forms);
+    }
+    if (forcedTestType === 'fill_blank_sentence') {
+        filters.push((word: Word) => !!word.example_sentences && word.example_sentences.length > 0 && !!createSentenceWithBlank(word.example_sentences, word.word));
+    }
+
+    if (filters.length === 0) {
+        return (word: Word) => ['Hard', 'Medium'].includes(word.difficulty_level);
+    }
+
+    return (word: Word) => filters.every(filter => filter(word));
+  }, [dateFilter, learnedFilter, forcedTestType, difficultyFilter]);
 
 
   const loadNextWord = useCallback(() => {
     setIsLoadingNext(true);
     setSessionState('loading');
-
-    let difficulties: WordDifficulty[] = ['New', 'Hard', 'Medium', 'Easy'];
     
-    if (difficultyFilter) {
-        difficulties = [difficultyFilter];
-    } else if (!forcedTestType && !dateFilter) { // Default daily revision
-        difficulties = ['Hard', 'Medium'];
-    }
-
+    const difficulties = getDifficultyFromFilter();
     const sessionFilter = getSessionFilter();
     let word = getWordForSession(difficulties, sessionFilter);
 
@@ -159,7 +162,7 @@ function LearningClientInternal() {
        toast({ title: "Session Complete!", description: "All words in this list have been reviewed." });
     }
     setIsLoadingNext(false);
-  }, [getWordForSession, difficultyFilter, forcedTestType, dateFilter, toast, getSessionFilter]);
+  }, [getWordForSession, forcedTestType, toast, getSessionFilter]);
 
   useEffect(() => {
     if (isInitialized) {

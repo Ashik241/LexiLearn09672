@@ -220,8 +220,14 @@ const useVocabularyStore = create<VocabularyState>()(
             difficultyFilteredWords = potentialWords.filter(w => difficulties.includes(w.difficulty_level));
         }
 
+        // Use difficultyFilteredWords if it has any words, otherwise fall back to potentialWords
+        let wordsToChooseFrom = difficultyFilteredWords.length > 0 ? difficultyFilteredWords : potentialWords;
+        
+        if (wordsToChooseFrom.length === 0) return null;
+
+
         // Weighted Practice Algorithm
-        const spellingErrorWords = difficultyFilteredWords.filter(w => w.spelling_error >= 3);
+        const spellingErrorWords = wordsToChooseFrom.filter(w => w.spelling_error >= 3);
         if(spellingErrorWords.length > 0){
              spellingErrorWords.sort((a,b) => b.spelling_error - a.spelling_error);
              const selectedWord = spellingErrorWords[0];
@@ -230,13 +236,12 @@ const useVocabularyStore = create<VocabularyState>()(
              return selectedWord;
         }
 
-
-        if (potentialWords.length === 0) return null;
-
         const priorityOrder: WordDifficulty[] = ['Hard', 'Medium', 'New', 'Easy'];
         
         for (const difficulty of priorityOrder) {
-            const priorityWords = difficultyFilteredWords.filter(w => w.difficulty_level === difficulty);
+            if (!difficulties.includes(difficulty)) continue;
+
+            const priorityWords = wordsToChooseFrom.filter(w => w.difficulty_level === difficulty);
             if (priorityWords.length > 0) {
                 priorityWords.sort((a, b) => {
                     if (!a.last_reviewed) return -1;
@@ -251,15 +256,13 @@ const useVocabularyStore = create<VocabularyState>()(
         }
         
         // Fallback to any word if difficulty filtering yields nothing but potential words exist
-        const fallbackWords = potentialWords.length > 0 ? potentialWords : get().words;
-        if(fallbackWords.length === 0) return null;
-
-        const fallbackWord = fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
-        if (fallbackWord) {
-             session.reviewedIds.add(fallbackWord.id);
-             set({ session: { reviewedIds: new Set(session.reviewedIds) } });
-             return fallbackWord;
+        if(wordsToChooseFrom.length > 0) {
+            const fallbackWord = wordsToChooseFrom[Math.floor(Math.random() * wordsToChooseFrom.length)];
+            session.reviewedIds.add(fallbackWord.id);
+            set({ session: { reviewedIds: new Set(session.reviewedIds) } });
+            return fallbackWord;
         }
+
        return null;
       },
       

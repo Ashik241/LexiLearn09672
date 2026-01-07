@@ -1,6 +1,6 @@
-# LexiLearn - Vocabulary Builder
+# WordPro - Vocabulary Builder
 
-LexiLearn is a modern, offline-first vocabulary learning application designed to help users build and revise their vocabulary effectively. Built with Next.js and leveraging local storage, it offers a seamless and fast user experience without requiring a constant internet connection.
+WordPro is a modern, offline-first vocabulary learning application designed to help users build and revise their vocabulary effectively. Built with Next.js and leveraging local storage, it offers a seamless and fast user experience without requiring a constant internet connection.
 
 ## ✨ Features
 
@@ -35,8 +35,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/LexiLearn09672.git
-   cd LexiLearn09672
+   git clone https://github.com/your-username/WordPro09672.git
+   cd WordPro09672
    ```
 
 2. **Install dependencies:**
@@ -76,4 +76,4 @@ This command will generate a static version of your site in the `./out` director
 └── tailwind.config.ts     # Tailwind CSS configuration
 ```
 
-Thank you for checking out LexiLearn!
+Thank you for checking out WordPro!

@@ -1,9 +1,9 @@
 
-# Comprehensive Prompt for Recreating LexiLearn App in Flutter
+# Comprehensive Prompt for Recreating WordPro App in Flutter
 
 ## 1. App Overview & Core Concept
 
-You are tasked with building "LexiLearn," a modern, offline-first vocabulary learning application using Flutter. The primary goal is to help users build, manage, and revise their English vocabulary with Bengali meanings. The app should be clean, intuitive, and highly functional, ensuring a seamless user experience on both Android and iOS. All user data (words and notes) must be stored locally on the device to ensure full offline capability.
+You are tasked with building "WordPro," a modern, offline-first vocabulary learning application using Flutter. The primary goal is to help users build, manage, and revise their English vocabulary with Bengali meanings. The app should be clean, intuitive, and highly functional, ensuring a seamless user experience on both Android and iOS. All user data (words and notes) must be stored locally on the device to ensure full offline capability.
 
 **Core Principles (Mandatory):**
 - **Offline-First:** The app must be 100% functional without an internet connection. All data must be stored locally.
@@ -224,7 +224,7 @@ This class is responsible for managing the connection to the SQLite database. Us
 - **Implementation Details:**
   - Create a private constructor and a static `instance` field.
   - A static `get database` getter will check if the database is already initialized. If not, it will call an internal `_initDB` method.
-  - `_initDB` will use the `path` provider to find the correct directory and then use `openDatabase` from `sqflite` to create/open `lexilearn.db`.
+  - `_initDB` will use the `path` provider to find the correct directory and then use `openDatabase` from `sqflite` to create/open `wordpro.db`.
   - The `onCreate` callback of `openDatabase` will execute the `CREATE TABLE` SQL commands.
 
 - **Table Schemas (SQL):**
@@ -315,7 +315,7 @@ Build the following pages and widgets. Use `Consumer` or `context.watch<MyProvid
   3. **Exam** (`Icons.school`)
   4. **Performance** (`Icons.show_chart`)
   5. **Notes** (`Icons.note`)
-- An `AppBar` with the title "LexiLearn" and two action buttons:
+- An `AppBar` with the title "WordPro" and two action buttons:
   - **Add Word** (`Icons.add_circle_outline`): Opens the "Add Word" dialog.
   - **Add Note** (`Icons.note_add_outlined`): Opens the "Add Note" dialog.
 - The root of the app (`main.dart`) should wrap the `MaterialApp` with `MultiProvider` to make `VocabularyProvider` and `NotesProvider` available throughout the widget tree.
@@ -536,4 +536,4 @@ Here is a recommended file structure for the Flutter project to keep it organize
 
 ---
 
-This prompt provides a complete blueprint for developing the LexiLearn app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database and Provider for state management. Good luck!
+This prompt provides a complete blueprint for developing the WordPro app in Flutter, mirroring the functionality of the existing Next.js version using SQLite as the local database and Provider for state management. Good luck!

@@ -23,7 +23,7 @@ export function Header() {
             <Link href="/" className="flex items-center gap-3">
               <Logo className="h-8 w-8" />
               <span className="text-2xl font-bold font-headline text-foreground tracking-tight">
-                LexiLearn
+                WordPro
               </span>
             </Link>
           </div>

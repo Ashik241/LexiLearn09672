@@ -363,7 +363,7 @@ const useVocabularyStore = create<VocabularyState>()(
       }
     }),
     {
-      name: 'lexilearn-vocabulary',
+      name: 'wordpro-vocabulary',
       storage: createJSONStorage(() => localStorage),
        onRehydrateStorage: () => {
         return (state) => {

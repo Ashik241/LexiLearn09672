@@ -9,7 +9,7 @@ import { Home, List, BarChart3, Notebook, Activity } from 'lucide-react';
 import { Logo } from '@/components/icons/Logo';
 
 export const metadata: Metadata = {
-  title: 'LexiLearn - Build Your Vocabulary',
+  title: 'WordPro - Build Your Vocabulary',
   description: 'An offline-first vocabulary builder PWA made with Next.js.',
   manifest: '/manifest.webmanifest',
 };
@@ -38,7 +38,7 @@ function AppSidebar() {
               <Link href="/" className="flex items-center gap-3">
                 <Logo className="h-8 w-8" />
                 <span className="text-2xl font-bold font-headline text-foreground tracking-tight">
-                  LexiLearn
+                  WordPro
                 </span>
               </Link>
           </SidebarHeader>

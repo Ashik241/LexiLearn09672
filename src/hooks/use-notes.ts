@@ -101,7 +101,7 @@ const useNotesStore = create<NotesState>()(
       },
     }),
     {
-      name: 'lexilearn-notes',
+      name: 'wordpro-notes',
       storage: createJSONStorage(() => localStorage),
        onRehydrateStorage: () => {
         return (state) => {

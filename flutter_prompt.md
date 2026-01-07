@@ -1,6 +1,68 @@
 
 # Comprehensive Prompt for Recreating WordPro App in Flutter
 
+WordPro
+
+Vocabulary Builder
+
+WordPro is a modern, offline-first vocabulary learning application designed to help users build and revise their vocabulary effectively. Built with Next.js, it's a Progressive Web App (PWA) that offers a seamless and fast user experience without requiring a constant internet connection.
+
+## Core Features & Principles
+
+**Offline-First:** All vocabulary data is stored in your browser's local storage, allowing you to use the app anytime, anywhere.
+
+**PWA Ready:** Install the app on your mobile or desktop device for a native-app-like experience, including offline access and performance benefits.
+
+**Light & Dark Mode:** The app includes both light and dark themes to suit user preference.
+
+**Responsive Design:** A clean, modern, and responsive UI that works beautifully on all devices, from small mobile screens to large desktop monitors.
+
+##
+
+Key Functionalities
+
+**Dynamic Learning Sessions:** Engage in various quiz types
+
+to keep learning interesting, including:
+
+MCQ (English to Bengali & Bengali to English)
+
+Spelling Tests (from meaning or audio)
+
+Fill-in-the-Blanks (complete a word or a sentence)
+
+Verb Form Tests (provide V2 and V3 forms)
+
+**Smart Revision:** The app prioritizes words you find
+
+difficult ('Hard' and 'Medium' levels) to ensure effective
+
+revision before introducing new words. **Detailed Word View:** Explore comprehensive details for
+
+each word:
+
+Meaning & In-depth Explanation
+
+Part of Speech & Syllables
+
+Usage Distinction (comparing similar words)
+
+Synonyms & Antonyms
+
+Example Sentences
+
+Verb Forms (for verbs)
+
+**Add & Manage Words:** Easily add new words individually
+
+through a form or in bulk via JSON import. Edit or delete existing words at any time.
+
+**Statistics Dashboard: ** Track your learning progress with
+
+detailed stats on total words, learned words, accuracy, and error types (spelling vs. meaning).
+
+**Notes:** A simple note-taking feature to jot down grammar rules or other language-related thoughts.
+
 ## 1. App Overview & Core Concept
 
 You are tasked with building "WordPro," a modern, offline-first vocabulary learning application using Flutter. The primary goal is to help users build, manage, and revise their English vocabulary with Bengali meanings. The app should be clean, intuitive, and highly functional, ensuring a seamless user experience on both Android and iOS. All user data (words and notes) must be stored locally on the device to ensure full offline capability.

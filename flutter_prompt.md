@@ -5,11 +5,12 @@
 
 You are tasked with building "LexiLearn," a modern, offline-first vocabulary learning application using Flutter. The primary goal is to help users build, manage, and revise their English vocabulary with Bengali meanings. The app should be clean, intuitive, and highly functional, ensuring a seamless user experience on both Android and iOS. All user data (words and notes) must be stored locally on the device to ensure full offline capability.
 
-**Core Principles:**
-- **Offline-First:** The app must be 100% functional without an internet connection.
+**Core Principles (Mandatory):**
+- **Offline-First:** The app must be 100% functional without an internet connection. All data must be stored locally.
 - **State Management:** Use **Provider** for state management. It's a simple, flexible, and widely-used solution that is perfect for this application's needs.
 - **Local Storage:** Use **SQLite** via the `sqflite` package for storing words and notes. SQLite is a robust, serverless, transactional SQL database engine perfect for structured data.
-- **UI/UX:** A clean, modern, and responsive UI. Use Material 3 design principles.
+- **UI/UX:** A clean, modern, and responsive UI. Use Material 3 design principles. The app must support both **Light and Dark themes**.
+- **Responsive Design:** The UI must adapt gracefully to different screen sizes, from small phones to large tablets, without breaking the layout or requiring horizontal scrolling (except for specific elements like data tables).
 
 ---
 

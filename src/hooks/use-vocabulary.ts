@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Word, WordDifficulty, VerbForms, SynonymAntonym } from '@/types';
 import { useEffect } from 'react';
 
-type UpdatePayload = Partial<Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt' | 'spelling_error' | 'meaning_error' | 'grammar_error'>>;
+type UpdatePayload = Partial<Omit<Word, 'id' | 'difficulty_level' | 'is_learned' | 'times_correct' | 'times_incorrect' | 'last_reviewed' | 'createdAt' | 'spelling_error' | 'meaning_error'>>;
 
 interface Filters {
     difficulty: string | null;
@@ -29,7 +29,6 @@ interface VocabularyState {
     errorStats: {
       spelling: number;
       meaning: number;
-      grammar: number;
     }
   };
   session: {
@@ -66,7 +65,7 @@ const useVocabularyStore = create<VocabularyState>()(
         hardWords: 0,
         newWords: 0,
         todayWords: 0,
-        errorStats: { spelling: 0, meaning: 0, grammar: 0 },
+        errorStats: { spelling: 0, meaning: 0 },
       },
       session: {
         reviewedIds: new Set(),
@@ -96,7 +95,6 @@ const useVocabularyStore = create<VocabularyState>()(
           times_incorrect: 0,
           spelling_error: 0,
           meaning_error: 0,
-          grammar_error: 0,
           last_reviewed: now,
           createdAt: now,
           meaning_explanation: wordData.meaning_explanation || '',
@@ -134,7 +132,6 @@ const useVocabularyStore = create<VocabularyState>()(
                 times_incorrect: 0,
                 spelling_error: 0,
                 meaning_error: 0,
-                grammar_error: 0,
                 last_reviewed: now,
                 createdAt: now,
                 meaning_explanation: wordData.meaning_explanation || undefined,
@@ -285,9 +282,8 @@ const useVocabularyStore = create<VocabularyState>()(
         
         const spelling = words.reduce((sum, w) => sum + (w.spelling_error || 0), 0);
         const meaning = words.reduce((sum, w) => sum + (w.meaning_error || 0), 0);
-        const grammar = words.reduce((sum, w) => sum + (w.grammar_error || 0), 0);
 
-        set({ stats: { wordsMastered, totalWords, accuracy, easyWords, mediumWords, hardWords, newWords, todayWords, errorStats: { spelling, meaning, grammar } } });
+        set({ stats: { wordsMastered, totalWords, accuracy, easyWords, mediumWords, hardWords, newWords, todayWords, errorStats: { spelling, meaning } } });
       },
 
       getAllWords: () => {
@@ -379,7 +375,6 @@ const useVocabularyStore = create<VocabularyState>()(
               ...w,
               spelling_error: w.spelling_error || 0,
               meaning_error: w.meaning_error || 0,
-              grammar_error: w.grammar_error || 0,
           })) 
       }),
     }

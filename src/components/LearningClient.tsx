@@ -22,14 +22,13 @@ const getErrorTypeForTest = (testType: Exclude<TestType, 'dynamic'>): ErrorType 
         case 'spelling_listen':
         case 'spelling_meaning':
         case 'fill_blank_word':
+        case 'verb_form': // Can be considered spelling/grammar
             return 'spelling_error';
         case 'mcq':
         case 'bengali-to-english':
         case 'synonym-antonym':
+        case 'fill_blank_sentence': // Can be considered meaning/comprehension
             return 'meaning_error';
-        case 'verb_form':
-        case 'fill_blank_sentence':
-            return 'grammar_error';
         default:
             return 'meaning_error';
     }

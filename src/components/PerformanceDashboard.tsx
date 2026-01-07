@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { useVocabulary } from '@/hooks/use-vocabulary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
 import { Button } from './ui/button';
 import Link from 'next/link';
 
-const COLORS = ['#FF8042', '#00C49F', '#0088FE']; // Orange (Spelling), Green (Meaning), Blue (Grammar)
+const COLORS = ['#FF8042', '#00C49F']; // Orange (Spelling), Green (Meaning)
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -28,8 +28,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 function ErrorDistributionChart() {
     const { stats } = useVocabulary();
-    const { spelling, meaning, grammar } = stats.errorStats;
-    const totalErrors = spelling + meaning + grammar;
+    const { spelling, meaning } = stats.errorStats;
+    const totalErrors = spelling + meaning;
     
     const chartConfig = {
       errors: {
@@ -43,16 +43,11 @@ function ErrorDistributionChart() {
         label: "Meaning",
         color: "hsl(var(--chart-2))",
       },
-      grammar: {
-        label: "Grammar",
-        color: "hsl(var(--chart-3))",
-      },
     }
 
     const data = [
         { name: 'Spelling Errors', value: spelling, fill: 'hsl(var(--chart-1))' },
         { name: 'Meaning Errors', value: meaning, fill: 'hsl(var(--chart-2))' },
-        { name: 'Grammar Errors', value: grammar, fill: 'hsl(var(--chart-3))' },
     ].filter(d => d.value > 0);
 
     if(totalErrors === 0){
@@ -104,7 +99,7 @@ function HardestWordsList() {
     const hardestWords = useMemo(() => {
         const words = getAllWords();
         return words
-            .map(w => ({...w, totalErrors: (w.spelling_error || 0) + (w.meaning_error || 0) + (w.grammar_error || 0) }))
+            .map(w => ({...w, totalErrors: (w.spelling_error || 0) + (w.meaning_error || 0) }))
             .filter(w => w.totalErrors > 0)
             .sort((a, b) => b.totalErrors - a.totalErrors)
             .slice(0, 3);

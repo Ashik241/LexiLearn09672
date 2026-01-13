@@ -17,7 +17,7 @@ export function HardestWordsClient() {
         if (!isInitialized) return [];
         const words = getAllWords();
         return words
-            .map(w => ({...w, totalErrors: (w.spelling_error || 0) + (w.meaning_error || 0) + (w.grammar_error || 0) }))
+            .map(w => ({...w, totalErrors: (w.spelling_error || 0) + (w.meaning_error || 0) }))
             .filter(w => w.totalErrors > 0)
             .sort((a, b) => b.totalErrors - a.totalErrors);
     }, [isInitialized, getAllWords]);

@@ -46,15 +46,23 @@ export default function SpellingTest({ word, onComplete, mode: initialMode }: Sp
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(word.word);
     const voices = window.speechSynthesis.getVoices();
-    let selectedVoice = null;
-
+    let voice;
+    
     if (selectedAccent === 'UK') {
-      selectedVoice = voices.find(voice => voice.lang.includes('en-GB'));
-    } else {
-      selectedVoice = voices.find(voice => voice.lang.includes('en-US'));
+      voice = voices.find(v => v.lang === 'en-GB') || voices.find(v => v.lang.startsWith('en-GB'));
+    } else { // US or default
+      voice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en-US'));
+    }
+
+    // Fallback if specific accent not found
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith('en'));
+    }
+
+    if (voice) {
+      utterance.voice = voice;
     }
     
-    utterance.voice = selectedVoice || voices.find(voice => voice.lang.includes('en')) || voices[0];
     utterance.pitch = 1;
     utterance.rate = rate[0];
     utterance.volume = volume[0];

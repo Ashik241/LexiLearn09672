@@ -141,19 +141,26 @@ export function WordDetailsClient({ wordId }: { wordId: string }) {
 
   const speak = (text: string, selectedAccent: Accent = accent) => {
     if (typeof window.speechSynthesis === 'undefined') return;
-    window.speechSynthesis.cancel(); // Cancel any previous speech
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
     let voice;
+    
     if (selectedAccent === 'UK') {
-      voice = voices.find(v => v.lang.startsWith('en-GB')) || voices.find(v => v.lang.startsWith('en'));
-    } else {
-      voice = voices.find(v => v.lang.startsWith('en-US')) || voices.find(v => v.lang.startsWith('en'));
+      voice = voices.find(v => v.lang === 'en-GB') || voices.find(v => v.lang.startsWith('en-GB'));
+    } else { // US or default
+      voice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en-US'));
+    }
+
+    // Fallback if specific accent not found
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith('en'));
     }
 
     if (voice) {
       utterance.voice = voice;
     }
+    
     utterance.pitch = 1;
     utterance.rate = rate[0];
     utterance.volume = volume[0];
